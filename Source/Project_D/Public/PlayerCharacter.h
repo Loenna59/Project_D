@@ -35,10 +35,23 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, Category = Input)
 	class UInputAction* ia_Turn;
+	
+	UPROPERTY(EditDefaultsOnly, Category = Input)
+	class UInputAction* ia_Move;
+
+	// 이동 속도
+	UPROPERTY(EditAnywhere, Category = PlayerSetting)
+	float walkSpeed = 600.0f;
+
+	// 이동 방향
+	FVector direction;
 
 	// 좌우 회전 입력 처리
 	void Turn(const struct FInputActionValue& inputValue);
 
 	// 상하 회전 입력 처리
 	void LookUp(const struct FInputActionValue& inputValue);
+
+	// 상하좌우 이동 입력 처리
+	void Move(const struct FInputActionValue& inputValue);
 };
