@@ -28,26 +28,26 @@ public:
 
 public:
 	UPROPERTY(EditDefaultsOnly, Category = Input)
-	class UInputMappingContext* imc_FPS;
+	class UInputMappingContext* imc_FPS = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, Category = Input)
-	class UInputAction* ia_LookUp;
+	class UInputAction* ia_LookUp = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, Category = Input)
-	class UInputAction* ia_Turn;
+	class UInputAction* ia_Turn = nullptr;
 	
 	UPROPERTY(EditDefaultsOnly, Category = Input)
-	class UInputAction* ia_Move;
+	class UInputAction* ia_Move = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, Category = Input)
-	class UInputAction* ia_Jump;
+	class UInputAction* ia_Jump = nullptr;
 
 	// 이동 속도
 	UPROPERTY(EditAnywhere, Category = PlayerSetting)
 	float walkSpeed = 600.0f;
 
 	// 이동 방향
-	FVector direction;
+	FVector direction = FVector::ZeroVector;
 
 	// 좌우 회전 입력 처리
 	void Turn(const struct FInputActionValue& inputValue);
