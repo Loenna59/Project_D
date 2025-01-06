@@ -37,10 +37,11 @@ void APlayerCharacter::Tick(float DeltaTime)
 
 	// 플레이어 이동 처리 (등속 운동)
 	direction = FTransform(GetControlRotation()).TransformVector(direction); // 월드 좌표가 아닌 상대 좌표로 방향 설정
-	FVector P0 = GetActorLocation(); // 플레이어의 현재 위치
-	FVector vt = (walkSpeed * direction) * DeltaTime; // (어느 방향으로 어느 정도의 속도로) * 시간
-	FVector P = P0 + vt;
-	SetActorLocation(P);
+	// FVector P0 = GetActorLocation(); // 플레이어의 현재 위치
+	// FVector vt = (walkSpeed * direction) * DeltaTime; // (어느 방향으로 어느 정도의 속도로) * 시간
+	// FVector P = P0 + vt;
+	// SetActorLocation(P);
+	AddMovementInput(direction); // 대신 Character Movement 컴포넌트의 기능 사용
 	direction = FVector::ZeroVector;
 }
 
