@@ -13,19 +13,19 @@ ATestCharacter::ATestCharacter()
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	BoneDurability.Add({ FName("spine_01", 20) });
-	BoneDurability.Add({ FName("upperarm_l", 15) });
-	BoneDurability.Add({ FName("upperarm_r", 15) });
-	BoneDurability.Add({ FName("lowerarm_l", 10) });
-	BoneDurability.Add({ FName("lowerarm_r", 10) });
-	BoneDurability.Add({ FName("hand_l", 5) });
-	BoneDurability.Add({ FName("hand_r", 5) });
-	BoneDurability.Add({ FName("thigh_l", 15) });
-	BoneDurability.Add({ FName("thigh_r", 15) });
-	BoneDurability.Add({ FName("calf_l", 10) });
-	BoneDurability.Add({ FName("calf_r", 10) });
-	BoneDurability.Add({ FName("foot_l", 5) });
-	BoneDurability.Add({ FName("foot_r", 5) });
+	BoneDurability.Add(FName("spine_01"), 20);
+	BoneDurability.Add(FName("upperarm_l"), 15);
+	BoneDurability.Add(FName("upperarm_r"), 15);
+	BoneDurability.Add(FName("lowerarm_l"), 10);
+	BoneDurability.Add(FName("lowerarm_r"), 10);
+	BoneDurability.Add(FName("hand_l"), 5);
+	BoneDurability.Add(FName("hand_r"), 5);
+	BoneDurability.Add(FName("thigh_l"), 15);
+	BoneDurability.Add(FName("thigh_r"), 15);
+	BoneDurability.Add(FName("calf_l"), 10);
+	BoneDurability.Add(FName("calf_r"), 10);
+	BoneDurability.Add(FName("foot_l"), 5);
+	BoneDurability.Add(FName("foot_r"), 5);
 }
 
 void ATestCharacter::Gate(bool bOpen)
@@ -124,6 +124,7 @@ void ATestCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 
 void ATestCharacter::AnyDamage(int32 Damage, const FName& BoneName, AActor* Causer)
 {
+	GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Yellow, BoneName.ToString());
 	AppliedDamage = Damage;
 	HitBoneName = BoneName;
 	DamageCauser = Causer;
@@ -134,6 +135,7 @@ void ATestCharacter::AnyDamage(int32 Damage, const FName& BoneName, AActor* Caus
 	{
 		Dismemberment();
 		ChangeMovementType();
+		ApplyPhysics();
 	}
 }
 
@@ -153,6 +155,8 @@ bool ATestCharacter::ApplyDamageToBone()
 {
 	if (int32* Value = BoneDurability.Find(HitBoneName))
 	{
+		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Cyan, HitBoneName.ToString());
+
 		BoneDurability[HitBoneName] -= AppliedDamage;
 
 		return BoneDurability[HitBoneName] <= 0;

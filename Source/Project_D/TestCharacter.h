@@ -36,9 +36,6 @@ protected:
 	class AActor* DamageCauser;
 
 	UPROPERTY()
-	TMap<FName, int32> BoneDurability;
-
-	UPROPERTY()
 	TArray<FName> BrokenBones;
 
 	UPROPERTY()
@@ -46,6 +43,10 @@ protected:
 
 	UPROPERTY()
 	EMovementState MovementZombie = EMovementState::NORMAL;
+
+public:
+	UPROPERTY(VisibleAnywhere)
+	TMap<FName, int32> BoneDurability;
 
 public:
 	// Sets default values for this character's properties
