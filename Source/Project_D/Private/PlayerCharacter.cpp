@@ -4,6 +4,7 @@
 #include "PlayerCharacter.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 // Sets default values
 APlayerCharacter::APlayerCharacter()
@@ -25,9 +26,12 @@ void APlayerCharacter::BeginPlay()
 		auto subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(pc->GetLocalPlayer());
 		if (subsystem)
 		{
-			subsystem->AddMappingContext(imc_FPS, 0);
+			subsystem->AddMappingContext(ImcFPS, 0);
 		}
 	}
+
+	UCharacterMovementComponent* MovementComponent = GetCharacterMovement();
+	MovementComponent->MaxWalkSpeed = 300.0f;
 }
 
 // Called every frame
@@ -40,13 +44,13 @@ void APlayerCharacter::Tick(float DeltaTime)
 void APlayerCharacter::PlayerMove()
 {
 	// 플레이어 이동 처리 (등속 운동)
-	direction = FTransform(GetControlRotation()).TransformVector(direction); // 월드 좌표가 아닌 상대 좌표로 방향 설정
+	Direction = FTransform(GetControlRotation()).TransformVector(Direction); // 월드 좌표가 아닌 상대 좌표로 방향 설정
 	// FVector P0 = GetActorLocation(); // 플레이어의 현재 위치
 	// FVector vt = (walkSpeed * direction) * DeltaTime; // (어느 방향으로 어느 정도의 속도로) * 시간
 	// FVector P = P0 + vt;
 	// SetActorLocation(P);
-	AddMovementInput(direction); // 대신 Character Movement 컴포넌트의 기능 사용
-	direction = FVector::ZeroVector;
+	AddMovementInput(Direction); // 대신 Character Movement 컴포넌트의 기능 사용
+	Direction = FVector::ZeroVector;
 }
 
 // Called to bind functionality to input
@@ -57,33 +61,49 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	auto PlayerInput = CastChecked<UEnhancedInputComponent>(PlayerInputComponent);
 	if (PlayerInput)
 	{
-		PlayerInput->BindAction(ia_Turn, ETriggerEvent::Triggered, this, &APlayerCharacter::Turn);
-		PlayerInput->BindAction(ia_LookUp, ETriggerEvent::Triggered, this, &APlayerCharacter::LookUp);
-		PlayerInput->BindAction(ia_Move, ETriggerEvent::Triggered, this, &APlayerCharacter::Move);
-		PlayerInput->BindAction(ia_Jump, ETriggerEvent::Triggered, this, &APlayerCharacter::InputJump);
+		PlayerInput->BindAction(IaTurn, ETriggerEvent::Triggered, this, &APlayerCharacter::TriggeredTurn);
+		PlayerInput->BindAction(IaLookUp, ETriggerEvent::Triggered, this, &APlayerCharacter::TriggeredLookUp);
+		PlayerInput->BindAction(IaMove, ETriggerEvent::Triggered, this, &APlayerCharacter::TriggeredMove);
+		PlayerInput->BindAction(IaJump, ETriggerEvent::Triggered, this, &APlayerCharacter::TriggeredJump);
+		PlayerInput->BindAction(IaSprint, ETriggerEvent::Started, this, &APlayerCharacter::StartedSprint);
+		PlayerInput->BindAction(IaSprint, ETriggerEvent::Completed, this, &APlayerCharacter::CompletedSprint);
 	}
 }
 
-void APlayerCharacter::Turn(const FInputActionValue& inputValue)
+void APlayerCharacter::TriggeredTurn(const FInputActionValue& InputValue)
 {
-	float value = inputValue.Get<float>();
-	AddControllerYawInput(value);
+	float Val = InputValue.Get<float>();
+	AddControllerYawInput(Val);
 }
 
-void APlayerCharacter::LookUp(const FInputActionValue& inputValue)
+void APlayerCharacter::TriggeredLookUp(const FInputActionValue& InputValue)
 {
-	float value = inputValue.Get<float>();
-	AddControllerPitchInput(value);
+	float Val = InputValue.Get<float>();
+	AddControllerPitchInput(Val);
 }
 
-void APlayerCharacter::Move(const FInputActionValue& inputValue)
+void APlayerCharacter::TriggeredMove(const FInputActionValue& InputValue)
 {
-	FVector2D value = inputValue.Get<FVector2D>();
-	direction.X = value.X; // 상하 입력 이벤트 처리
-	direction.Y = value.Y; // 좌우 입력 이벤트 처리
+	FVector2D Val = InputValue.Get<FVector2D>();
+	Direction.X = Val.X; // 상하 입력 이벤트 처리
+	Direction.Y = Val.Y; // 좌우 입력 이벤트 처리
 }
 
-void APlayerCharacter::InputJump(const FInputActionValue& inputValue)
+void APlayerCharacter::TriggeredJump(const FInputActionValue& InputValue)
 {
 	Jump(); // Character Classd의 Jump 기능 호출
+}
+
+void APlayerCharacter::StartedSprint(const FInputActionValue& InputValue)
+{
+	UCharacterMovementComponent* MovementComponent = GetCharacterMovement();
+	MovementComponent->MaxWalkSpeed = 600.0f;
+	UE_LOG(LogTemp, Warning, TEXT("StartedSprint"));
+}
+
+void APlayerCharacter::CompletedSprint(const FInputActionValue& InputValue)
+{
+	UCharacterMovementComponent* MovementComponent = GetCharacterMovement();
+	MovementComponent->MaxWalkSpeed = 300.0f;
+	UE_LOG(LogTemp, Warning, TEXT("CompletedSprint"));
 }

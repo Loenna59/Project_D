@@ -22,45 +22,43 @@ protected:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-
+	
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 public:
+	// InputMappingContext & InputAction
 	UPROPERTY(EditDefaultsOnly, Category = Input)
-	class UInputMappingContext* imc_FPS = nullptr;
-
+	class UInputMappingContext* ImcFPS = nullptr;
 	UPROPERTY(EditDefaultsOnly, Category = Input)
-	class UInputAction* ia_LookUp = nullptr;
-
+	class UInputAction* IaLookUp = nullptr;
 	UPROPERTY(EditDefaultsOnly, Category = Input)
-	class UInputAction* ia_Turn = nullptr;
+	class UInputAction* IaTurn = nullptr;
+	UPROPERTY(EditDefaultsOnly, Category = Input)
+	class UInputAction* IaMove = nullptr;
+	UPROPERTY(EditDefaultsOnly, Category = Input)
+	class UInputAction* IaJump = nullptr;
+	UPROPERTY(EditDefaultsOnly, Category = Input)
+	class UInputAction* IaSprint = nullptr;
 	
-	UPROPERTY(EditDefaultsOnly, Category = Input)
-	class UInputAction* ia_Move = nullptr;
-
-	UPROPERTY(EditDefaultsOnly, Category = Input)
-	class UInputAction* ia_Jump = nullptr;
-
-	// 이동 속도
-	UPROPERTY(EditAnywhere, Category = PlayerSetting)
-	float walkSpeed = 600.0f;
-
 	// 이동 방향
-	FVector direction = FVector::ZeroVector;
+	FVector Direction = FVector::ZeroVector;
 
 	// 좌우 회전 입력 처리
-	void Turn(const struct FInputActionValue& inputValue);
+	void TriggeredTurn(const struct FInputActionValue& InputValue);
 
 	// 상하 회전 입력 처리
-	void LookUp(const struct FInputActionValue& inputValue);
+	void TriggeredLookUp(const struct FInputActionValue& InputValue);
 
 	// 상하좌우 이동 입력 처리
-	void Move(const struct FInputActionValue& inputValue);
+	void TriggeredMove(const struct FInputActionValue& InputValue);
 
 	// 점프 입력 처리
-	void InputJump(const struct FInputActionValue& inputValue);
-
+	void TriggeredJump(const struct FInputActionValue& InputValue);
+	
+	void StartedSprint(const struct FInputActionValue& InputValue);
+	void CompletedSprint(const struct FInputActionValue& InputValue);
+	
 	// 플레이어 이동 처리
 	void PlayerMove();
 };
