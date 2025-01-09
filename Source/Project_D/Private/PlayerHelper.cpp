@@ -4,16 +4,15 @@
 #include "PlayerHelper.h"
 
 #include "Kismet/KismetMathLibrary.h"
-#include "Kismet/KismetSystemLibrary.h"
 
 FVector UPlayerHelper::MoveVectorUpward(const FVector& InVector, const float AddValue)
 {
-	return InVector + AddValue;
+	return FVector(InVector.X, InVector.Y, InVector.Z + AddValue);
 }
 
 FVector UPlayerHelper::MoveVectorDownward(const FVector& InVector, const float SubValue)
 {
-	return InVector - SubValue;
+	return FVector(InVector.X, InVector.Y, InVector.Z - SubValue);
 }
 
 FVector UPlayerHelper::MoveVectorForward(const FVector& InVector, const FRotator& InRotation, const float AddValue)
