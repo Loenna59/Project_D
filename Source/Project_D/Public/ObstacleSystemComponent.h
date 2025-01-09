@@ -6,8 +6,7 @@
 #include "Components/ActorComponent.h"
 #include "ObstacleSystemComponent.generated.h"
 
-
-UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
+UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class PROJECT_D_API UObstacleSystemComponent : public UActorComponent
 {
 	GENERATED_BODY()
@@ -23,4 +22,11 @@ protected:
 public:	
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+
+public:
+	// 장애물과의 상호작용을 시도
+	void TriggerOverObstacle() const;
+	
+	// 장애물이 있는지 탐색
+	void DetectObstacle(bool &bDetectOut, FVector &HitLocationOut, FVector &NormalOut) const;
 };

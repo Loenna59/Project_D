@@ -6,6 +6,10 @@
 #include "GameFramework/Character.h"
 #include "PlayerCharacter.generated.h"
 
+class UObstacleSystemComponent;
+class UInputAction;
+class UInputMappingContext;
+
 UCLASS()
 class PROJECT_D_API APlayerCharacter : public ACharacter
 {
@@ -29,17 +33,20 @@ public:
 public:
 	// InputMappingContext & InputAction
 	UPROPERTY(EditDefaultsOnly, Category = Input)
-	class UInputMappingContext* ImcFPS = nullptr;
+	UInputMappingContext* ImcFPS = nullptr;
 	UPROPERTY(EditDefaultsOnly, Category = Input)
-	class UInputAction* IaLookUp = nullptr;
+	UInputAction* IaLookUp = nullptr;
 	UPROPERTY(EditDefaultsOnly, Category = Input)
-	class UInputAction* IaTurn = nullptr;
+	UInputAction* IaTurn = nullptr;
 	UPROPERTY(EditDefaultsOnly, Category = Input)
-	class UInputAction* IaMove = nullptr;
+	UInputAction* IaMove = nullptr;
 	UPROPERTY(EditDefaultsOnly, Category = Input)
-	class UInputAction* IaJump = nullptr;
+	UInputAction* IaJump = nullptr;
 	UPROPERTY(EditDefaultsOnly, Category = Input)
-	class UInputAction* IaSprint = nullptr;
+	UInputAction* IaSprint = nullptr;
+	
+	UPROPERTY(VisibleDefaultsOnly)
+	UObstacleSystemComponent* ObstacleSystemComponent;
 	
 	// 이동 방향
 	FVector Direction = FVector::ZeroVector;
@@ -56,7 +63,7 @@ public:
 	// 점프 입력 처리
 	void TriggeredJump(const struct FInputActionValue& InputValue);
 	
-	void StartedSprint(const struct FInputActionValue& InputValue);
+	void TriggeredSprint(const struct FInputActionValue& InputValue);
 	void CompletedSprint(const struct FInputActionValue& InputValue);
 	
 	// 플레이어 이동 처리

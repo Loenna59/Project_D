@@ -4,6 +4,7 @@
 #include "PlayerCharacter.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "ObstacleSystemComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
 // Sets default values
@@ -13,6 +14,8 @@ APlayerCharacter::APlayerCharacter()
 	PrimaryActorTick.bCanEverTick = true;
 
 	bUseControllerRotationYaw = true;
+
+	ObstacleSystemComponent = CreateDefaultSubobject<UObstacleSystemComponent>(TEXT("ObstacleSystemComponent"));
 }
 
 // Called when the game starts or when spawned
@@ -65,7 +68,7 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 		PlayerInput->BindAction(IaLookUp, ETriggerEvent::Triggered, this, &APlayerCharacter::TriggeredLookUp);
 		PlayerInput->BindAction(IaMove, ETriggerEvent::Triggered, this, &APlayerCharacter::TriggeredMove);
 		PlayerInput->BindAction(IaJump, ETriggerEvent::Triggered, this, &APlayerCharacter::TriggeredJump);
-		PlayerInput->BindAction(IaSprint, ETriggerEvent::Started, this, &APlayerCharacter::StartedSprint);
+		PlayerInput->BindAction(IaSprint, ETriggerEvent::Triggered, this, &APlayerCharacter::TriggeredSprint);
 		PlayerInput->BindAction(IaSprint, ETriggerEvent::Completed, this, &APlayerCharacter::CompletedSprint);
 	}
 }
@@ -94,11 +97,12 @@ void APlayerCharacter::TriggeredJump(const FInputActionValue& InputValue)
 	Jump(); // Character Classd의 Jump 기능 호출
 }
 
-void APlayerCharacter::StartedSprint(const FInputActionValue& InputValue)
+void APlayerCharacter::TriggeredSprint(const FInputActionValue& InputValue)
 {
 	UCharacterMovementComponent* MovementComponent = GetCharacterMovement();
 	MovementComponent->MaxWalkSpeed = 600.0f;
-	UE_LOG(LogTemp, Warning, TEXT("StartedSprint"));
+	UE_LOG(LogTemp, Warning, TEXT("TriggeredSprint"));
+	ObstacleSystemComponent->TriggerOverObstacle();
 }
 
 void APlayerCharacter::CompletedSprint(const FInputActionValue& InputValue)
