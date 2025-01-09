@@ -61,10 +61,10 @@ public:
 	void TriggeredMove(const struct FInputActionValue& InputValue);
 
 	// 점프 입력 처리
-	void TriggeredJump(const struct FInputActionValue& InputValue);
+	void TriggeredJump();
 	
-	void TriggeredSprint(const struct FInputActionValue& InputValue);
-	void CompletedSprint(const struct FInputActionValue& InputValue);
+	void TriggeredSprint();
+	void CompletedSprint();
 	
 	// 플레이어 이동 처리
 	void PlayerMove();

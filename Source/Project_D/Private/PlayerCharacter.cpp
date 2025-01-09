@@ -92,22 +92,20 @@ void APlayerCharacter::TriggeredMove(const FInputActionValue& InputValue)
 	Direction.Y = Val.Y; // 좌우 입력 이벤트 처리
 }
 
-void APlayerCharacter::TriggeredJump(const FInputActionValue& InputValue)
+void APlayerCharacter::TriggeredJump()
 {
 	Jump(); // Character Classd의 Jump 기능 호출
 }
 
-void APlayerCharacter::TriggeredSprint(const FInputActionValue& InputValue)
+void APlayerCharacter::TriggeredSprint()
 {
 	UCharacterMovementComponent* MovementComponent = GetCharacterMovement();
 	MovementComponent->MaxWalkSpeed = 600.0f;
-	UE_LOG(LogTemp, Warning, TEXT("TriggeredSprint"));
 	ObstacleSystemComponent->TriggerOverObstacle();
 }
 
-void APlayerCharacter::CompletedSprint(const FInputActionValue& InputValue)
+void APlayerCharacter::CompletedSprint()
 {
 	UCharacterMovementComponent* MovementComponent = GetCharacterMovement();
 	MovementComponent->MaxWalkSpeed = 300.0f;
-	UE_LOG(LogTemp, Warning, TEXT("CompletedSprint"));
 }
