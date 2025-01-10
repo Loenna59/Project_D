@@ -66,7 +66,8 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	void AnyDamage(int32 Damage, const FName& HitBoneName, class AActor* DamageCauser);
-	
+
+private:
 	void RenameBoneName();
 
 	bool ApplyDamageToBone();
@@ -81,15 +82,13 @@ public:
 
 	void AddForceToBones();
 
-	UFUNCTION(BlueprintCallable)
 	FVector CalculateCrawlForce(float ForwardForce, float UpwardForce);
 	
-	UFUNCTION(BlueprintCallable)
 	FVector CalculateImpulse();
 
-	UFUNCTION(BlueprintCallable)
 	FVector GetBoneSocketLocation();
 
-	UFUNCTION(BlueprintCallable)
 	bool FindBrokenBones(TArray<FName> BoneNames);
+
+	void RegdollDeath();
 };

@@ -2,8 +2,11 @@
 
 
 #include "TestCharacter.h"
+
+#include "EnhancedInputSubsystems.h"
 #include "camera/PlayerCameraManager.h"
 #include "Components/CapsuleComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
 
@@ -13,6 +16,7 @@ ATestCharacter::ATestCharacter()
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+	BoneDurability.Add(FName("head"), 15);
 	BoneDurability.Add(FName("spine_01"), 20);
 	BoneDurability.Add(FName("upperarm_l"), 15);
 	BoneDurability.Add(FName("upperarm_r"), 15);
@@ -143,9 +147,7 @@ void ATestCharacter::RenameBoneName()
 {
 	if (HitBoneName == FName("pelvis") ||
 	HitBoneName == FName("spine_02") ||
-	HitBoneName == FName("spine_03") ||
-	HitBoneName == FName("neck_01") ||
-	HitBoneName == FName("head"))
+	HitBoneName == FName("spine_03"))
 	{
 		HitBoneName = FName("spine_01");
 	}
@@ -225,7 +227,8 @@ void ATestCharacter::ChangeMovementType()
 
 void ATestCharacter::ApplyPhysics()
 {
-	if (HitBoneName == FName("spine_01") ||
+	if (HitBoneName == FName("head") ||
+	HitBoneName == FName("spine_01") ||
 	HitBoneName == FName("thigh_l") ||
 	HitBoneName == FName("thigh_r") ||
 	HitBoneName == FName("foot_l") ||
@@ -329,6 +332,13 @@ bool ATestCharacter::FindBrokenBones(TArray<FName> BoneNames)
 
 	return false;
 }
+
+void ATestCharacter::RegdollDeath()
+{
+	GetMesh()->SetSimulatePhysics(false);
+	GetCharacterMovement()->DisableMovement();
+}
+
 
 
 
