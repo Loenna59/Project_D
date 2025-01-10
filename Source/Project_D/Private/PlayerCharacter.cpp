@@ -5,6 +5,7 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "ObstacleSystemComponent.h"
+#include "Camera/CameraComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
 // Sets default values
@@ -15,6 +16,30 @@ APlayerCharacter::APlayerCharacter()
 
 	bUseControllerRotationYaw = true;
 
+	// 1인칭 카메라 컴포넌트 세팅
+	PlayerCameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("PlayerCameraComponent"));
+	PlayerCameraComponent->SetupAttachment(RootComponent);
+	PlayerCameraComponent->SetRelativeLocation(FVector(-10.0f, 0.0f, 60.0f));
+	PlayerCameraComponent->bUsePawnControlRotation = true;
+
+	// 1인칭 스켈레탈 메시 컴포넌트 세팅
+	PlayerSkeletalMeshComponent = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("PlayerSkeletalMeshComponent"));
+	PlayerSkeletalMeshComponent->SetupAttachment(PlayerCameraComponent);
+	PlayerSkeletalMeshComponent->SetRelativeLocation(FVector(-10.0f, 0.0f, -160.0f));
+	const ConstructorHelpers::FObjectFinder<USkeletalMesh> SkeletalMeshAsset(TEXT(
+		"/Script/Engine.SkeletalMesh'/Game/StarterContent/FirstPersonPrototypes/FirstPersonArms/Character/Mesh/SK_Mannequin_Arms.SK_Mannequin_Arms'"));
+	if (SkeletalMeshAsset.Succeeded())
+	{
+		PlayerSkeletalMeshComponent->SetSkeletalMeshAsset(SkeletalMeshAsset.Object);
+	}
+	ConstructorHelpers::FClassFinder<UAnimInstance> AnimClass(TEXT(
+		"/Script/Engine.AnimBlueprint'/Game/StarterContent/FirstPersonPrototypes/FirstPersonArms/Animations/FirstPerson_AnimBP.FirstPerson_AnimBP_C'"));
+	if (AnimClass.Succeeded())
+	{
+		PlayerSkeletalMeshComponent->AnimClass = AnimClass.Class;
+	}
+	PlayerSkeletalMeshComponent->CastShadow = false;
+	
 	ObstacleSystemComponent = CreateDefaultSubobject<UObstacleSystemComponent>(TEXT("ObstacleSystemComponent"));
 }
 
@@ -23,13 +48,11 @@ void APlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	auto pc = Cast<APlayerController>(Controller);
-	if (pc)
+	if (const auto PlayerController = Cast<APlayerController>(Controller))
 	{
-		auto subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(pc->GetLocalPlayer());
-		if (subsystem)
+		if (const auto Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
 		{
-			subsystem->AddMappingContext(ImcFPS, 0);
+			Subsystem->AddMappingContext(ImcFPS, 0);
 		}
 	}
 
@@ -61,8 +84,7 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-	auto PlayerInput = CastChecked<UEnhancedInputComponent>(PlayerInputComponent);
-	if (PlayerInput)
+	if (const auto PlayerInput = CastChecked<UEnhancedInputComponent>(PlayerInputComponent))
 	{
 		PlayerInput->BindAction(IaTurn, ETriggerEvent::Triggered, this, &APlayerCharacter::TriggeredTurn);
 		PlayerInput->BindAction(IaLookUp, ETriggerEvent::Triggered, this, &APlayerCharacter::TriggeredLookUp);
@@ -75,19 +97,19 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 
 void APlayerCharacter::TriggeredTurn(const FInputActionValue& InputValue)
 {
-	float Val = InputValue.Get<float>();
+	const float Val = InputValue.Get<float>();
 	AddControllerYawInput(Val);
 }
 
 void APlayerCharacter::TriggeredLookUp(const FInputActionValue& InputValue)
 {
-	float Val = InputValue.Get<float>();
+	const float Val = InputValue.Get<float>();
 	AddControllerPitchInput(Val);
 }
 
 void APlayerCharacter::TriggeredMove(const FInputActionValue& InputValue)
 {
-	FVector2D Val = InputValue.Get<FVector2D>();
+	const FVector2D Val = InputValue.Get<FVector2D>();
 	Direction.X = Val.X; // 상하 입력 이벤트 처리
 	Direction.Y = Val.Y; // 좌우 입력 이벤트 처리
 }

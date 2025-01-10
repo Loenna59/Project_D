@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 #include "PlayerCharacter.generated.h"
 
+class UCameraComponent;
 class UObstacleSystemComponent;
 class UInputAction;
 class UInputMappingContext;
@@ -44,9 +45,13 @@ public:
 	UInputAction* IaJump = nullptr;
 	UPROPERTY(EditDefaultsOnly, Category = Input)
 	UInputAction* IaSprint = nullptr;
-	
-	UPROPERTY(VisibleDefaultsOnly)
-	UObstacleSystemComponent* ObstacleSystemComponent;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	UCameraComponent* PlayerCameraComponent = nullptr;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	USkeletalMeshComponent* PlayerSkeletalMeshComponent = nullptr;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	UObstacleSystemComponent* ObstacleSystemComponent = nullptr;
 	
 	// 이동 방향
 	FVector Direction = FVector::ZeroVector;
