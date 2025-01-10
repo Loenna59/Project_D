@@ -26,7 +26,7 @@ void UObstacleSystemComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 }
 
-void UObstacleSystemComponent::TriggerOverObstacle() const
+void UObstacleSystemComponent::TriggerOverObstacle()
 {
 	bool bDetect;
 	FVector HitLocation;
@@ -83,14 +83,14 @@ void UObstacleSystemComponent::DetectObstacle(bool &bOutDetect, FVector &OutHitL
 	OutReverseNormal = UPlayerHelper::ReverseNormal(OutHit.Normal);
 }
 
-void UObstacleSystemComponent::ScanObstacle(const FVector& DetectLocation, const FRotator& ReverseNormal, const bool& bVerbose) const
+void UObstacleSystemComponent::ScanObstacle(const FVector& DetectLocation, const FRotator& ReverseNormal, const bool& bVerbose)
 {
 	const ETraceTypeQuery TraceChannel = UEngineTypes::ConvertToTraceType(ECC_Visibility);
 	FVector Start, End;
 	bool bHit;
 	
-	FHitResult ScanHitResult;
-	// 300만큼 위에서 LineTrace를 시작하여 아래쪽(10 단위)으로 차례대로 수행
+	// (300 - i * 10)만큼 위에서 LineTrace를 수행한다.
+	// 널널하게 20만큼 뒤에서 시작하여 80만큼 앞에까지 선을 긋는다.
 	for (int i = 0; i < 30; i++)
 	{
 		const TArray<AActor*> ActorsToIgnore;
@@ -105,7 +105,7 @@ void UObstacleSystemComponent::ScanObstacle(const FVector& DetectLocation, const
 			false,
 			ActorsToIgnore,
 			bVerbose ? EDrawDebugTrace::ForOneFrame : EDrawDebugTrace::None,
-			ScanHitResult,
+			FacedObstacleTopHitResult,
 			true,
 			FLinearColor::Red,
 			FLinearColor::Green,
@@ -118,20 +118,15 @@ void UObstacleSystemComponent::ScanObstacle(const FVector& DetectLocation, const
 			break;
 		}
 	}
-
-	// 벽에 수직 방향인 normal vector를 Z축으로 180도 회전시킨 결과를 저장
-	FRotator WallRotation = UPlayerHelper::ReverseNormal(ScanHitResult.Normal);
-
-	// Player 방향에서 가장 가까이 있는 SphereTrace
-	FHitResult FirstTopHitResult;
-
-	// Player 방향에서 가장 멀리 있는 SphereTrace
-	FHitResult LastTopHitResult;
 	
+	ObstacleRotation = UPlayerHelper::ReverseNormal(FacedObstacleTopHitResult.Normal);
+	UE_LOG(LogTemp, Warning, TEXT("Pitch: %f, Yaw: %f, Roll: %f"), ObstacleRotation.Pitch, ObstacleRotation.Yaw, ObstacleRotation.Roll); // TRotator ObstacleRotation
+
+	// FacedObstacleTopHitResult.Location을 기준으로 20씩 전진시켜가며 널널하게 위아래로 10만큼씩 범위로 하여 SphereTrace
 	for (int i = 0; i < 10; i++)
 	{
 		const TArray<AActor*> ActorsToIgnore;
-		const FVector A = UPlayerHelper::MoveVectorForward(ScanHitResult.Location, WallRotation, i * 20);
+		const FVector A = UPlayerHelper::MoveVectorForward(FacedObstacleTopHitResult.Location, ObstacleRotation, i * 20);
 		Start = UPlayerHelper::MoveVectorUpward(A, 10.0f);
 		End = UPlayerHelper::MoveVectorDownward(Start, 10.0f);
 		FHitResult OutHit;
@@ -171,10 +166,9 @@ void UObstacleSystemComponent::ScanObstacle(const FVector& DetectLocation, const
 		}
 	}
 
-	// 벽의 끝쪽 지점을 구하고 싶다.
-	FHitResult EndOfWallHitResult;
-	
-	Start = UPlayerHelper::MoveVectorForward(LastTopHitResult.ImpactPoint, WallRotation, 20.0f);
+	// LastTopHitResult는 장애물의 정확한 끝 지점이라고 볼 수 없다. (20씩 전진시켜가며 대강 측정한 것이기 때문)
+	// LastTopHitResult 기준에서 20만큼 앞에 있는 위치를 시작으로 LastTopHitResult 까지 SphereTrace 하면 정확한 장애물의 끝 지점을 찾을 수 있다.
+	Start = UPlayerHelper::MoveVectorForward(LastTopHitResult.ImpactPoint, ObstacleRotation, 20.0f);
 	End = LastTopHitResult.ImpactPoint;
 	const TArray<AActor*> ActorsToIgnore;
 	bHit = UKismetSystemLibrary::SphereTraceSingle(
@@ -186,18 +180,17 @@ void UObstacleSystemComponent::ScanObstacle(const FVector& DetectLocation, const
 		false,
 		ActorsToIgnore,
 		bVerbose ? EDrawDebugTrace::ForOneFrame : EDrawDebugTrace::None,
-		EndOfWallHitResult,
+		EndOfObstacleHitResult,
 		true,
 		FLinearColor::Red,
 		FLinearColor::Green,
 		5.0f
 	);
 
-	// 뛰어넘을 때(Vaulting) 착지 지점을 구하고 싶다.
-	FHitResult VaultLandingHitResult;
+	// 장애물의 정확한 끝 지점을 찾았다면 해당 지점부터 60만큼 앞에 있는 지점을 기준으로 시작하여 180만큼 아래에 있는 위치까지 SphereTrace
 	if (true == bHit)
 	{
-		Start = UPlayerHelper::MoveVectorForward(EndOfWallHitResult.ImpactPoint, WallRotation, 60.0f);
+		Start = UPlayerHelper::MoveVectorForward(EndOfObstacleHitResult.ImpactPoint, ObstacleRotation, 60.0f);
 		End = UPlayerHelper::MoveVectorDownward(Start, 180.0f);
 		UKismetSystemLibrary::SphereTraceSingle(
 			GetWorld(),
