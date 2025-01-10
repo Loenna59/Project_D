@@ -6,6 +6,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "ObstacleSystemComponent.h"
 #include "Camera/CameraComponent.h"
+#include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
 // Sets default values
@@ -93,6 +94,16 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 		PlayerInput->BindAction(IaSprint, ETriggerEvent::Triggered, this, &APlayerCharacter::TriggeredSprint);
 		PlayerInput->BindAction(IaSprint, ETriggerEvent::Completed, this, &APlayerCharacter::CompletedSprint);
 	}
+}
+
+USkeletalMeshComponent* APlayerCharacter::GetMesh()
+{
+	return PlayerSkeletalMeshComponent;
+}
+
+float APlayerCharacter::GetBottomZ()
+{
+	return GetActorLocation().Z - GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
 }
 
 void APlayerCharacter::TriggeredTurn(const FInputActionValue& InputValue)

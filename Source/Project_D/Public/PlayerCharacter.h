@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PlayerInterface.h"
 #include "GameFramework/Character.h"
 #include "PlayerCharacter.generated.h"
 
@@ -12,7 +13,7 @@ class UInputAction;
 class UInputMappingContext;
 
 UCLASS()
-class PROJECT_D_API APlayerCharacter : public ACharacter
+class PROJECT_D_API APlayerCharacter : public ACharacter, public IPlayerInterface
 {
 	GENERATED_BODY()
 
@@ -30,6 +31,13 @@ public:
 	
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+	
+	
+// Implement IPlayerInterface
+public:
+	virtual USkeletalMeshComponent* GetMesh() override;
+	virtual float GetBottomZ() override;
 
 public:
 	// InputMappingContext & InputAction

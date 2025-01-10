@@ -4,6 +4,7 @@
 #include "ObstacleSystemComponent.h"
 
 #include "PlayerHelper.h"
+#include "PlayerInterface.h"
 #include "Kismet/KismetSystemLibrary.h"
 
 // Sets default values for this component's properties
@@ -18,7 +19,23 @@ UObstacleSystemComponent::UObstacleSystemComponent()
 void UObstacleSystemComponent::BeginPlay()
 {
 	Super::BeginPlay();
+
+	Initialize();
 }
+
+void UObstacleSystemComponent::Initialize()
+{
+	PlayerInterface = Cast<IPlayerInterface>(GetOwner());
+	if (PlayerInterface)
+	{
+		PlayerMesh = PlayerInterface->GetMesh();
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("PlayerInterface is nullptr"));
+	}
+}
+
 
 // Called every frame
 void UObstacleSystemComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -35,6 +52,7 @@ void UObstacleSystemComponent::TriggerOverObstacle()
 	if (bDetect)
 	{
 		ScanObstacle(HitLocation, ReverseNormal, true);
+		MeasureObstacle(true);
 	}
 }
 
@@ -120,7 +138,6 @@ void UObstacleSystemComponent::ScanObstacle(const FVector& DetectLocation, const
 	}
 	
 	ObstacleRotation = UPlayerHelper::ReverseNormal(FacedObstacleTopHitResult.Normal);
-	UE_LOG(LogTemp, Warning, TEXT("Pitch: %f, Yaw: %f, Roll: %f"), ObstacleRotation.Pitch, ObstacleRotation.Yaw, ObstacleRotation.Roll); // TRotator ObstacleRotation
 
 	// FacedObstacleTopHitResult.Location을 기준으로 20씩 전진시켜가며 널널하게 위아래로 10만큼씩 범위로 하여 SphereTrace
 	for (int i = 0; i < 10; i++)
@@ -212,5 +229,24 @@ void UObstacleSystemComponent::ScanObstacle(const FVector& DetectLocation, const
 		{
 			
 		}
+	}
+}
+
+void UObstacleSystemComponent::MeasureObstacle(const bool& bVerbose)
+{
+	// 만약 앞에 벽이 있는게 확실하다면
+	if (FacedObstacleTopHitResult.bBlockingHit && FirstTopHitResult.bBlockingHit)
+	{
+		// Player 전방에 있는 벽의 높이 = 장애물 꼭대기 위치의 Z좌표 - Player의 발 위치 Z좌표
+		ObstacleHeight = FirstTopHitResult.ImpactPoint.Z - PlayerInterface->GetBottomZ();
+		
+		if (bVerbose)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("감지된 장애물의 높이 : %f"), ObstacleHeight);
+		}
+	}
+	else
+	{
+		ObstacleHeight = 0.0f;
 	}
 }
