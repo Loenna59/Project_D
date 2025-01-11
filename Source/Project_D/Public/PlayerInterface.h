@@ -26,6 +26,9 @@ class PROJECT_D_API IPlayerInterface
 public:
 	// 
 	virtual USkeletalMeshComponent* GetMesh() = 0;
+
+	//
+	virtual UCapsuleComponent* GetCapsule() = 0;
 	
 	/// Player 바닥 위치의 Z좌표값 반환
 	/// @return Player의 발이 지면으로부터 Z축으로 얼마만큼 떨어져있는지 나타내는 값

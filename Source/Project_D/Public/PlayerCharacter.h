@@ -37,6 +37,7 @@ public:
 // Implement IPlayerInterface
 public:
 	virtual USkeletalMeshComponent* GetMesh() override;
+	virtual UCapsuleComponent* GetCapsule() override;
 	virtual float GetBottomZ() override;
 
 public:

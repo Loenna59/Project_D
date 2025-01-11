@@ -5,6 +5,8 @@
 
 #include "PlayerHelper.h"
 #include "PlayerInterface.h"
+#include "Components/CapsuleComponent.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "Kismet/KismetSystemLibrary.h"
 
 // Sets default values for this component's properties
@@ -29,6 +31,7 @@ void UObstacleSystemComponent::Initialize()
 	if (PlayerInterface)
 	{
 		PlayerMesh = PlayerInterface->GetMesh();
+		PlayerCapsule = PlayerInterface->GetCapsule();
 	}
 	else
 	{
@@ -41,9 +44,31 @@ void UObstacleSystemComponent::Initialize()
 void UObstacleSystemComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+	
+	const float Radius = PlayerCapsule->GetScaledCapsuleRadius();
+	FVector StartEnd = PlayerCapsule->GetComponentLocation();
+	StartEnd.Z = PlayerInterface->GetBottomZ();
+	const TArray<AActor*> ActorsToIgnore;
+	FHitResult HitResult;
+	bool bHit = UKismetSystemLibrary::SphereTraceSingle(
+		GetWorld(),
+		StartEnd,
+		StartEnd,
+		Radius,
+		UEngineTypes::ConvertToTraceType(ECC_Visibility),
+		false,
+		ActorsToIgnore,
+		EDrawDebugTrace::ForOneFrame,
+		HitResult,
+		true,
+		FLinearColor::Red,
+		FLinearColor::Green,
+		5.0f
+	);
+	bIsOnLand = true;
 }
 
-void UObstacleSystemComponent::TriggerOverObstacle()
+void UObstacleSystemComponent::TriggerInteractObstacle()
 {
 	bool bDetect;
 	FVector HitLocation;
@@ -53,6 +78,7 @@ void UObstacleSystemComponent::TriggerOverObstacle()
 	{
 		ScanObstacle(HitLocation, ReverseNormal, true);
 		MeasureObstacle(true);
+		TryInteractObstacle(true);
 	}
 }
 
@@ -248,5 +274,55 @@ void UObstacleSystemComponent::MeasureObstacle(const bool& bVerbose)
 	else
 	{
 		ObstacleHeight = 0.0f;
+	}
+}
+
+void UObstacleSystemComponent::TryInteractObstacle(const bool& bVerbose) const
+{
+	const AActor* Owner = GetOwner();
+	const FVector Velocity = Owner->GetVelocity();
+	const double SizeXY = UKismetMathLibrary::VSizeXY(Velocity);
+
+	// 캐릭터의 수평속도가 5 이하라면 서 있는 상태라고 판단
+	bool bIsStanding = UKismetMathLibrary::NearlyEqual_FloatFloat(SizeXY, 0.0f, 5.0f);
+	
+	if (FirstTopHitResult.bBlockingHit)
+	{
+		if (bIsOnLand)
+		{
+			// TODO: 각 행동에 필요한 높이 값을 에디터에서 수정할 수 있도록 UPROPERTY 세팅
+			if (ObstacleHeight <= 300.0f)
+			{
+				if (bIsStanding)
+				{
+					// Mantle 동작 수행
+					if (bVerbose) UE_LOG(LogTemp, Warning, TEXT("Mantle 동작 수행"));
+				}
+				else
+				{
+					// Vault 동작 수행
+					if (ObstacleHeight > 100.0f)
+					{
+						// Front Flip 동작 수행
+						if (bVerbose) UE_LOG(LogTemp, Warning, TEXT("Front Flip 동작 수행"));
+					}
+					else if (ObstacleHeight > 90.0f)
+					{
+						// Two Hand Vault 동작 수행
+						if (bVerbose) UE_LOG(LogTemp, Warning, TEXT("Two Hand Vault 동작 수행"));
+					}
+					else
+					{
+						// One Hand Vault 동작 수행
+						if (bVerbose) UE_LOG(LogTemp, Warning, TEXT("One Hand Vault 동작 수행"));
+					}
+				}
+			}
+			else
+			{
+				// 너무 높은 벽
+				if (bVerbose) UE_LOG(LogTemp, Warning, TEXT("벽이 너무 높음"));
+			}
+		}
 	}
 }

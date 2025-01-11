@@ -6,6 +6,7 @@
 #include "Components/ActorComponent.h"
 #include "ObstacleSystemComponent.generated.h"
 
+class UCapsuleComponent;
 class IPlayerInterface;
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
@@ -29,6 +30,8 @@ public:
 	IPlayerInterface* PlayerInterface = nullptr;
 	UPROPERTY()
 	USkeletalMeshComponent* PlayerMesh = nullptr;
+	UPROPERTY()
+	UCapsuleComponent* PlayerCapsule = nullptr;
 	
 	// 현재 마주보고 있는 장애물의 가장 높은 지점
 	FHitResult FacedObstacleTopHitResult;
@@ -44,11 +47,13 @@ public:
 	FHitResult VaultLandingHitResult;
 	// 장애물의 높이 (장애물의 실제 높이가 아닌 Player의 발 위치부터 장애물 꼭대기까지의 높이)
 	float ObstacleHeight = 0.0f;
+	// 현재 Player가 지면에 서 있는지 여부
+	float bIsOnLand;
 	
 	void Initialize();
 	
 	// 장애물과의 상호작용을 시도
-	void TriggerOverObstacle();
+	void TriggerInteractObstacle();
 
 	/// 플레이어 앞에 장애물이 있는지 탐색
 	/// @param bOutDetect 
@@ -66,4 +71,7 @@ public:
 	/// 장애물의 높이를 계산
 	/// @param bVerbose 실시간으로 계산된 장애물의 높이를 Debug 할 것인지 여부
 	void MeasureObstacle(const bool& bVerbose);
+
+	// 
+	void TryInteractObstacle(const bool& bVerbose) const;
 };
