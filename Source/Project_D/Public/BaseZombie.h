@@ -57,6 +57,9 @@ public:
 
 	UPROPERTY()
 	class UZombieFSMComponent* FSM;
+
+	UPROPERTY(EditAnywhere, blueprintReadWrite)
+	class USkeletalMeshComponent* BodyMesh;
 	
 	UFUNCTION()
 	virtual void AnyDamage(int32 Damage, const FName& HitBoneName, class AActor* DamageCauser);
