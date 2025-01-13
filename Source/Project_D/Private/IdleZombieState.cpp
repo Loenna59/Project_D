@@ -3,11 +3,13 @@
 
 #include "IdleZombieState.h"
 
+#include "Kismet/KismetSystemLibrary.h"
+
 void UIdleZombieState::OnEnter(class ABaseZombie* Zombie)
 {
 	if (Zombie)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Idle On Enter"));
+		UKismetSystemLibrary::PrintString(GetWorld(), "Idle On Enter");
 	}
 }
 
@@ -15,7 +17,7 @@ void UIdleZombieState::OnUpdate(class ABaseZombie* Zombie)
 {
 	if (Zombie)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Idle On Update"));
+		// UKismetSystemLibrary::PrintString(GetWorld(), "Idle On Update");
 	}
 }
 
@@ -23,6 +25,6 @@ void UIdleZombieState::OnExit(class ABaseZombie* Zombie)
 {
 	if (Zombie)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Idle On Exit"));
+		UKismetSystemLibrary::PrintString(GetWorld(), "Idle On Exit");
 	}
 }

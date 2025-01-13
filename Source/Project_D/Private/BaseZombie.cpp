@@ -2,8 +2,12 @@
 
 
 #include "BaseZombie.h"
+
+#include "KismetTraceUtils.h"
 #include "Components/CapsuleComponent.h"
+#include "Components/SphereComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "Project_D/Project_DCharacter.h"
 
 // Sets default values
 ABaseZombie::ABaseZombie()
@@ -12,6 +16,17 @@ ABaseZombie::ABaseZombie()
 	PrimaryActorTick.bCanEverTick = true;
 
 	BodyMesh = CreateDefaultSubobject<USkeletalMeshComponent>("BodyMesh");
+	BodyMesh->SetupAttachment(GetRootComponent());
+
+	// if (UCapsuleComponent* const Capsule = GetCapsuleComponent())
+	// {
+	// 	Capsule->SetCollisionProfileName(TEXT("Enemy"));
+	// 	if (USkeletalMeshComponent* const MeshComponent = GetMesh())
+	// 	{
+	// 		MeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	// 	}
+	// }
+	
 }
 
 void ABaseZombie::SetupInternal()
@@ -49,6 +64,7 @@ void ABaseZombie::BeginPlay()
 
 	FSM = NewObject<UZombieFSMComponent>(this);
 	AddOwnedComponent(FSM);
+	FSM->RegisterComponent();
 
 	FSM->ChangeState(EEnemyState::IDLE, this);
 }
@@ -57,6 +73,61 @@ void ABaseZombie::BeginPlay()
 void ABaseZombie::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	
+	if (UWorld* const World = GetWorld())
+	{
+		TArray<FHitResult> HitResult;
+		FCollisionQueryParams Params;
+		Params.AddIgnoredSourceObject(this);
+		
+		bool bHit = World->SweepMultiByChannel(
+			HitResult,
+			GetActorLocation(),
+			GetActorLocation(),
+			FQuat::Identity,
+			ECC_EngineTraceChannel2, // "Player"
+			FCollisionShape::MakeSphere(500),
+			Params
+		);
+
+		DrawDebugSphereTraceMulti(
+			World,
+			GetActorLocation(),
+			GetActorLocation(),
+			500,
+			EDrawDebugTrace::ForOneFrame,
+			bHit,
+			HitResult,
+			FColor::Yellow,
+			FColor::Green,
+			1.f
+		);
+
+		if (bHit)
+		{
+			bool HitPlayer = false;
+			for (FHitResult Hit : HitResult)
+			{
+				auto HitActor = Hit.GetActor();
+				if (HitActor && HitActor->IsA<AProject_DCharacter>())
+				{
+					FSM->ChangeState(EEnemyState::WALK, this);
+					HitPlayer = true;
+					break;
+					//UKismetSystemLibrary::PrintString(GetWorld(), HitActor->GetActorNameOrLabel());
+				}
+			}
+
+			if (!HitPlayer)
+			{
+				FSM->ChangeState(EEnemyState::IDLE, this);
+			}
+		}
+		else
+		{
+			FSM->ChangeState(EEnemyState::IDLE, this);
+		}
+	}
 }
 
 // Called to bind functionality to input
@@ -71,6 +142,8 @@ void ABaseZombie::AnyDamage(int32 Damage, const FName& HitBoneName, class AActor
 	this->Attacker = DamageCauser;
 	
 	FName BoneName = RenameBoneName(HitBoneName);
+
+	UKismetSystemLibrary::PrintString(GetWorld(), BoneName.ToString());
 
 	if (ApplyDamageToBone(BoneName, Damage))
 	{

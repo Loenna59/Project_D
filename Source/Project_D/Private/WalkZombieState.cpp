@@ -3,11 +3,13 @@
 
 #include "WalkZombieState.h"
 
+#include "Kismet/KismetSystemLibrary.h"
+
 void UWalkZombieState::OnEnter(ABaseZombie* Zombie)
 {
 	if (Zombie)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Walk On Enter"));
+		UKismetSystemLibrary::PrintString(GetWorld(), "Walk On Enter");
 	}
 }
 
@@ -15,7 +17,7 @@ void UWalkZombieState::OnUpdate(ABaseZombie* Zombie)
 {
 	if (Zombie)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Walk On Update"));
+		// UKismetSystemLibrary::PrintString(GetWorld(), "Walk On Update");
 	}
 }
 
@@ -23,6 +25,6 @@ void UWalkZombieState::OnExit(ABaseZombie* Zombie)
 {
 	if (Zombie)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Walk On Exit"));
+		UKismetSystemLibrary::PrintString(GetWorld(), "Walk On Exit");
 	}
 }

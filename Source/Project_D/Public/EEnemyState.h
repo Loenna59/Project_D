@@ -14,3 +14,24 @@ enum class EEnemyState : uint8
 	CLAWING,
 	DEATH
 };
+
+FORCEINLINE const FString EnumToString(EEnemyState State)
+{
+	switch (State)
+	{
+	case EEnemyState::NONE:
+		return "None";
+	case EEnemyState::IDLE:
+		return "Idle";
+	case EEnemyState::WALK:
+		return "Walk";
+	case EEnemyState::ATTACK:
+		return "Attack";
+	case EEnemyState::CLAWING:
+		return "Clawing";
+	case EEnemyState::DEATH:
+		return "Death";
+	}
+
+	return "";
+}

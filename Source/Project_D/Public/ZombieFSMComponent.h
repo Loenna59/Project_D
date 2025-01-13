@@ -29,13 +29,16 @@ protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
-	void SetupState();
+	void SetupState(ABaseZombie* Zombie);
 
 	UPROPERTY()
 	EEnemyState CurrentState = EEnemyState::NONE;
 
 	UPROPERTY()
 	TMap<EEnemyState, TScriptInterface<IZombieState>> StateMap;
+
+	UPROPERTY()
+	class ABaseZombie* ZombieCharacter;
 
 public:
 	// Called every frame

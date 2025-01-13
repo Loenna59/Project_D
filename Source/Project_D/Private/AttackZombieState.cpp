@@ -3,11 +3,13 @@
 
 #include "AttackZombieState.h"
 
+#include "Kismet/GameplayStatics.h"
+
 void UAttackZombieState::OnEnter(ABaseZombie* Zombie)
 {
 	if (Zombie)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Attack On Enter"));
+		UKismetSystemLibrary::PrintString(GetWorld(), "Attack On Enter");
 	}
 }
 
@@ -15,7 +17,7 @@ void UAttackZombieState::OnUpdate(ABaseZombie* Zombie)
 {
 	if (Zombie)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Attack On Update"));
+		UKismetSystemLibrary::PrintString(GetWorld(), "Attack On Update");
 	}
 }
 
@@ -23,6 +25,6 @@ void UAttackZombieState::OnExit(ABaseZombie* Zombie)
 {
 	if (Zombie)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Attack On Exit"));
+		UKismetSystemLibrary::PrintString(GetWorld(), "Attack On Exit");
 	}
 }

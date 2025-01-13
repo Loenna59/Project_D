@@ -55,7 +55,7 @@ public:
 	UPROPERTY(EditAnywhere)
 	AActor* Attacker;
 
-	UPROPERTY()
+	UPROPERTY(EditAnywhere)
 	class UZombieFSMComponent* FSM;
 
 	UPROPERTY(EditAnywhere, blueprintReadWrite)

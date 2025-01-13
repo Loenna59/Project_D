@@ -3,6 +3,8 @@
 
 #include "ZombieFSMComponent.h"
 
+#include "Kismet/KismetSystemLibrary.h"
+
 
 // Sets default values for this component's properties
 UZombieFSMComponent::UZombieFSMComponent()
@@ -10,7 +12,7 @@ UZombieFSMComponent::UZombieFSMComponent()
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
-
+	
 	// ...
 }
 
@@ -18,10 +20,14 @@ UZombieFSMComponent::UZombieFSMComponent()
 void UZombieFSMComponent::BeginPlay()
 {
 	Super::BeginPlay();
+
+	SetComponentTickEnabled(true);
 }
 
-void UZombieFSMComponent::SetupState()
+void UZombieFSMComponent::SetupState(ABaseZombie* Zombie)
 {
+	ZombieCharacter = Zombie;
+	
 	StateMap.Add(EEnemyState::IDLE, NewObject<UIdleZombieState>(this));
 	StateMap.Add(EEnemyState::WALK, NewObject<UWalkZombieState>(this));
 	StateMap.Add(EEnemyState::ATTACK, NewObject<UAttackZombieState>(this));
@@ -34,7 +40,7 @@ void UZombieFSMComponent::ChangeState(EEnemyState NewState, ABaseZombie* Zombie)
 	{
 		bSetupCompleted = true;
 
-		SetupState();
+		SetupState(Zombie);
 	}
 	
 	if (CurrentState != NewState)
@@ -45,9 +51,11 @@ void UZombieFSMComponent::ChangeState(EEnemyState NewState, ABaseZombie* Zombie)
 		}
 		
 		CurrentState = NewState;
+
 		
 		if (StateMap.Contains(CurrentState))
 		{
+            UKismetSystemLibrary::PrintString(GetWorld(), EnumToString(CurrentState));
 			StateMap[CurrentState]->OnEnter(Zombie);
 		}
 	}
@@ -60,6 +68,11 @@ void UZombieFSMComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	// ...
+	// UKismetSystemLibrary::PrintString(GetWorld(), EnumToString(CurrentState));
+ 
+	if (ZombieCharacter && StateMap.Contains((CurrentState)))
+	{
+		StateMap[CurrentState]->OnUpdate(ZombieCharacter);
+	}
 }
 
