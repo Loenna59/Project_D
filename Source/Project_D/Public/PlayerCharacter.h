@@ -54,11 +54,7 @@ public:
 	UInputAction* IaJump = nullptr;
 	UPROPERTY(EditDefaultsOnly, Category = Input)
 	UInputAction* IaSprint = nullptr;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-	UCameraComponent* PlayerCameraComponent = nullptr;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-	USkeletalMeshComponent* PlayerSkeletalMeshComponent = nullptr;
+	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	UObstacleSystemComponent* ObstacleSystemComponent = nullptr;
 	

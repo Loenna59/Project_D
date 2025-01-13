@@ -16,30 +16,6 @@ APlayerCharacter::APlayerCharacter()
 	PrimaryActorTick.bCanEverTick = true;
 
 	bUseControllerRotationYaw = true;
-
-	// 1인칭 카메라 컴포넌트 세팅
-	PlayerCameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("PlayerCameraComponent"));
-	PlayerCameraComponent->SetupAttachment(RootComponent);
-	PlayerCameraComponent->SetRelativeLocation(FVector(-10.0f, 0.0f, 60.0f));
-	PlayerCameraComponent->bUsePawnControlRotation = true;
-
-	// 1인칭 스켈레탈 메시 컴포넌트 세팅
-	PlayerSkeletalMeshComponent = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("PlayerSkeletalMeshComponent"));
-	PlayerSkeletalMeshComponent->SetupAttachment(PlayerCameraComponent);
-	PlayerSkeletalMeshComponent->SetRelativeLocation(FVector(-10.0f, 0.0f, -160.0f));
-	const ConstructorHelpers::FObjectFinder<USkeletalMesh> SkeletalMeshAsset(TEXT(
-		"/Script/Engine.SkeletalMesh'/Game/StarterContent/FirstPersonPrototypes/FirstPersonArms/Character/Mesh/SK_Mannequin_Arms.SK_Mannequin_Arms'"));
-	if (SkeletalMeshAsset.Succeeded())
-	{
-		PlayerSkeletalMeshComponent->SetSkeletalMeshAsset(SkeletalMeshAsset.Object);
-	}
-	ConstructorHelpers::FClassFinder<UAnimInstance> AnimClass(TEXT(
-		"/Script/Engine.AnimBlueprint'/Game/StarterContent/FirstPersonPrototypes/FirstPersonArms/Animations/FirstPerson_AnimBP.FirstPerson_AnimBP_C'"));
-	if (AnimClass.Succeeded())
-	{
-		PlayerSkeletalMeshComponent->AnimClass = AnimClass.Class;
-	}
-	PlayerSkeletalMeshComponent->CastShadow = false;
 	
 	ObstacleSystemComponent = CreateDefaultSubobject<UObstacleSystemComponent>(TEXT("ObstacleSystemComponent"));
 }
@@ -98,7 +74,7 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 
 USkeletalMeshComponent* APlayerCharacter::GetMesh()
 {
-	return PlayerSkeletalMeshComponent;
+	return Super::GetMesh();
 }
 
 UCapsuleComponent* APlayerCharacter::GetCapsule()
