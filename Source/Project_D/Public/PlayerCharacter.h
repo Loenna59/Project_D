@@ -38,6 +38,7 @@ public:
 public:
 	virtual USkeletalMeshComponent* GetMesh() override;
 	virtual UCapsuleComponent* GetCapsule() override;
+	virtual UCharacterMovementComponent* GetCharacterMovement() override;
 	virtual float GetBottomZ() override;
 
 public:

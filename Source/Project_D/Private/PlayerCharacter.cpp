@@ -79,7 +79,12 @@ USkeletalMeshComponent* APlayerCharacter::GetMesh()
 
 UCapsuleComponent* APlayerCharacter::GetCapsule()
 {
-	return GetCapsuleComponent();
+	return Super::GetCapsuleComponent();
+}
+
+UCharacterMovementComponent* APlayerCharacter::GetCharacterMovement()
+{
+	return Super::GetCharacterMovement();
 }
 
 float APlayerCharacter::GetBottomZ()
@@ -115,7 +120,10 @@ void APlayerCharacter::TriggeredSprint()
 {
 	UCharacterMovementComponent* MovementComponent = GetCharacterMovement();
 	MovementComponent->MaxWalkSpeed = 600.0f;
-	ObstacleSystemComponent->TriggerInteractObstacle();
+	if (true == ObstacleSystemComponent->bCanInteract)
+	{
+		ObstacleSystemComponent->TriggerInteractObstacle();
+	}
 }
 
 void APlayerCharacter::CompletedSprint()

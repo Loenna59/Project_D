@@ -6,6 +6,7 @@
 #include "PlayerHelper.h"
 #include "PlayerInterface.h"
 #include "Components/CapsuleComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Kismet/KismetSystemLibrary.h"
 
@@ -32,6 +33,7 @@ void UObstacleSystemComponent::Initialize()
 	{
 		PlayerMesh = PlayerInterface->GetMesh();
 		PlayerCapsule = PlayerInterface->GetCapsule();
+		PlayerMovement = PlayerInterface->GetCharacterMovement();
 	}
 	else
 	{
@@ -277,7 +279,7 @@ void UObstacleSystemComponent::MeasureObstacle(const bool& bVerbose)
 	}
 }
 
-void UObstacleSystemComponent::TryInteractObstacle(const bool& bVerbose) const
+void UObstacleSystemComponent::TryInteractObstacle(const bool& bVerbose)
 {
 	const AActor* Owner = GetOwner();
 	const FVector Velocity = Owner->GetVelocity();
@@ -305,16 +307,19 @@ void UObstacleSystemComponent::TryInteractObstacle(const bool& bVerbose) const
 					{
 						// Front Flip 동작 수행
 						if (bVerbose) UE_LOG(LogTemp, Warning, TEXT("Front Flip 동작 수행"));
+						TryVault(EVaults::FrontFlip);
 					}
 					else if (ObstacleHeight > 90.0f)
 					{
 						// Two Hand Vault 동작 수행
 						if (bVerbose) UE_LOG(LogTemp, Warning, TEXT("Two Hand Vault 동작 수행"));
+						TryVault(EVaults::TwoHandVault);
 					}
 					else
 					{
 						// One Hand Vault 동작 수행
 						if (bVerbose) UE_LOG(LogTemp, Warning, TEXT("One Hand Vault 동작 수행"));
+						TryVault(EVaults::OneHandVault);
 					}
 				}
 			}
@@ -325,4 +330,52 @@ void UObstacleSystemComponent::TryInteractObstacle(const bool& bVerbose) const
 			}
 		}
 	}
+}
+
+void UObstacleSystemComponent::OnVaultMontageEnded(UAnimMontage* Montage, bool bInterrupted)
+{
+	bCanInteract = true;
+
+	// Delegate 해제
+	UAnimInstance* AnimInstance = PlayerMesh->GetAnimInstance();
+	AnimInstance->OnMontageEnded.RemoveDynamic(this, &UObstacleSystemComponent::OnVaultMontageEnded);
+	AnimInstance->OnMontageBlendingOut.RemoveDynamic(this, &UObstacleSystemComponent::OnVaultMontageBlendingOut);
+}
+
+void UObstacleSystemComponent::OnVaultMontageBlendingOut(UAnimMontage* Montage, bool bInterrupted)
+{
+	PlayerCapsule->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	PlayerMovement->SetMovementMode(MOVE_Walking);
+}
+
+void UObstacleSystemComponent::TryVault(const EVaults VaultType)
+{
+	bCanInteract = false;
+	
+	// 장애물과의 상호작용 액션이 동작하는 중에 충돌 처리를 하지 않도록 함
+	PlayerCapsule->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	PlayerMovement->SetMovementMode(MOVE_Flying);
+
+	UAnimInstance* AnimInstance = PlayerMesh->GetAnimInstance();
+	AnimInstance->OnMontageEnded.RemoveDynamic(this, &UObstacleSystemComponent::OnVaultMontageEnded);
+	AnimInstance->OnMontageEnded.AddDynamic(this, &UObstacleSystemComponent::OnVaultMontageEnded);
+	AnimInstance->OnMontageBlendingOut.RemoveDynamic(this, &UObstacleSystemComponent::OnVaultMontageBlendingOut);
+	AnimInstance->OnMontageBlendingOut.AddDynamic(this, &UObstacleSystemComponent::OnVaultMontageBlendingOut);
+	
+	UAnimMontage* AnimMontage = nullptr;
+	switch (VaultType)
+	{
+	case EVaults::OneHandVault:
+		AnimMontage = OneHandVault;
+		break;
+	case EVaults::TwoHandVault:
+		AnimMontage = TwoHandVault;
+		break;
+	case EVaults::FrontFlip:
+		AnimMontage = FrontFlip;
+		break;
+	}
+	
+	AnimInstance->Montage_Play(AnimMontage);
 }

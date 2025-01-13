@@ -6,8 +6,18 @@
 #include "Components/ActorComponent.h"
 #include "ObstacleSystemComponent.generated.h"
 
+class UCharacterMovementComponent;
 class UCapsuleComponent;
 class IPlayerInterface;
+
+// 새 열거형
+UENUM()
+enum class EVaults : uint8
+{
+	OneHandVault,
+	TwoHandVault,
+	FrontFlip
+};
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class PROJECT_D_API UObstacleSystemComponent : public UActorComponent
@@ -27,11 +37,20 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 public:
+	UPROPERTY(EditDefaultsOnly, Category = "Animation Montages")
+	UAnimMontage* OneHandVault = nullptr;
+	UPROPERTY(EditDefaultsOnly, Category = "Animation Montages")
+	UAnimMontage* TwoHandVault = nullptr;
+	UPROPERTY(EditDefaultsOnly, Category = "Animation Montages")
+	UAnimMontage* FrontFlip = nullptr;
+	
 	IPlayerInterface* PlayerInterface = nullptr;
 	UPROPERTY()
 	USkeletalMeshComponent* PlayerMesh = nullptr;
 	UPROPERTY()
 	UCapsuleComponent* PlayerCapsule = nullptr;
+	UPROPERTY()
+	UCharacterMovementComponent* PlayerMovement = nullptr;
 	
 	// 현재 마주보고 있는 장애물의 가장 높은 지점
 	FHitResult FacedObstacleTopHitResult;
@@ -48,7 +67,8 @@ public:
 	// 장애물의 높이 (장애물의 실제 높이가 아닌 Player의 발 위치부터 장애물 꼭대기까지의 높이)
 	float ObstacleHeight = 0.0f;
 	// 현재 Player가 지면에 서 있는지 여부
-	float bIsOnLand;
+	bool bIsOnLand = false;
+	bool bCanInteract = true;
 	
 	void Initialize();
 	
@@ -73,5 +93,14 @@ public:
 	void MeasureObstacle(const bool& bVerbose);
 
 	// 
-	void TryInteractObstacle(const bool& bVerbose) const;
+	void TryInteractObstacle(const bool& bVerbose);
+
+	UFUNCTION()
+	void OnVaultMontageEnded(UAnimMontage* Montage, bool bInterrupted);
+	
+	UFUNCTION()
+	void OnVaultMontageBlendingOut(UAnimMontage* Montage, bool bInterrupted);
+	
+	//
+	void TryVault(const EVaults VaultType);
 };
