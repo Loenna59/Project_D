@@ -4,7 +4,7 @@
 #include "WalkZombieState.h"
 
 #include "BaseZombie.h"
-#include "GameFramework/CharacterMovementComponent.h"
+#include "BiterAnimInstance.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Kismet/KismetSystemLibrary.h"
 
@@ -13,6 +13,14 @@ void UWalkZombieState::OnEnter(ABaseZombie* Zombie)
 	if (Zombie)
 	{
 		UKismetSystemLibrary::PrintString(GetWorld(), "Walk On Enter");
+
+		if (UAnimInstance* const Anim = Zombie->GetMesh()->GetAnimInstance())
+		{
+			if (UBiterAnimInstance* BiterAnimInstance = Cast<UBiterAnimInstance>(Anim))
+			{
+				BiterAnimInstance->bIsWalking = true;
+			}
+		}
 	}
 }
 

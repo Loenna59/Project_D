@@ -3,13 +3,21 @@
 
 #include "IdleZombieState.h"
 
+#include "BaseZombie.h"
+#include "BiterAnimInstance.h"
 #include "Kismet/KismetSystemLibrary.h"
 
 void UIdleZombieState::OnEnter(class ABaseZombie* Zombie)
 {
 	if (Zombie)
 	{
-		UKismetSystemLibrary::PrintString(GetWorld(), "Idle On Enter");
+		if (UAnimInstance* const Anim = Zombie->GetMesh()->GetAnimInstance())
+		{
+			if (UBiterAnimInstance* BiterAnimInstance = Cast<UBiterAnimInstance>(Anim))
+			{
+				BiterAnimInstance->bIsWalking = false;
+			}
+		}
 	}
 }
 
