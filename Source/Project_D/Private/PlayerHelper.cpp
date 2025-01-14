@@ -37,6 +37,6 @@ FVector UPlayerHelper::MoveVectorRight(const FVector& InVector, const FRotator& 
 
 FRotator UPlayerHelper::ReverseNormal(const FVector& InNormal)
 {
-	const FRotator B(0, 0, 100);
+	const FRotator B(0, 180, 0);
 	return UKismetMathLibrary::NormalizedDeltaRotator(UKismetMathLibrary::MakeRotFromX(InNormal), B);
 }

@@ -4,6 +4,7 @@
 #include "PlayerCharacter.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "MotionWarpingComponent.h"
 #include "ObstacleSystemComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -18,6 +19,7 @@ APlayerCharacter::APlayerCharacter()
 	bUseControllerRotationYaw = true;
 	
 	ObstacleSystemComponent = CreateDefaultSubobject<UObstacleSystemComponent>(TEXT("ObstacleSystemComponent"));
+	MotionWarpingComponent = CreateDefaultSubobject<UMotionWarpingComponent>(TEXT("MotionWarpingComponent"));
 }
 
 // Called when the game starts or when spawned
@@ -85,6 +87,11 @@ UCapsuleComponent* APlayerCharacter::GetCapsule()
 UCharacterMovementComponent* APlayerCharacter::GetCharacterMovement()
 {
 	return Super::GetCharacterMovement();
+}
+
+UMotionWarpingComponent* APlayerCharacter::GetMotionWarping()
+{
+	return MotionWarpingComponent;
 }
 
 float APlayerCharacter::GetBottomZ()

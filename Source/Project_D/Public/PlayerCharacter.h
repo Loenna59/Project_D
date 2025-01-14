@@ -7,6 +7,7 @@
 #include "GameFramework/Character.h"
 #include "PlayerCharacter.generated.h"
 
+class UMotionWarpingComponent;
 class UCameraComponent;
 class UObstacleSystemComponent;
 class UInputAction;
@@ -39,6 +40,7 @@ public:
 	virtual USkeletalMeshComponent* GetMesh() override;
 	virtual UCapsuleComponent* GetCapsule() override;
 	virtual UCharacterMovementComponent* GetCharacterMovement() override;
+	virtual UMotionWarpingComponent* GetMotionWarping() override;
 	virtual float GetBottomZ() override;
 
 public:
@@ -58,6 +60,9 @@ public:
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	UObstacleSystemComponent* ObstacleSystemComponent = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	UMotionWarpingComponent* MotionWarpingComponent = nullptr;
 	
 	// 이동 방향
 	FVector Direction = FVector::ZeroVector;

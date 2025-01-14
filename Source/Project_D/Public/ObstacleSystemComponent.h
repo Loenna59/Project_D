@@ -8,6 +8,7 @@
 
 class UCharacterMovementComponent;
 class UCapsuleComponent;
+class UMotionWarpingComponent;
 class IPlayerInterface;
 
 // 새 열거형
@@ -37,6 +38,21 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 public:
+	UPROPERTY(EditDefaultsOnly, Category = "Debugging")
+	bool bVerboseTick = false;
+	UPROPERTY(EditDefaultsOnly, Category = "Debugging")
+	bool bVerboseDetect = false;
+	UPROPERTY(EditDefaultsOnly, Category = "Debugging")
+	bool bVerboseScan = false;
+	UPROPERTY(EditDefaultsOnly, Category = "Debugging")
+	bool bVerboseMeasure = false;
+	UPROPERTY(EditDefaultsOnly, Category = "Debugging")
+	bool bVerboseScanObstacle = false;
+	UPROPERTY(EditDefaultsOnly, Category = "Debugging")
+	bool bVerboseInteract = false;
+	UPROPERTY(EditDefaultsOnly, Category = "Debugging")
+    bool bVerboseMontage = false;
+	
 	UPROPERTY(EditDefaultsOnly, Category = "Animation Montages")
 	UAnimMontage* OneHandVault = nullptr;
 	UPROPERTY(EditDefaultsOnly, Category = "Animation Montages")
@@ -51,6 +67,8 @@ public:
 	UCapsuleComponent* PlayerCapsule = nullptr;
 	UPROPERTY()
 	UCharacterMovementComponent* PlayerMovement = nullptr;
+	UPROPERTY()
+	UMotionWarpingComponent* PlayerMotionWarping = nullptr;
 	
 	// 현재 마주보고 있는 장애물의 가장 높은 지점
 	FHitResult FacedObstacleTopHitResult;
@@ -80,26 +98,29 @@ public:
 	/// @param OutHitLocation 
 	/// @param OutReverseNormal 
 	/// @param bVerbose Trace 결과를 모두 DebugDraw 할 것인지 여부
-	void DetectObstacle(bool &bOutDetect, FVector &OutHitLocation, FRotator &OutReverseNormal, const bool &bVerbose) const;
+	void DetectObstacle(bool &bOutDetect, FVector &OutHitLocation, FRotator &OutReverseNormal) const;
 
 	/// 장애물을 파악하여 착지 지점 등을 계산
 	/// @param DetectLocation 벽을 감지한 위치
 	/// @param ReverseNormal
 	/// @param bVerbose Trace 결과를 모두 DebugDraw 할 것인지 여부
-	void ScanObstacle(const FVector& DetectLocation, const FRotator& ReverseNormal, const bool& bVerbose);
+	void ScanObstacle(const FVector& DetectLocation, const FRotator& ReverseNormal);
 
 	/// 장애물의 높이를 계산
 	/// @param bVerbose 실시간으로 계산된 장애물의 높이를 Debug 할 것인지 여부
-	void MeasureObstacle(const bool& bVerbose);
+	void MeasureObstacle();
 
 	// 
-	void TryInteractObstacle(const bool& bVerbose);
+	void TryInteractObstacle();
 
 	UFUNCTION()
-	void OnVaultMontageEnded(UAnimMontage* Montage, bool bInterrupted);
+	void OnMontageStarted(UAnimMontage* Montage);
 	
 	UFUNCTION()
-	void OnVaultMontageBlendingOut(UAnimMontage* Montage, bool bInterrupted);
+	void OnMontageEnded(UAnimMontage* Montage, bool bInterrupted);
+	
+	UFUNCTION()
+	void OnMontageBlendingOut(UAnimMontage* Montage, bool bInterrupted);
 	
 	//
 	void TryVault(const EVaults VaultType);
