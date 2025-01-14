@@ -111,6 +111,7 @@ void ABaseZombie::Tick(float DeltaTime)
 				auto HitActor = Hit.GetActor();
 				if (HitActor && HitActor->IsA<AProject_DCharacter>())
 				{
+					DetectedTarget = HitActor;
 					FSM->ChangeState(EEnemyState::WALK, this);
 					HitPlayer = true;
 					break;

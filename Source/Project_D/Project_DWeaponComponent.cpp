@@ -64,13 +64,11 @@ void UProject_DWeaponComponent::Fire()
 		
 		FHitResult HitResult;
 
-		bool bHit = World->SweepSingleByChannel(
+		bool bHit = World->LineTraceSingleByChannel(
 			HitResult,
 			SpawnLocation,
-			SpawnLocation + (FVector::ForwardVector * 1000.f),
-			SpawnRotation.Quaternion(),
-			ECC_Visibility,
-			FCollisionShape::MakeBox(FVector::OneVector * 0.5f),
+			SpawnLocation + Character->GetActorForwardVector() * 10000.f,
+			ECC_EngineTraceChannel2,
 			Params
 		);
 
