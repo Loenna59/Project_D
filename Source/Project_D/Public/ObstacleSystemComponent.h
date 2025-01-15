@@ -3,21 +3,29 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PlayerCharacter.h"
 #include "Components/ActorComponent.h"
 #include "ObstacleSystemComponent.generated.h"
 
+class IPlayerAnimBlueprintInterface;
 class UCharacterMovementComponent;
 class UCapsuleComponent;
 class UMotionWarpingComponent;
 class IPlayerInterface;
 
-// 새 열거형
 UENUM()
 enum class EVaults : uint8
 {
 	OneHandVault,
 	TwoHandVault,
 	FrontFlip
+};
+
+UENUM()
+enum class EActionState : uint8
+{
+	WalkingOnGround,
+	Climbing
 };
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
@@ -59,6 +67,8 @@ public:
 	UAnimMontage* TwoHandVault = nullptr;
 	UPROPERTY(EditDefaultsOnly, Category = "Animation Montages")
 	UAnimMontage* FrontFlip = nullptr;
+	UPROPERTY(EditDefaultsOnly, Category = "Animation Montages")
+	UAnimMontage* ClimbStart = nullptr;
 	
 	IPlayerInterface* PlayerInterface = nullptr;
 	UPROPERTY()
@@ -69,6 +79,11 @@ public:
 	UCharacterMovementComponent* PlayerMovement = nullptr;
 	UPROPERTY()
 	UMotionWarpingComponent* PlayerMotionWarping = nullptr;
+	UPROPERTY()
+	UAnimInstance* PlayerAnimInstance = nullptr;
+	IPlayerAnimBlueprintInterface* PlayerAnimInterface = nullptr;
+	UPROPERTY()
+	EActionState PlayerActionState = EActionState::WalkingOnGround;
 	
 	// 현재 마주보고 있는 장애물의 가장 높은 지점
 	FHitResult FacedObstacleTopHitResult;
@@ -86,7 +101,13 @@ public:
 	float ObstacleHeight = 0.0f;
 	// 현재 Player가 지면에 서 있는지 여부
 	bool bIsOnLand = false;
+	// 현재 Player가 장애물과의 Interact를 새롭게 시작할 수 있는지 여부
 	bool bCanInteract = true;
+
+	// Climb
+	FVector2D MovementVector = FVector2d::ZeroVector;
+	FHitResult ObstacleHitResultForClimbMove;
+	FHitResult ObstacleTopHitResultForClimbMove;
 	
 	void Initialize();
 	
@@ -114,14 +135,29 @@ public:
 	void TryInteractObstacle();
 
 	UFUNCTION()
-	void OnMontageStarted(UAnimMontage* Montage);
+	void OnVaultMontageStarted(UAnimMontage* Montage);
 	
 	UFUNCTION()
-	void OnMontageEnded(UAnimMontage* Montage, bool bInterrupted);
+	void OnVaultMontageEnded(UAnimMontage* Montage, bool bInterrupted);
 	
 	UFUNCTION()
-	void OnMontageBlendingOut(UAnimMontage* Montage, bool bInterrupted);
+	void OnVaultMontageBlendingOut(UAnimMontage* Montage, bool bInterrupted);
 	
 	//
 	void TryVault(const EVaults VaultType);
+
+	UFUNCTION()
+	void OnClimbMontageBlendingOut(UAnimMontage* Montage, bool bInterrupted);
+	
+	//
+	void TryClimb();
+
+	//
+	void MoveOnObstacle(const FVector2D& InMovementVector);
+
+	//
+	void ResetMoveValue();
+
+	//
+	void TriggerClimbMovement();
 };

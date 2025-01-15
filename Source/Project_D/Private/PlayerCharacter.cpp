@@ -16,6 +16,7 @@ APlayerCharacter::APlayerCharacter()
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+	// true일 때 마우스 움직임에 따라 Player의 Yaw 축이 따라 움직인다.
 	bUseControllerRotationYaw = true;
 	
 	ObstacleSystemComponent = CreateDefaultSubobject<UObstacleSystemComponent>(TEXT("ObstacleSystemComponent"));
@@ -43,19 +44,6 @@ void APlayerCharacter::BeginPlay()
 void APlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	PlayerMove();
-}
-
-void APlayerCharacter::PlayerMove()
-{
-	// 플레이어 이동 처리 (등속 운동)
-	Direction = FTransform(GetControlRotation()).TransformVector(Direction); // 월드 좌표가 아닌 상대 좌표로 방향 설정
-	// FVector P0 = GetActorLocation(); // 플레이어의 현재 위치
-	// FVector vt = (walkSpeed * direction) * DeltaTime; // (어느 방향으로 어느 정도의 속도로) * 시간
-	// FVector P = P0 + vt;
-	// SetActorLocation(P);
-	AddMovementInput(Direction); // 대신 Character Movement 컴포넌트의 기능 사용
-	Direction = FVector::ZeroVector;
 }
 
 // Called to bind functionality to input
@@ -68,6 +56,7 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 		PlayerInput->BindAction(IaTurn, ETriggerEvent::Triggered, this, &APlayerCharacter::TriggeredTurn);
 		PlayerInput->BindAction(IaLookUp, ETriggerEvent::Triggered, this, &APlayerCharacter::TriggeredLookUp);
 		PlayerInput->BindAction(IaMove, ETriggerEvent::Triggered, this, &APlayerCharacter::TriggeredMove);
+		PlayerInput->BindAction(IaMove, ETriggerEvent::Completed, this, &APlayerCharacter::CompletedMove);
 		PlayerInput->BindAction(IaJump, ETriggerEvent::Triggered, this, &APlayerCharacter::TriggeredJump);
 		PlayerInput->BindAction(IaSprint, ETriggerEvent::Triggered, this, &APlayerCharacter::TriggeredSprint);
 		PlayerInput->BindAction(IaSprint, ETriggerEvent::Completed, this, &APlayerCharacter::CompletedSprint);
@@ -99,6 +88,38 @@ float APlayerCharacter::GetBottomZ()
 	return GetActorLocation().Z - GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
 }
 
+void APlayerCharacter::SetUseControllerRotationPitch(const bool& bUse)
+{
+	bUseControllerRotationPitch = bUse;
+}
+
+void APlayerCharacter::SetUseControllerRotationYaw(const bool& bUse)
+{
+	bUseControllerRotationYaw = bUse;
+}
+
+void APlayerCharacter::SetUseControllerRotationRoll(const bool& bUse)
+{
+	bUseControllerRotationRoll = bUse;
+}
+
+void APlayerCharacter::MoveOnGround(const FVector2D& MovementVector)
+{
+	// find out which way is forward
+	const FRotator Rotation = Controller->GetControlRotation();
+	const FRotator YawRotation(0, Rotation.Yaw, 0);
+
+	// get forward vector
+	const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+	
+	// get right vector 
+	const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+		
+	// add movement 
+	AddMovementInput(ForwardDirection, MovementVector.Y);
+	AddMovementInput(RightDirection, MovementVector.X);
+}
+
 void APlayerCharacter::TriggeredTurn(const FInputActionValue& InputValue)
 {
 	const float Val = InputValue.Get<float>();
@@ -113,9 +134,25 @@ void APlayerCharacter::TriggeredLookUp(const FInputActionValue& InputValue)
 
 void APlayerCharacter::TriggeredMove(const FInputActionValue& InputValue)
 {
-	const FVector2D Val = InputValue.Get<FVector2D>();
-	Direction.X = Val.X; // 상하 입력 이벤트 처리
-	Direction.Y = Val.Y; // 좌우 입력 이벤트 처리
+	const FVector2D MovementVector = InputValue.Get<FVector2D>();
+
+	if (Controller)
+	{
+		switch (ObstacleSystemComponent->PlayerActionState)
+		{
+		case EActionState::WalkingOnGround:
+			MoveOnGround(MovementVector);
+			break;
+		case EActionState::Climbing:
+			ObstacleSystemComponent->MoveOnObstacle(MovementVector);
+			break;
+		}
+	}
+}
+
+void APlayerCharacter::CompletedMove(const FInputActionValue& InputActionValue)
+{
+	ObstacleSystemComponent->ResetMoveValue();
 }
 
 void APlayerCharacter::TriggeredJump()

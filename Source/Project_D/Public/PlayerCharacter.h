@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "InputActionValue.h"
 #include "PlayerInterface.h"
 #include "GameFramework/Character.h"
 #include "PlayerCharacter.generated.h"
@@ -32,7 +33,6 @@ public:
 	
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
 	
 	
 // Implement IPlayerInterface
@@ -42,6 +42,10 @@ public:
 	virtual UCharacterMovementComponent* GetCharacterMovement() override;
 	virtual UMotionWarpingComponent* GetMotionWarping() override;
 	virtual float GetBottomZ() override;
+
+	virtual void SetUseControllerRotationPitch(const bool& bUse) override;
+	virtual void SetUseControllerRotationYaw(const bool& bUse) override;
+	virtual void SetUseControllerRotationRoll(const bool& bUse) override;
 
 public:
 	// InputMappingContext & InputAction
@@ -68,13 +72,14 @@ public:
 	FVector Direction = FVector::ZeroVector;
 
 	// 좌우 회전 입력 처리
-	void TriggeredTurn(const struct FInputActionValue& InputValue);
+	void TriggeredTurn(const FInputActionValue& InputValue);
 
 	// 상하 회전 입력 처리
-	void TriggeredLookUp(const struct FInputActionValue& InputValue);
+	void TriggeredLookUp(const FInputActionValue& InputValue);
 
 	// 상하좌우 이동 입력 처리
-	void TriggeredMove(const struct FInputActionValue& InputValue);
+	void TriggeredMove(const FInputActionValue& InputValue);
+	void CompletedMove(const FInputActionValue& InputActionValue);
 
 	// 점프 입력 처리
 	void TriggeredJump();
@@ -82,6 +87,6 @@ public:
 	void TriggeredSprint();
 	void CompletedSprint();
 	
-	// 플레이어 이동 처리
-	void PlayerMove();
+	// 서 있는 상태에서 플레이어 이동 처리
+	void MoveOnGround(const FVector2D& MovementVector);
 };
