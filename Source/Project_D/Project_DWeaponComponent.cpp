@@ -13,7 +13,9 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "KismetTraceUtils.h"
+#include "TraceChannelHelper.h"
 #include "Animation/AnimInstance.h"
+#include "Camera/CameraComponent.h"
 #include "Engine/LocalPlayer.h"
 #include "Engine/World.h"
 
@@ -59,45 +61,36 @@ void UProject_DWeaponComponent::Fire()
 		// MuzzleOffset is in camera space, so transform it to world space before offsetting from the character location to find the final muzzle position
 		const FVector SpawnLocation = GetOwner()->GetActorLocation() + SpawnRotation.RotateVector(MuzzleOffset);
 
-		FCollisionQueryParams Params;
-		Params.AddIgnoredActor(Character);
-		
-		FHitResult HitResult;
-
-		bool bHit = World->LineTraceSingleByChannel(
-			HitResult,
-			SpawnLocation,
-			SpawnLocation + Character->GetActorForwardVector() * 10000.f,
-			ECC_EngineTraceChannel2,
-			Params
-		);
-
-		DrawDebugBoxTraceSingle(
-			World,
-			SpawnLocation,
-			SpawnLocation + (FVector::ForwardVector * 1000.f),
-			FVector::OneVector * 0.5f,
-			SpawnRotation,
-			EDrawDebugTrace::ForDuration,
-			bHit,
-			HitResult,
-			FColor::Yellow,
-			FColor::Green,
-			1.f
-		);
-		
-		if (bHit)
+		if (UCameraComponent* const CameraComponent = Character->GetFirstPersonCameraComponent())
 		{
-			AActor* HitActor = HitResult.GetActor();
-			if (HitActor)
-			{
-				if (ABaseZombie* Zombie = Cast<ABaseZombie>(HitActor))
+            FVector CameraLocation = CameraComponent->GetComponentLocation();
+            FVector CameraForwardVector = CameraComponent->GetForwardVector();
+
+			TraceChannelHelper::LineTraceByChannel(
+				World,
+				Character,
+				SpawnLocation,
+				CameraLocation + CameraForwardVector * 10000.f,
+				ECC_EngineTraceChannel2,
+				true,
+				true,
+				[this](bool bHit, FHitResult HitResult)
 				{
-					Zombie->AnyDamage(5, HitResult.BoneName, Character);
+					if (bHit)
+					{
+						AActor* HitActor = HitResult.GetActor();
+						if (HitActor)
+						{
+							if (ABaseZombie* Zombie = Cast<ABaseZombie>(HitActor))
+							{
+								Zombie->AnyDamage(5, HitResult.BoneName, Character);
+							}
+						}
+					}
 				}
-			}
-		}
+			);
 		
+		}
 	}
 	
 	// Try and play the sound if specified

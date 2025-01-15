@@ -4,6 +4,7 @@
 #include "BaseZombie.h"
 
 #include "KismetTraceUtils.h"
+#include "TraceChannelHelper.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SphereComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -15,8 +16,8 @@ ABaseZombie::ABaseZombie()
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	BodyMesh = CreateDefaultSubobject<USkeletalMeshComponent>("BodyMesh");
-	BodyMesh->SetupAttachment(GetRootComponent());
+	// BodyMesh = CreateDefaultSubobject<USkeletalMeshComponent>("BodyMesh");
+	// BodyMesh->SetupAttachment(GetRootComponent());
 
 	// if (UCapsuleComponent* const Capsule = GetCapsuleComponent())
 	// {
@@ -76,58 +77,52 @@ void ABaseZombie::Tick(float DeltaTime)
 	
 	if (UWorld* const World = GetWorld())
 	{
-		TArray<FHitResult> HitResult;
-		FCollisionQueryParams Params;
-		Params.AddIgnoredSourceObject(this);
-		
-		bool bHit = World->SweepMultiByChannel(
-			HitResult,
-			GetActorLocation(),
-			GetActorLocation(),
-			FQuat::Identity,
-			ECC_EngineTraceChannel2, // "Player"
-			FCollisionShape::MakeSphere(500),
-			Params
-		);
-
-		DrawDebugSphereTraceMulti(
+		TraceChannelHelper::SphereTraceByChannel(
 			World,
+			this,
 			GetActorLocation(),
 			GetActorLocation(),
-			500,
-			EDrawDebugTrace::ForOneFrame,
-			bHit,
-			HitResult,
-			FColor::Yellow,
-			FColor::Green,
-			1.f
-		);
-
-		if (bHit)
-		{
-			bool HitPlayer = false;
-			for (FHitResult Hit : HitResult)
+			FRotator::ZeroRotator,
+			ECC_EngineTraceChannel2, // "Player"
+			DetectRadius,
+			true,
+			true,
+			[this] (bool bHit, TArray<FHitResult> HitResults)
 			{
-				auto HitActor = Hit.GetActor();
-				if (HitActor && HitActor->IsA<AProject_DCharacter>())
+				bool HitPlayer = false;
+				if (bHit)
 				{
-					DetectedTarget = HitActor;
-					FSM->ChangeState(EEnemyState::WALK, this);
-					HitPlayer = true;
-					break;
-					//UKismetSystemLibrary::PrintString(GetWorld(), HitActor->GetActorNameOrLabel());
+					for (FHitResult Hit : HitResults)
+					{
+						   AActor* HitActor = Hit.GetActor();
+						   if (HitActor && HitActor->IsA<AProject_DCharacter>())
+						   {
+							   DetectedTarget = HitActor;
+							   HitPlayer = true;
+							   break;
+							   //UKismetSystemLibrary::PrintString(GetWorld(), HitActor->GetActorNameOrLabel());
+						   }
+					}
+				}
+
+				if (HitPlayer)
+				{
+					double Distance = FVector::Distance(DetectedTarget->GetActorLocation(), GetActorLocation());
+					if (Distance > AttackRadius)
+					{
+						FSM->ChangeState(EEnemyState::WALK, this);
+					}
+					else
+					{
+						FSM->ChangeState(EEnemyState::ATTACK, this);
+					}
+				}
+				else
+				{
+					FSM->ChangeState(EEnemyState::IDLE, this);
 				}
 			}
-
-			if (!HitPlayer)
-			{
-				FSM->ChangeState(EEnemyState::IDLE, this);
-			}
-		}
-		else
-		{
-			FSM->ChangeState(EEnemyState::IDLE, this);
-		}
+		);
 	}
 }
 
@@ -196,34 +191,27 @@ void ABaseZombie::Dismemberment(const FName& HitBoneName)
 		FVector End = Start + FVector(0, 0, -1000.f);
 		FHitResult Hit;
 
-		if (LineTraceChannel(Hit, Start, End))
+		if (UWorld* const World = GetWorld())
 		{
-			FVector Location = Hit.Location;
-			FRotator Rotator = FRotationMatrix::MakeFromX(Hit.Normal).Rotator();
-
-			// 핏자국 찍기 (Decal)
-			// FVector DecalScale(-63.f, -128.f, -128.f);
+			TraceChannelHelper::LineTraceByChannel(
+				World,
+				this,
+				Start,
+				End,
+				ECC_Visibility,
+				true,
+				false,
+				[this](bool bHit, FHitResult HitResult)
+				{
+					FVector Location = HitResult.Location;
+					FRotator Rotator = FRotationMatrix::MakeFromX(HitResult.Normal).Rotator();
+		
+					// 핏자국 찍기 (Decal)
+					// FVector DecalScale(-63.f, -128.f, -128.f);
+				}
+			);
 		}
 	}
-}
-
-bool ABaseZombie::LineTraceChannel(struct FHitResult& HitResult, FVector Start, FVector End)
-{
-	FCollisionQueryParams CollisionParams;
-	CollisionParams.AddIgnoredActor(this);
-
-	if (UWorld* const World = GetWorld())
-	{
-		return World->LineTraceSingleByChannel(
-			HitResult,
-			Start,
-			End,
-			ECC_Visibility,
-			CollisionParams
-		);
-	}
-
-	return false;
 }
 
 void ABaseZombie::ApplyPhysics(const FName& HitBoneName)
@@ -287,5 +275,15 @@ bool ABaseZombie::ContainsBrokenBones(TArray<FName> BoneNames)
 	}
 
 	return false;
+}
+
+void ABaseZombie::PlayAnimationMontage(EEnemyState State)
+{
+	switch (State)
+	{
+	case EEnemyState::ATTACK:
+		Super::PlayAnimMontage(AttackMontage, 1.f, "Attack");
+		break;
+	}
 }
 

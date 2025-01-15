@@ -34,6 +34,7 @@ protected:
 	UPROPERTY()
 	EEnemyState CurrentState = EEnemyState::NONE;
 
+protected:
 	UPROPERTY()
 	TMap<EEnemyState, TScriptInterface<IZombieState>> StateMap;
 
@@ -44,4 +45,9 @@ public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType,
 	                           FActorComponentTickFunction* ThisTickFunction) override;
+	
+	[[nodiscard]] EEnemyState GetCurrentState() const
+	{
+		return CurrentState;
+	}
 };
