@@ -120,6 +120,25 @@ void APlayerCharacter::MoveOnGround(const FVector2D& MovementVector)
 	AddMovementInput(RightDirection, MovementVector.X);
 }
 
+void APlayerCharacter::OnZiplineBeginOverlap(AZipline* InZipline)
+{
+	if (ActionComponent->PlayerActionState == EActionState::Zipping)
+	{
+		return;
+	}
+	
+	ActionComponent->bCanZipping = true;
+	ActionComponent->TargetZipline = InZipline;
+}
+
+void APlayerCharacter::OnZiplineEndOverlap(AZipline* InZipline)
+{
+	if (ActionComponent->TargetZipline == InZipline)
+	{
+		ActionComponent->bCanZipping = false;
+	}
+}
+
 void APlayerCharacter::TriggeredTurn(const FInputActionValue& InputValue)
 {
 	const float Val = InputValue.Get<float>();
@@ -159,7 +178,15 @@ void APlayerCharacter::CompletedMove(const FInputActionValue& InputActionValue)
 
 void APlayerCharacter::TriggeredJump()
 {
-	Jump(); // Character Classd의 Jump 기능 호출
+	if (true == ActionComponent->bCanZipping && ActionComponent->TargetZipline)
+	{
+		// 만약, 근처에 Zipline이 있고 탈 수 있는 상태라면,
+		ActionComponent->TryRideZipline();
+	}
+	else
+	{
+		Jump(); // Character Class의 Jump 기능 호출
+	}
 }
 
 void APlayerCharacter::TriggeredSprint()

@@ -4,6 +4,8 @@
 #include "Zipline.h"
 
 #include "FileCache.h"
+#include "PlayerCharacter.h"
+#include "Components/BoxComponent.h"
 
 // Sets default values
 AZipline::AZipline()
@@ -14,6 +16,7 @@ AZipline::AZipline()
 	EndStick = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("EndStick"));
 	StartCablePosition = CreateDefaultSubobject<USceneComponent>(TEXT("StartCablePosition"));
 	EndCablePosition = CreateDefaultSubobject<USceneComponent>(TEXT("EndCablePosition"));
+	StartStickColliderBox = CreateDefaultSubobject<UBoxComponent>(TEXT("StartStickColliderBox"));
 	
 	SetRootComponent(Root);
 	Cable->SetupAttachment(RootComponent);
@@ -21,6 +24,7 @@ AZipline::AZipline()
 	EndStick->SetupAttachment(RootComponent);
 	StartCablePosition->SetupAttachment(StartStick);
 	EndCablePosition->SetupAttachment(EndStick);
+	StartStickColliderBox->SetupAttachment(RootComponent);
 	
 	Root->SetMobility(EComponentMobility::Static);
 	StartStick->SetMobility(EComponentMobility::Static);
@@ -33,6 +37,10 @@ AZipline::AZipline()
 	
 	StartCablePosition->SetRelativeLocation(FVector(0, 0, 45));
 	EndCablePosition->SetRelativeLocation(FVector(0, 0, 45));
+	
+	StartStickColliderBox->SetBoxExtent(FVector(50.0f, 50.0f, 150.0f));
+	StartStickColliderBox->OnComponentBeginOverlap.AddDynamic(this, &AZipline::OnComponentBeginOverlap);
+	StartStickColliderBox->OnComponentEndOverlap.AddDynamic(this, &AZipline::OnComponentEndOverlap);
 }
 
 void AZipline::OnConstruction(const FTransform& Transform)
@@ -41,12 +49,41 @@ void AZipline::OnConstruction(const FTransform& Transform)
 
 	const FVector RootVector = Root->GetComponentLocation();
 	StartStick->SetWorldLocation(FVector(RootVector.X, RootVector.Y, RootVector.Z + 150.0f));
+	StartStickColliderBox->SetWorldLocation(StartStick->GetComponentLocation());
 	Cable->SetWorldLocation(StartCablePosition->GetComponentLocation());
-	Cable->SetAttachEndTo(this, TEXT("EndCablePosition"));
+	Cable->SetAttachEndTo(this, EndCablePosition->GetFName());
 }
 
 // Called when the game starts or when spawned
 void AZipline::BeginPlay()
 {
 	Super::BeginPlay();
+}
+
+void AZipline::OnComponentBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	UE_LOG(LogTemp, Warning, TEXT("AZipline::OnComponentBeginOverlap"));
+	if (APlayerCharacter* Player = Cast<APlayerCharacter>(OtherActor))
+	{
+		Player->OnZiplineBeginOverlap(this);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("AZipline::OnComponentBeginOverlap : NotPlayer!!!!"));
+	}
+}
+
+void AZipline::OnComponentEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	UE_LOG(LogTemp, Warning, TEXT("AZipline::OnComponentEndOverlap"));
+	if (APlayerCharacter* Player = Cast<APlayerCharacter>(OtherActor))
+	{
+		Player->OnZiplineEndOverlap(this);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("AZipline::OnComponentEndOverlap : NotPlayer!!!!"));
+	}
 }

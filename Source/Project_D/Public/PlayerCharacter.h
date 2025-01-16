@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "InputActionValue.h"
 #include "PlayerInterface.h"
+#include "Zipline.h"
 #include "GameFramework/Character.h"
 #include "PlayerCharacter.generated.h"
 
@@ -89,4 +90,7 @@ public:
 	
 	// 서 있는 상태에서 플레이어 이동 처리
 	void MoveOnGround(const FVector2D& MovementVector);
+	
+	void OnZiplineBeginOverlap(AZipline* InZipline);
+	void OnZiplineEndOverlap(AZipline* InZipline);
 };

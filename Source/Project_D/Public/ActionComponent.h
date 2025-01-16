@@ -7,6 +7,7 @@
 #include "Components/ActorComponent.h"
 #include "ActionComponent.generated.h"
 
+class AZipline;
 class IPlayerAnimBlueprintInterface;
 class UCharacterMovementComponent;
 class UCapsuleComponent;
@@ -41,6 +42,7 @@ public:
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
+	void Initialize();
 
 public:	
 	// Called every frame
@@ -109,9 +111,7 @@ public:
 	FVector2D MovementVector = FVector2d::ZeroVector;
 	FHitResult WallHitResultForClimbMove;
 	FHitResult WallTopHitResultForClimbMove;
-	
-	void Initialize();
-	
+
 	// 장애물과의 상호작용을 시도
 	void TriggerInteractWall();
 
@@ -161,4 +161,15 @@ public:
 
 	//
 	void TriggerClimbMovement();
+
+public:
+	UPROPERTY()
+	AZipline* TargetZipline = nullptr;
+	// Player가 Zipline을 탈 수 있는지 여부
+	bool bCanZipping = false;
+	FVector ZippingStartPosition = FVector::ZeroVector;
+	FVector ZippingEndPosition = FVector::ZeroVector;
+
+	//
+	void TryRideZipline();
 };

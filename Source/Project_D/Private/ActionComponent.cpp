@@ -8,6 +8,7 @@
 #include "Components/CapsuleComponent.h"
 #include "MotionWarpingComponent.h"
 #include "PlayerAnimBlueprintInterface.h"
+#include "Zipline.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Kismet/KismetSystemLibrary.h"
@@ -58,8 +59,10 @@ void UActionComponent::Initialize()
 void UActionComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+
+	const FVector PlayerLocation = PlayerCapsule->GetComponentLocation();
 	
-	FVector StartEnd = PlayerCapsule->GetComponentLocation();
+	FVector StartEnd = PlayerLocation;
 	StartEnd.Z = PlayerInterface->GetBottomZ();
 	const TArray<AActor*> ActorsToIgnore;
 	FHitResult HitResult;
@@ -79,6 +82,40 @@ void UActionComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 		1.0f
 	);
 	bIsOnLand = bHit;
+
+	if (PlayerActionState == EActionState::Zipping)
+	{
+		bool bNear = true;
+		bNear &= UKismetMathLibrary::NearlyEqual_FloatFloat(PlayerLocation.X, ZippingEndPosition.X, 50.0f);
+		bNear &= UKismetMathLibrary::NearlyEqual_FloatFloat(PlayerLocation.Y, ZippingEndPosition.Y, 50.0f);
+		bNear &= UKismetMathLibrary::NearlyEqual_FloatFloat(PlayerLocation.Z, ZippingEndPosition.Z, 50.0f);
+		if (bNear)
+		{
+			PlayerInterface->SetUseControllerRotationYaw(true);
+			PlayerCapsule->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+			PlayerMovement->SetMovementMode(MOVE_Walking);
+			PlayerMovement->StopMovementImmediately();
+			// PlayerAnimInterface->Execute_SetPlayerActionState(EActionState::WalkingOnGround);
+			
+			PlayerActionState = EActionState::WalkingOnGround;
+			TargetZipline = nullptr;
+			ZippingStartPosition = FVector::ZeroVector;
+			ZippingEndPosition = FVector::ZeroVector;
+		}
+		else
+		{
+			const FVector Dir = (ZippingEndPosition - PlayerLocation).GetSafeNormal();
+			const FVector P0 = PlayerMovement->GetLocation();
+			const FVector VT = 600.0f * DeltaTime * Dir;
+			const FVector P = P0 + VT;
+			UE_LOG(LogTemp, Warning, TEXT("%s"), *P.ToString());
+
+			// TODO: 종속성
+			APlayerCharacter* Player = Cast<APlayerCharacter>(GetOwner());
+			Player->SetActorLocation(P);
+			Player->SetActorRotation(UKismetMathLibrary::FindLookAtRotation(P0, ZippingEndPosition));
+		}
+	}
 }
 
 void UActionComponent::TriggerInteractWall()
@@ -581,4 +618,24 @@ void UActionComponent::TriggerClimbMovement()
 		const FVector NewLocation = FVector(X, Y, ImpactPoint.Z - 107.0f);
 		PlayerCapsule->SetWorldLocationAndRotation(NewLocation, WallRotation);
 	}
+}
+
+void UActionComponent::TryRideZipline()
+{
+	bCanZipping = false;
+	// Zipline을 타는 중에는 마우스 움직임이 발생해도 회전하지 않도록 합니다. (카메라만 회전)
+	PlayerInterface->SetUseControllerRotationYaw(false);
+	PlayerCapsule->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	PlayerMovement->SetMovementMode(MOVE_Flying);
+	PlayerMovement->StopMovementImmediately();
+	// PlayerAnimInterface->Execute_SetPlayerActionState(PlayerAnimInstance, EActionState::Zipping);
+	
+	PlayerActionState = EActionState::Zipping;
+	
+	ZippingStartPosition = TargetZipline->StartCablePosition->GetComponentLocation();
+	ZippingEndPosition = TargetZipline->EndCablePosition->GetComponentLocation();
+	
+	// TODO: 종속성
+    APlayerCharacter* Player = Cast<APlayerCharacter>(GetOwner());
+    Player->SetActorLocation(ZippingStartPosition);
 }
