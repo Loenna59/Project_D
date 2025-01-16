@@ -2,6 +2,9 @@
 
 
 #include "Project_DWeaponComponent.h"
+
+#include "BaseZombie.h"
+#include "CollisionDebugDrawingPublic.h"
 #include "Project_DCharacter.h"
 #include "Project_DProjectile.h"
 #include "GameFramework/PlayerController.h"
@@ -9,7 +12,10 @@
 #include "Kismet/GameplayStatics.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "KismetTraceUtils.h"
+#include "TraceChannelHelper.h"
 #include "Animation/AnimInstance.h"
+#include "Camera/CameraComponent.h"
 #include "Engine/LocalPlayer.h"
 #include "Engine/World.h"
 
@@ -28,23 +34,62 @@ void UProject_DWeaponComponent::Fire()
 		return;
 	}
 
-	// Try and fire a projectile
-	if (ProjectileClass != nullptr)
+	// // Try and fire a projectile
+	// if (ProjectileClass != nullptr)
+	// {
+	// 	UWorld* const World = GetWorld();
+	// 	if (World != nullptr)
+	// 	{
+	// 		APlayerController* PlayerController = Cast<APlayerController>(Character->GetController());
+	// 		const FRotator SpawnRotation = PlayerController->PlayerCameraManager->GetCameraRotation();
+	// 		// MuzzleOffset is in camera space, so transform it to world space before offsetting from the character location to find the final muzzle position
+	// 		const FVector SpawnLocation = GetOwner()->GetActorLocation() + SpawnRotation.RotateVector(MuzzleOffset);
+	//
+	// 		//Set Spawn Collision Handling Override
+	// 		FActorSpawnParameters ActorSpawnParams;
+	// 		ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding;
+	//
+	// 		// Spawn the projectile at the muzzle
+	// 		World->SpawnActor<AProject_DProjectile>(ProjectileClass, SpawnLocation, SpawnRotation, ActorSpawnParams);
+	// 	}
+	// }
+
+	if (UWorld* const World = GetWorld())
 	{
-		UWorld* const World = GetWorld();
-		if (World != nullptr)
+		APlayerController* PlayerController = Cast<APlayerController>(Character->GetController());
+		const FRotator SpawnRotation = PlayerController->PlayerCameraManager->GetCameraRotation();
+		// MuzzleOffset is in camera space, so transform it to world space before offsetting from the character location to find the final muzzle position
+		const FVector SpawnLocation = GetOwner()->GetActorLocation() + SpawnRotation.RotateVector(MuzzleOffset);
+
+		if (UCameraComponent* const CameraComponent = Character->GetFirstPersonCameraComponent())
 		{
-			APlayerController* PlayerController = Cast<APlayerController>(Character->GetController());
-			const FRotator SpawnRotation = PlayerController->PlayerCameraManager->GetCameraRotation();
-			// MuzzleOffset is in camera space, so transform it to world space before offsetting from the character location to find the final muzzle position
-			const FVector SpawnLocation = GetOwner()->GetActorLocation() + SpawnRotation.RotateVector(MuzzleOffset);
-	
-			//Set Spawn Collision Handling Override
-			FActorSpawnParameters ActorSpawnParams;
-			ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding;
-	
-			// Spawn the projectile at the muzzle
-			World->SpawnActor<AProject_DProjectile>(ProjectileClass, SpawnLocation, SpawnRotation, ActorSpawnParams);
+            FVector CameraLocation = CameraComponent->GetComponentLocation();
+            FVector CameraForwardVector = CameraComponent->GetForwardVector();
+
+			TraceChannelHelper::LineTraceByChannel(
+				World,
+				Character,
+				SpawnLocation,
+				CameraLocation + CameraForwardVector * 10000.f,
+				ECC_EngineTraceChannel2,
+				true,
+				true,
+				[this](bool bHit, FHitResult HitResult)
+				{
+					if (bHit)
+					{
+						AActor* HitActor = HitResult.GetActor();
+						if (HitActor)
+						{
+							if (ABaseZombie* Zombie = Cast<ABaseZombie>(HitActor))
+							{
+								Zombie->AnyDamage(5, HitResult.BoneName, Character);
+							}
+						}
+					}
+				}
+			);
+		
 		}
 	}
 	

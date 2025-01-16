@@ -55,11 +55,26 @@ public:
 	UPROPERTY(EditAnywhere)
 	AActor* Attacker;
 
-	UPROPERTY()
+	UPROPERTY(EditAnywhere)
+	AActor* DetectedTarget;
+
+	UPROPERTY(EditAnywhere)
 	class UZombieFSMComponent* FSM;
 
-	UPROPERTY(EditAnywhere, blueprintReadWrite)
-	class USkeletalMeshComponent* BodyMesh;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float DetectRadius = 1000.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float AttackRadius = 200.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	class UAnimMontage* AttackMontage;
+
+	// UPROPERTY(EditAnywhere, blueprintReadWrite)
+	// class USkeletalMeshComponent* BodyMesh;
+
+	UFUNCTION()
+	virtual void PlayAnimationMontage(EEnemyState State);
 	
 	UFUNCTION()
 	virtual void AnyDamage(int32 Damage, const FName& HitBoneName, class AActor* DamageCauser);
@@ -81,5 +96,4 @@ protected:
 
 	virtual FVector CalculateImpulse();
 
-	virtual bool LineTraceChannel(struct FHitResult& HitResult, FVector Start, FVector End);
 };

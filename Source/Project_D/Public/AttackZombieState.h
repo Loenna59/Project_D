@@ -19,4 +19,8 @@ public:
 	virtual void OnEnter(ABaseZombie* Zombie) override;
 	virtual void OnUpdate(ABaseZombie* Zombie) override;
 	virtual void OnExit(ABaseZombie* Zombie) override;
+
+protected:
+	FTimerHandle TimerHandle;
+	const float Interval = 3.f;
 };

@@ -14,11 +14,11 @@ class PROJECT_D_API ABiter : public ABaseZombie
 {
 	GENERATED_BODY()
 
-protected:
-	virtual void SetupInternal() override;
-	
-	virtual FName RenameBoneName(const FName& HitBoneName) override;
-
-	virtual bool IsPhysicsBone(const FName& HitBoneName) override;
+// protected:
+// 	virtual void SetupInternal() override;
+// 	
+// 	virtual FName RenameBoneName(const FName& HitBoneName) override;
+//
+// 	virtual bool IsPhysicsBone(const FName& HitBoneName) override;
 	
 };
