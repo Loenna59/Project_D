@@ -8,6 +8,12 @@
 
 void UAttackZombieState::OnEnter(ABaseZombie* Zombie)
 {
+	if (TimerHandle.IsValid())
+	{
+		GetWorld()->GetTimerManager().ClearTimer(TimerHandle);
+		TimerHandle.Invalidate();
+	}
+	
 	if (Zombie && Zombie->DetectedTarget)
 	{
 		UKismetSystemLibrary::PrintString(GetWorld(),TEXT("ATTACK"));
@@ -15,12 +21,12 @@ void UAttackZombieState::OnEnter(ABaseZombie* Zombie)
 			TimerHandle,
 			[Zombie] ()
 			{
-				Zombie->PlayAnimationMontage(EEnemyState::ATTACK);
+				Zombie->OnTriggerAttack(false);
 			},
 			Interval,
-			true
+			false
 		);
-		Zombie->PlayAnimationMontage(EEnemyState::ATTACK);
+		Zombie->OnTriggerAttack(true);
 	}
 }
 
@@ -34,6 +40,12 @@ void UAttackZombieState::OnUpdate(ABaseZombie* Zombie)
 
 void UAttackZombieState::OnExit(ABaseZombie* Zombie)
 {
+	if (TimerHandle.IsValid())
+	{
+		GetWorld()->GetTimerManager().ClearTimer(TimerHandle);
+		TimerHandle.Invalidate();
+	}
+	
 	if (Zombie)
 	{
 		// UKismetSystemLibrary::PrintString(GetWorld(), "Attack On Exit");

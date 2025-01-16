@@ -55,7 +55,7 @@ void UZombieFSMComponent::ChangeState(EEnemyState NewState, ABaseZombie* Zombie)
 		
 		if (StateMap.Contains(CurrentState))
 		{
-            UKismetSystemLibrary::PrintString(GetWorld(), EnumToString(CurrentState));
+            // UKismetSystemLibrary::PrintString(GetWorld(), EnumToString(CurrentState));
 			StateMap[CurrentState]->OnEnter(Zombie);
 		}
 	}

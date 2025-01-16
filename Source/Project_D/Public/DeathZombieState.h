@@ -5,14 +5,15 @@
 #include "CoreMinimal.h"
 #include "ZombieState.h"
 #include "UObject/Object.h"
-#include "AttackZombieState.generated.h"
+#include "DeathZombieState.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class PROJECT_D_API UAttackZombieState : public UObject, public IZombieState
+class PROJECT_D_API UDeathZombieState : public UObject, public IZombieState
 {
+	
 	GENERATED_BODY()
 
 public:
@@ -20,7 +21,4 @@ public:
 	virtual void OnUpdate(ABaseZombie* Zombie) override;
 	virtual void OnExit(ABaseZombie* Zombie) override;
 
-protected:
-	FTimerHandle TimerHandle;
-	const float Interval = 2.f;
 };
