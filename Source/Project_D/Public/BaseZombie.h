@@ -3,13 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "CollisionTrigger.h"
 #include "EEnemyState.h"
 #include "ZombieFSMComponent.h"
 #include "GameFramework/Character.h"
 #include "BaseZombie.generated.h"
 
 UCLASS()
-class PROJECT_D_API ABaseZombie : public ACharacter
+class PROJECT_D_API ABaseZombie : public ACharacter, public ICollisionTrigger
 {
 	GENERATED_BODY()
 
@@ -78,15 +79,18 @@ public:
 	// UPROPERTY(EditAnywhere, blueprintReadWrite)
 	// class USkeletalMeshComponent* BodyMesh;
 	
-	UFUNCTION()
-	virtual void AnyDamage(int32 Damage, const FName& HitBoneName, class AActor* DamageCauser);
+	// UFUNCTION()
+	// virtual void AnyDamage(int32 Damage, const FName& HitBoneName, class AActor* DamageCauser);
 
 	virtual bool ContainsBrokenBones(TArray<FName> BoneNames);
 
 	virtual void OnTriggerAttack(bool Start);
 
 	virtual void OnDisbale();
-	
+
+	UFUNCTION()
+	virtual void OnTriggerEnter(AActor* OtherActor, ACollisionTriggerParam* Param) override;
+
 protected:
 	virtual bool IsPhysicsBone(const FName& HitBoneName);
 	

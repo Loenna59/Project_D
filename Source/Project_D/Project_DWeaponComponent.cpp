@@ -4,6 +4,7 @@
 #include "Project_DWeaponComponent.h"
 
 #include "BaseZombie.h"
+#include "BlankTriggerParam.h"
 #include "CollisionDebugDrawingPublic.h"
 #include "Project_DCharacter.h"
 #include "Project_DProjectile.h"
@@ -12,8 +13,10 @@
 #include "Kismet/GameplayStatics.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "GameDebug.h"
 #include "KismetTraceUtils.h"
 #include "TraceChannelHelper.h"
+#include "ZombieTriggerParam.h"
 #include "Animation/AnimInstance.h"
 #include "Camera/CameraComponent.h"
 #include "Engine/LocalPlayer.h"
@@ -71,19 +74,36 @@ void UProject_DWeaponComponent::Fire()
 				Character,
 				SpawnLocation,
 				CameraLocation + CameraForwardVector * 10000.f,
-				ECC_EngineTraceChannel2,
+				ECC_Visibility,
 				true,
 				true,
 				[this](bool bHit, FHitResult HitResult)
 				{
 					if (bHit)
 					{
+						
+						// if (HitResult.Component.IsValid())
+						// {
+						// 	GameDebug::ShowDisplayLog(GetWorld(), HitResult.Component->GetName());
+						// }
 						AActor* HitActor = HitResult.GetActor();
 						if (HitActor)
 						{
-							if (ABaseZombie* Zombie = Cast<ABaseZombie>(HitActor))
+							if (ICollisionTrigger* Trigger = Cast<ICollisionTrigger>(HitActor))
 							{
-								Zombie->AnyDamage(5, HitResult.BoneName, Character);
+								if (ABaseZombie* Zombie = Cast<ABaseZombie>(HitActor))
+								{
+									AZombieTriggerParam* Param = NewObject<AZombieTriggerParam>();
+									Param->Damage = 5;
+									Param->HitBoneName = HitResult.BoneName;
+									
+									Trigger->OnTriggerEnter(HitActor, Param);
+								}
+								else
+								{
+									ABlankTriggerParam* Param = NewObject<ABlankTriggerParam>();
+									Trigger->OnTriggerEnter(HitActor, Param);
+								}
 							}
 						}
 					}

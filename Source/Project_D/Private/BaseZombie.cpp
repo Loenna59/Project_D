@@ -3,8 +3,10 @@
 
 #include "BaseZombie.h"
 
+#include "GameDebug.h"
 #include "KismetTraceUtils.h"
 #include "TraceChannelHelper.h"
+#include "ZombieTriggerParam.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SphereComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -107,7 +109,6 @@ void ABaseZombie::Tick(float DeltaTime)
 							   DetectedTarget = HitActor;
 							   HitPlayer = true;
 							   break;
-							   //UKismetSystemLibrary::PrintString(GetWorld(), HitActor->GetActorNameOrLabel());
 						   }
 					}
 				}
@@ -121,7 +122,7 @@ void ABaseZombie::Tick(float DeltaTime)
 					}
 					else
 					{
-						UKismetSystemLibrary::PrintString(GetWorld(), FString::SanitizeFloat(Distance));
+						GameDebug::ShowDisplayLog(GetWorld(), FString::SanitizeFloat(Distance));
 						FSM->ChangeState(EEnemyState::ATTACK, this);
 					}
 				}
@@ -155,34 +156,6 @@ void ABaseZombie::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 
 }
 
-void ABaseZombie::AnyDamage(int32 Damage, const FName& HitBoneName, class AActor* DamageCauser)
-{
-	this->Attacker = DamageCauser;
-	
-	FName BoneName = RenameBoneName(HitBoneName);
-
-	UKismetSystemLibrary::PrintString(GetWorld(), BoneName.ToString());
-
-	if (ApplyDamageToBone(BoneName, Damage))
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Cyan, HitBoneName.ToString());
-		Dismemberment(BoneName);
-		// FSM->ChangeState(EEnemyState::CLAWING, this);
-		ApplyPhysics(BoneName);
-
-		if (InstantKilled(HitBoneName))
-		{
-			FSM->ChangeState(EEnemyState::DEATH, this);
-			return;
-		}
-	}
-
-	if (MontageMap.Contains("Hit"))
-	{
-		PlayAnimMontage(MontageMap["Hit"], 1.5f, "Hit");
-	}
-}
-
 FName ABaseZombie::RenameBoneName(const FName& HitBoneName)
 {
 	if (HitBoneName == FName("pelvis") ||
@@ -199,8 +172,7 @@ bool ABaseZombie::ApplyDamageToBone(const FName& HitBoneName, int32 Damage)
 {
 	if (BoneDurability.Find(HitBoneName))
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Cyan, HitBoneName.ToString());
-
+		
 		BoneDurability[HitBoneName] -= Damage;
 
 		return BoneDurability[HitBoneName] <= 0;
@@ -324,8 +296,55 @@ bool ABaseZombie::ContainsBrokenBones(TArray<FName> BoneNames)
 
 void ABaseZombie::OnDisbale()
 {
-	if (USkeletalMeshComponent* const MeshComponent = GetMesh())
+	// if (USkeletalMeshComponent* const MeshComponent = GetMesh())
+	// {
+	// 	MeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	// }
+
+	FTimerHandle TimerHandle;
+
+	GetWorld()->GetTimerManager().SetTimer(
+		TimerHandle,
+		[this] ()
+		{
+			this->Destroy();
+		},
+		5.f,
+		false
+	);
+}
+
+void ABaseZombie::OnTriggerEnter(AActor* OtherActor, ACollisionTriggerParam* Param)
+{
+	if (AZombieTriggerParam* const ZombieParam = Cast<AZombieTriggerParam>(Param))
 	{
-		MeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		FName HitBoneName = ZombieParam->HitBoneName;
+		int32 Damage = ZombieParam->Damage;
+		
+		this->Attacker = OtherActor;
+	
+		FName BoneName = RenameBoneName(HitBoneName);
+
+		GameDebug::ShowDisplayLog(GetWorld(), HitBoneName.ToString());
+
+		if (ApplyDamageToBone(BoneName, Damage))
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Cyan, HitBoneName.ToString());
+			Dismemberment(BoneName);
+			// FSM->ChangeState(EEnemyState::CLAWING, this);
+			ApplyPhysics(BoneName);
+
+			if (InstantKilled(BoneName))
+			{
+				GameDebug::ShowDisplayLog(GetWorld(), "Death");
+				FSM->ChangeState(EEnemyState::DEATH, this);
+				return;
+			}
+		}
+
+		if (MontageMap.Contains("Hit"))
+		{
+			PlayAnimMontage(MontageMap["Hit"], 1.5f, "Hit");
+		}	
 	}
 }

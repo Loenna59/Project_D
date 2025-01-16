@@ -4,11 +4,13 @@
 #include "DeathZombieState.h"
 
 #include "BaseZombie.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 void UDeathZombieState::OnEnter(ABaseZombie* Zombie)
 {
 	if (Zombie)
 	{
+		UKismetSystemLibrary::PrintString(GetWorld(), "Dead");
 		Zombie->OnDisbale();
 	}
 }
