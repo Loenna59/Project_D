@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "ObstacleSystemComponent.h" // EActionState 포함
+#include "ActionComponent.h" // EActionState 포함
 #include "UObject/Interface.h"
 #include "PlayerAnimBlueprintInterface.generated.h"
 

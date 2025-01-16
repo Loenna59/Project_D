@@ -10,7 +10,7 @@
 
 class UMotionWarpingComponent;
 class UCameraComponent;
-class UObstacleSystemComponent;
+class UActionComponent;
 class UInputAction;
 class UInputMappingContext;
 
@@ -63,7 +63,7 @@ public:
 	UInputAction* IaSprint = nullptr;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-	UObstacleSystemComponent* ObstacleSystemComponent = nullptr;
+	UActionComponent* ActionComponent = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	UMotionWarpingComponent* MotionWarpingComponent = nullptr;

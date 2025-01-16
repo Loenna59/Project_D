@@ -5,7 +5,7 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "MotionWarpingComponent.h"
-#include "ObstacleSystemComponent.h"
+#include "ActionComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -19,7 +19,7 @@ APlayerCharacter::APlayerCharacter()
 	// true일 때 마우스 움직임에 따라 Player의 Yaw 축이 따라 움직인다.
 	bUseControllerRotationYaw = true;
 	
-	ObstacleSystemComponent = CreateDefaultSubobject<UObstacleSystemComponent>(TEXT("ObstacleSystemComponent"));
+	ActionComponent = CreateDefaultSubobject<UActionComponent>(TEXT("ActionComponent"));
 	MotionWarpingComponent = CreateDefaultSubobject<UMotionWarpingComponent>(TEXT("MotionWarpingComponent"));
 }
 
@@ -138,13 +138,15 @@ void APlayerCharacter::TriggeredMove(const FInputActionValue& InputValue)
 
 	if (Controller)
 	{
-		switch (ObstacleSystemComponent->PlayerActionState)
+		switch (ActionComponent->PlayerActionState)
 		{
 		case EActionState::WalkingOnGround:
 			MoveOnGround(MovementVector);
 			break;
 		case EActionState::Climbing:
-			ObstacleSystemComponent->MoveOnObstacle(MovementVector);
+			ActionComponent->MoveOnWall(MovementVector);
+			break;
+		case EActionState::Zipping:
 			break;
 		}
 	}
@@ -152,7 +154,7 @@ void APlayerCharacter::TriggeredMove(const FInputActionValue& InputValue)
 
 void APlayerCharacter::CompletedMove(const FInputActionValue& InputActionValue)
 {
-	ObstacleSystemComponent->ResetMoveValue();
+	ActionComponent->ResetMoveValue();
 }
 
 void APlayerCharacter::TriggeredJump()
@@ -164,9 +166,9 @@ void APlayerCharacter::TriggeredSprint()
 {
 	UCharacterMovementComponent* MovementComponent = GetCharacterMovement();
 	MovementComponent->MaxWalkSpeed = 600.0f;
-	if (true == ObstacleSystemComponent->bCanInteract)
+	if (true == ActionComponent->bCanInteract)
 	{
-		ObstacleSystemComponent->TriggerInteractObstacle();
+		ActionComponent->TriggerInteractWall();
 	}
 }
 

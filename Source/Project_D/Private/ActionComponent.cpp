@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "ObstacleSystemComponent.h"
+#include "ActionComponent.h"
 
 #include "PlayerHelper.h"
 #include "PlayerInterface.h"
@@ -13,7 +13,7 @@
 #include "Kismet/KismetSystemLibrary.h"
 
 // Sets default values for this component's properties
-UObstacleSystemComponent::UObstacleSystemComponent()
+UActionComponent::UActionComponent()
 {
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
@@ -21,14 +21,14 @@ UObstacleSystemComponent::UObstacleSystemComponent()
 }
 
 // Called when the game starts
-void UObstacleSystemComponent::BeginPlay()
+void UActionComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
 	Initialize();
 }
 
-void UObstacleSystemComponent::Initialize()
+void UActionComponent::Initialize()
 {
 	PlayerInterface = Cast<IPlayerInterface>(GetOwner());
 	if (PlayerInterface)
@@ -39,7 +39,10 @@ void UObstacleSystemComponent::Initialize()
 		PlayerMotionWarping = PlayerInterface->GetMotionWarping();
 		PlayerAnimInstance = PlayerMesh->GetAnimInstance();
 		PlayerAnimInterface = Cast<IPlayerAnimBlueprintInterface>(PlayerAnimInstance);
-		if (nullptr == PlayerAnimInterface)
+		if (PlayerAnimInterface)
+		{
+		}
+		else
 		{
 			UE_LOG(LogTemp, Error, TEXT("PlayerAnimInterface is nullptr"));
 		}
@@ -52,7 +55,7 @@ void UObstacleSystemComponent::Initialize()
 
 
 // Called every frame
-void UObstacleSystemComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+void UActionComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 	
@@ -78,24 +81,24 @@ void UObstacleSystemComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
 	bIsOnLand = bHit;
 }
 
-void UObstacleSystemComponent::TriggerInteractObstacle()
+void UActionComponent::TriggerInteractWall()
 {
 	bool bDetect;
 	FVector HitLocation;
 	FRotator ReverseNormal;
-	DetectObstacle(bDetect, HitLocation, ReverseNormal);
+	DetectWall(bDetect, HitLocation, ReverseNormal);
 	if (bDetect)
 	{
-		ScanObstacle(HitLocation, ReverseNormal);
-		if (FacedObstacleTopHitResult.bBlockingHit)
+		ScanWall(HitLocation, ReverseNormal);
+		if (FacedWallTopHitResult.bBlockingHit)
 		{
-			MeasureObstacle();
-			TryInteractObstacle();
+			MeasureWall();
+			TryInteractWall();
 		}
 	}
 }
 
-void UObstacleSystemComponent::DetectObstacle(bool &bOutDetect, FVector &OutHitLocation, FRotator &OutReverseNormal) const
+void UActionComponent::DetectWall(bool &bOutDetect, FVector &OutHitLocation, FRotator &OutReverseNormal) const
 {
 	const auto Owner = GetOwner();
 	const ETraceTypeQuery TraceChannel = UEngineTypes::ConvertToTraceType(ECC_Visibility);
@@ -139,7 +142,7 @@ void UObstacleSystemComponent::DetectObstacle(bool &bOutDetect, FVector &OutHitL
 	OutReverseNormal = UPlayerHelper::ReverseNormal(OutHit.Normal);
 }
 
-void UObstacleSystemComponent::ScanObstacle(const FVector& DetectLocation, const FRotator& ReverseNormal)
+void UActionComponent::ScanWall(const FVector& DetectLocation, const FRotator& ReverseNormal)
 {
 	const ETraceTypeQuery TraceChannel = UEngineTypes::ConvertToTraceType(ECC_Visibility);
 	FVector Start, End;
@@ -161,7 +164,7 @@ void UObstacleSystemComponent::ScanObstacle(const FVector& DetectLocation, const
 			false,
 			ActorsToIgnore,
 			bVerboseScan ? EDrawDebugTrace::ForOneFrame : EDrawDebugTrace::None,
-			FacedObstacleTopHitResult,
+			FacedWallTopHitResult,
 			true,
 			FLinearColor::Red,
 			FLinearColor::Green,
@@ -171,20 +174,20 @@ void UObstacleSystemComponent::ScanObstacle(const FVector& DetectLocation, const
 		// LineTrace가 벽에 충돌하면
 		if (true == bHit)
 		{
-			ObstacleRotation = UPlayerHelper::ReverseNormal(FacedObstacleTopHitResult.Normal);
+			WallRotation = UPlayerHelper::ReverseNormal(FacedWallTopHitResult.Normal);
 			break;
 		}
 	}
-	if (false == FacedObstacleTopHitResult.bBlockingHit)
+	if (false == FacedWallTopHitResult.bBlockingHit)
 	{
 		return;
 	}
 	
-	// FacedObstacleTopHitResult.Location을 기준으로 20씩 전진시켜가며 널널하게 위아래로 10만큼씩 범위로 하여 SphereTrace
+	// FacedWallTopHitResult.Location을 기준으로 20씩 전진시켜가며 널널하게 위아래로 10만큼씩 범위로 하여 SphereTrace
 	for (int i = 0; i < 10; i++)
 	{
 		const TArray<AActor*> ActorsToIgnore;
-		const FVector A = UPlayerHelper::MoveVectorForward(FacedObstacleTopHitResult.Location, ObstacleRotation, i * 20);
+		const FVector A = UPlayerHelper::MoveVectorForward(FacedWallTopHitResult.Location, WallRotation, i * 20);
 		Start = UPlayerHelper::MoveVectorUpward(A, 10.0f);
 		End = UPlayerHelper::MoveVectorDownward(Start, 10.0f);
 		FHitResult OutHit;
@@ -226,7 +229,7 @@ void UObstacleSystemComponent::ScanObstacle(const FVector& DetectLocation, const
 
 	// LastTopHitResult는 장애물의 정확한 끝 지점이라고 볼 수 없다. (20씩 전진시켜가며 대강 측정한 것이기 때문)
 	// LastTopHitResult 기준에서 20만큼 앞에 있는 위치를 시작으로 LastTopHitResult 까지 SphereTrace 하면 정확한 장애물의 끝 지점을 찾을 수 있다.
-	Start = UPlayerHelper::MoveVectorForward(LastTopHitResult.ImpactPoint, ObstacleRotation, 20.0f);
+	Start = UPlayerHelper::MoveVectorForward(LastTopHitResult.ImpactPoint, WallRotation, 20.0f);
 	End = LastTopHitResult.ImpactPoint;
 	const TArray<AActor*> ActorsToIgnore;
 	bHit = UKismetSystemLibrary::SphereTraceSingle(
@@ -248,7 +251,7 @@ void UObstacleSystemComponent::ScanObstacle(const FVector& DetectLocation, const
 	// 장애물의 정확한 끝 지점을 찾았다면 해당 지점부터 60만큼 앞에 있는 지점을 기준으로 시작하여 180만큼 아래에 있는 위치까지 SphereTrace
 	if (true == bHit)
 	{
-		Start = UPlayerHelper::MoveVectorForward(EndOfObstacleHitResult.ImpactPoint, ObstacleRotation, 60.0f);
+		Start = UPlayerHelper::MoveVectorForward(EndOfObstacleHitResult.ImpactPoint, WallRotation, 60.0f);
 		End = UPlayerHelper::MoveVectorDownward(Start, 180.0f);
 		UKismetSystemLibrary::SphereTraceSingle(
 			GetWorld(),
@@ -273,26 +276,26 @@ void UObstacleSystemComponent::ScanObstacle(const FVector& DetectLocation, const
 	}
 }
 
-void UObstacleSystemComponent::MeasureObstacle()
+void UActionComponent::MeasureWall()
 {
 	// 만약 앞에 벽이 있는게 확실하다면
-	if (FacedObstacleTopHitResult.bBlockingHit && FirstTopHitResult.bBlockingHit)
+	if (FacedWallTopHitResult.bBlockingHit && FirstTopHitResult.bBlockingHit)
 	{
 		// Player 전방에 있는 벽의 높이 = 장애물 꼭대기 위치의 Z좌표 - Player의 발 위치 Z좌표
-		ObstacleHeight = FirstTopHitResult.ImpactPoint.Z - PlayerInterface->GetBottomZ();
+		WallHeight = FirstTopHitResult.ImpactPoint.Z - PlayerInterface->GetBottomZ();
 		
 		if (bVerboseMeasure)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("감지된 장애물의 높이 : %f"), ObstacleHeight);
+			UE_LOG(LogTemp, Warning, TEXT("감지된 장애물의 높이 : %f"), WallHeight);
 		}
 	}
 	else
 	{
-		ObstacleHeight = 0.0f;
+		WallHeight = 0.0f;
 	}
 }
 
-void UObstacleSystemComponent::TryInteractObstacle()
+void UActionComponent::TryInteractWall()
 {
 	const AActor* Owner = GetOwner();
 	const FVector Velocity = Owner->GetVelocity();
@@ -306,9 +309,9 @@ void UObstacleSystemComponent::TryInteractObstacle()
 		if (bIsOnLand)
 		{
 			// TODO: 각 행동에 필요한 높이 값을 에디터에서 수정할 수 있도록 UPROPERTY 세팅
-			if (ObstacleHeight <= 300.0f)
+			if (WallHeight <= 300.0f)
 			{
-				if (ObstacleHeight <= 150.0f)
+				if (WallHeight <= 150.0f)
 				{
 					if (bIsStanding)
 					{
@@ -321,7 +324,7 @@ void UObstacleSystemComponent::TryInteractObstacle()
 					else
 					{
 						// Vault 동작 수행
-						if (ObstacleHeight > 100.0f)
+						if (WallHeight > 100.0f)
 						{
 							// Front Flip 동작 수행
 							if (bVerboseInteract)
@@ -330,7 +333,7 @@ void UObstacleSystemComponent::TryInteractObstacle()
 							}
 							TryVault(EVaults::FrontFlip);
 						}
-						else if (ObstacleHeight > 90.0f)
+						else if (WallHeight > 90.0f)
 						{
 							// Two Hand Vault 동작 수행
 							if (bVerboseInteract)
@@ -371,43 +374,43 @@ void UObstacleSystemComponent::TryInteractObstacle()
 	}
 }
 
-void UObstacleSystemComponent::OnVaultMontageStarted(UAnimMontage* Montage)
+void UActionComponent::OnVaultMontageStarted(UAnimMontage* Montage)
 {
 	if (bVerboseMontage)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("UObstacleSystemComponent::OnVaultMontageStarted"));
+		UE_LOG(LogTemp, Warning, TEXT("UActionComponent::OnVaultMontageStarted"));
 		UE_LOG(LogTemp, Warning, TEXT("Location : %s"), *PlayerMesh->GetComponentLocation().ToString());
 	}
 	// 장애물과의 상호작용 액션이 동작하는 중에 충돌 처리를 하지 않도록 함
 	PlayerCapsule->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	PlayerMovement->SetMovementMode(MOVE_Flying);
-	PlayerAnimInstance->OnMontageStarted.RemoveDynamic(this, &UObstacleSystemComponent::OnVaultMontageStarted);
+	PlayerAnimInstance->OnMontageStarted.RemoveDynamic(this, &UActionComponent::OnVaultMontageStarted);
 }
 
-void UObstacleSystemComponent::OnVaultMontageEnded(UAnimMontage* Montage, bool bInterrupted)
+void UActionComponent::OnVaultMontageEnded(UAnimMontage* Montage, bool bInterrupted)
 {
 	if (bVerboseMontage)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("UObstacleSystemComponent::OnVaultMontageEnded"));
+		UE_LOG(LogTemp, Warning, TEXT("UActionComponent::OnVaultMontageEnded"));
 		UE_LOG(LogTemp, Warning, TEXT("Location : %s"), *PlayerMesh->GetComponentLocation().ToString());
 	}
 	bCanInteract = true;
-	PlayerAnimInstance->OnMontageEnded.RemoveDynamic(this, &UObstacleSystemComponent::OnVaultMontageEnded);
+	PlayerAnimInstance->OnMontageEnded.RemoveDynamic(this, &UActionComponent::OnVaultMontageEnded);
 }
 
-void UObstacleSystemComponent::OnVaultMontageBlendingOut(UAnimMontage* Montage, bool bInterrupted)
+void UActionComponent::OnVaultMontageBlendingOut(UAnimMontage* Montage, bool bInterrupted)
 {
 	if (bVerboseMontage)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("UObstacleSystemComponent::OnVaultMontageBlendingOut"));
+		UE_LOG(LogTemp, Warning, TEXT("UActionComponent::OnVaultMontageBlendingOut"));
 		UE_LOG(LogTemp, Warning, TEXT("Location : %s"), *PlayerMesh->GetComponentLocation().ToString());
 	}
 	PlayerCapsule->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	PlayerMovement->SetMovementMode(MOVE_Walking);
-	PlayerAnimInstance->OnMontageBlendingOut.RemoveDynamic(this, &UObstacleSystemComponent::OnVaultMontageBlendingOut);
+	PlayerAnimInstance->OnMontageBlendingOut.RemoveDynamic(this, &UActionComponent::OnVaultMontageBlendingOut);
 }
 
-void UObstacleSystemComponent::TryVault(const EVaults VaultType)
+void UActionComponent::TryVault(const EVaults VaultType)
 {
 	bCanInteract = false;
 
@@ -424,12 +427,12 @@ void UObstacleSystemComponent::TryVault(const EVaults VaultType)
 	case EVaults::TwoHandVault:
 		AnimMontage = TwoHandVault;
 		Start = UPlayerHelper::MoveVectorDownward(
-			UPlayerHelper::MoveVectorForward(FirstTopHitResult.Location, ObstacleRotation, 47.0f), 49);
+			UPlayerHelper::MoveVectorForward(FirstTopHitResult.Location, WallRotation, 47.0f), 49);
 		End = VaultLandingHitResult.Location;
 		break;
 	case EVaults::FrontFlip:
 		AnimMontage = FrontFlip;
-		Start = UPlayerHelper::MoveVectorBackward(FirstTopHitResult.Location, ObstacleRotation, 100.0f);
+		Start = UPlayerHelper::MoveVectorBackward(FirstTopHitResult.Location, WallRotation, 100.0f);
 		End = VaultLandingHitResult.Location;
 		break;
 	}
@@ -438,28 +441,28 @@ void UObstacleSystemComponent::TryVault(const EVaults VaultType)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Start : %s, End : %s"), *Start.ToString(), *End.ToString());
 	}
-	PlayerMotionWarping->AddOrUpdateWarpTargetFromLocationAndRotation(TEXT("VaultStart"), Start, ObstacleRotation);
-	PlayerMotionWarping->AddOrUpdateWarpTargetFromLocationAndRotation(TEXT("VaultEnd"), End, ObstacleRotation);
+	PlayerMotionWarping->AddOrUpdateWarpTargetFromLocationAndRotation(TEXT("VaultStart"), Start, WallRotation);
+	PlayerMotionWarping->AddOrUpdateWarpTargetFromLocationAndRotation(TEXT("VaultEnd"), End, WallRotation);
 	
-	PlayerAnimInstance->OnMontageStarted.AddDynamic(this, &UObstacleSystemComponent::OnVaultMontageStarted);
-	PlayerAnimInstance->OnMontageEnded.AddDynamic(this, &UObstacleSystemComponent::OnVaultMontageEnded);
-	PlayerAnimInstance->OnMontageBlendingOut.AddDynamic(this, &UObstacleSystemComponent::OnVaultMontageBlendingOut);
+	PlayerAnimInstance->OnMontageStarted.AddDynamic(this, &UActionComponent::OnVaultMontageStarted);
+	PlayerAnimInstance->OnMontageEnded.AddDynamic(this, &UActionComponent::OnVaultMontageEnded);
+	PlayerAnimInstance->OnMontageBlendingOut.AddDynamic(this, &UActionComponent::OnVaultMontageBlendingOut);
 	PlayerAnimInstance->Montage_Play(AnimMontage);
 }
 
-void UObstacleSystemComponent::OnClimbMontageBlendingOut(UAnimMontage* Montage, bool bInterrupted)
+void UActionComponent::OnClimbMontageBlendingOut(UAnimMontage* Montage, bool bInterrupted)
 {
 	if (bVerboseMontage)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("UObstacleSystemComponent::OnClimbMontageBlendingOut"));
+		UE_LOG(LogTemp, Warning, TEXT("UActionComponent::OnClimbMontageBlendingOut"));
 	}
 
 	PlayerActionState = EActionState::Climbing;
 	PlayerMovement->StopMovementImmediately();
-	PlayerAnimInstance->OnMontageBlendingOut.RemoveDynamic(this, &UObstacleSystemComponent::OnClimbMontageBlendingOut);
+	PlayerAnimInstance->OnMontageBlendingOut.RemoveDynamic(this, &UActionComponent::OnClimbMontageBlendingOut);
 }
 
-void UObstacleSystemComponent::TryClimb()
+void UActionComponent::TryClimb()
 {
 	bCanInteract = false;
 	// Climbing 중에는 마우스 움직임이 발생해도 회전하지 않도록 합니다. (카메라만 회전)
@@ -472,13 +475,13 @@ void UObstacleSystemComponent::TryClimb()
 	// TODO: 자연스러운 Climb 애니메이션 실행을 위해 필요한 보정 값을 에디터에서 수정할 수 있도록 UPROPERTY 세팅
 	const FVector TargetLocation = UPlayerHelper::MoveVectorDownward(
 		UPlayerHelper::MoveVectorForward(
-			FirstTopHitResult.ImpactPoint, ObstacleRotation, 5.0f), 110.0f);
-	PlayerMotionWarping->AddOrUpdateWarpTargetFromLocationAndRotation(TEXT("ClimbStart"), TargetLocation, ObstacleRotation);
-	PlayerAnimInstance->OnMontageBlendingOut.AddDynamic(this, &UObstacleSystemComponent::OnClimbMontageBlendingOut);
+			FirstTopHitResult.ImpactPoint, WallRotation, 5.0f), 110.0f);
+	PlayerMotionWarping->AddOrUpdateWarpTargetFromLocationAndRotation(TEXT("ClimbStart"), TargetLocation, WallRotation);
+	PlayerAnimInstance->OnMontageBlendingOut.AddDynamic(this, &UActionComponent::OnClimbMontageBlendingOut);
 	PlayerAnimInstance->Montage_Play(ClimbStart);
 }
 
-void UObstacleSystemComponent::MoveOnObstacle(const FVector2D& InMovementVector)
+void UActionComponent::MoveOnWall(const FVector2D& InMovementVector)
 {
 	MovementVector = InMovementVector;
 	if (false == PlayerAnimInstance->IsAnyMontagePlaying())
@@ -494,13 +497,13 @@ void UObstacleSystemComponent::MoveOnObstacle(const FVector2D& InMovementVector)
 	
 }
 
-void UObstacleSystemComponent::ResetMoveValue()
+void UActionComponent::ResetMoveValue()
 {
 	MovementVector = FVector2D::ZeroVector;
 	PlayerAnimInterface->Execute_SetMovementVector(PlayerAnimInstance, MovementVector);
 }
 
-void UObstacleSystemComponent::TriggerClimbMovement()
+void UActionComponent::TriggerClimbMovement()
 {
 	const TArray<AActor*> ActorsToIgnore;
 	;
@@ -530,20 +533,20 @@ void UObstacleSystemComponent::TriggerClimbMovement()
 			false,
 			ActorsToIgnore,
 			EDrawDebugTrace::ForOneFrame,
-			ObstacleHitResultForClimbMove,
+			WallHitResultForClimbMove,
 			true
 		);
 
 		if (true == bHit)
 		{
-			ObstacleRotation = UPlayerHelper::ReverseNormal(ObstacleHitResultForClimbMove.ImpactNormal);
+			WallRotation = UPlayerHelper::ReverseNormal(WallHitResultForClimbMove.ImpactNormal);
 			break;
 		}
 		PlayerMovement->StopMovementImmediately();
 	}
 	
 	const FVector Start = UPlayerHelper::MoveVectorUpward(
-		UPlayerHelper::MoveVectorForward(ObstacleHitResultForClimbMove.ImpactPoint, ObstacleRotation, 2.0f),
+		UPlayerHelper::MoveVectorForward(WallHitResultForClimbMove.ImpactPoint, WallRotation, 2.0f),
 		20.0f
 	);
 	const FVector End = UPlayerHelper::MoveVectorDownward(Start, 100.0f);
@@ -556,26 +559,26 @@ void UObstacleSystemComponent::TriggerClimbMovement()
 		false,
 		ActorsToIgnore,
 		EDrawDebugTrace::ForOneFrame,
-		ObstacleTopHitResultForClimbMove,
+		WallTopHitResultForClimbMove,
 		true
 	);
 	
-	if (true == ObstacleTopHitResultForClimbMove.bStartPenetrating)
+	if (true == WallTopHitResultForClimbMove.bStartPenetrating)
 	{
 		// 시작 지점이 이미 다른 Mesh에 의해 Overlap 되어 있는 경우 즉시 Player의 움직임을 멈춘다.
 		PlayerMovement->StopMovementImmediately();
 	}
-	else if (true == ObstacleTopHitResultForClimbMove.bBlockingHit)
+	else if (true == WallTopHitResultForClimbMove.bBlockingHit)
 	{
 		PlayerMovement->StopMovementImmediately();
 
-		const FVector ImpactPoint = ObstacleTopHitResultForClimbMove.ImpactPoint;
+		const FVector ImpactPoint = WallTopHitResultForClimbMove.ImpactPoint;
 		const FVector Current = PlayerCapsule->GetComponentLocation();
-		const FVector Target = UPlayerHelper::MoveVectorBackward(ImpactPoint, ObstacleRotation, 35.0f);
+		const FVector Target = UPlayerHelper::MoveVectorBackward(ImpactPoint, WallRotation, 35.0f);
 		const float DeltaSeconds = GetWorld()->GetDeltaSeconds();
 		const float X = UKismetMathLibrary::FInterpTo(Current.X, Target.X, DeltaSeconds, 5.0f);
 		const float Y = UKismetMathLibrary::FInterpTo(Current.Y, Target.Y, DeltaSeconds, 5.0f);
 		const FVector NewLocation = FVector(X, Y, ImpactPoint.Z - 107.0f);
-		PlayerCapsule->SetWorldLocationAndRotation(NewLocation, ObstacleRotation);
+		PlayerCapsule->SetWorldLocationAndRotation(NewLocation, WallRotation);
 	}
 }
