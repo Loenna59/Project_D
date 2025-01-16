@@ -91,6 +91,9 @@ public:
 	UFUNCTION()
 	virtual void OnTriggerEnter(AActor* OtherActor, ACollisionTriggerParam* Param) override;
 
+	UFUNCTION()
+	virtual void OnCollisionHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+
 protected:
 	virtual bool IsPhysicsBone(const FName& HitBoneName);
 	

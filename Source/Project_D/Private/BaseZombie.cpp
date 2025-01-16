@@ -3,6 +3,7 @@
 
 #include "BaseZombie.h"
 
+#include "ExplosiveCollisionActor.h"
 #include "GameDebug.h"
 #include "KismetTraceUtils.h"
 #include "TraceChannelHelper.h"
@@ -72,6 +73,8 @@ void ABaseZombie::BeginPlay()
 	FSM->RegisterComponent();
 
 	FSM->ChangeState(EEnemyState::IDLE, this);
+
+	GetCapsuleComponent()->OnComponentHit.AddDynamic(this, &ABaseZombie::OnCollisionHit);
 }
 
 // Called every frame
@@ -329,9 +332,9 @@ void ABaseZombie::OnTriggerEnter(AActor* OtherActor, ACollisionTriggerParam* Par
 
 		if (ApplyDamageToBone(BoneName, Damage))
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Cyan, HitBoneName.ToString());
-			Dismemberment(BoneName);
+			// GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Cyan, HitBoneName.ToString());
 			// FSM->ChangeState(EEnemyState::CLAWING, this);
+			Dismemberment(BoneName);
 			ApplyPhysics(BoneName);
 
 			if (InstantKilled(BoneName))
@@ -346,5 +349,18 @@ void ABaseZombie::OnTriggerEnter(AActor* OtherActor, ACollisionTriggerParam* Par
 		{
 			PlayAnimMontage(MontageMap["Hit"], 1.5f, "Hit");
 		}	
+	}
+}
+
+void ABaseZombie::OnCollisionHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp,
+	FVector NormalImpulse, const FHitResult& Hit)
+{
+	//GameDebug::ShowDisplayLog(GetWorld(), "OnCollisionHit");
+
+	if (OtherActor->IsA<AExplosiveCollisionActor>())
+	{
+		GetMesh()->SetSimulatePhysics(true);
+		GameDebug::ShowDisplayLog(GetWorld(), "Death");
+		FSM->ChangeState(EEnemyState::DEATH, this);
 	}
 }
