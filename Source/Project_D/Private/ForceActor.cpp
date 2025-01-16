@@ -11,6 +11,9 @@ AForceActor::AForceActor()
 
 	RadialForce = CreateDefaultSubobject<URadialForceComponent>("RadialForce");
 
+	RadialForce->Radius = 200.f;
+	RadialForce->ImpulseStrength = 3000.f;
+	RadialForce->ForceStrength = 1000.f;
 }
 
 // Called when the game starts or when spawned

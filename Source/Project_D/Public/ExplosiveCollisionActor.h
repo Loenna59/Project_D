@@ -26,5 +26,7 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class USphereComponent* Collision;
+
+	float CurrentTime = 0;
 	
 };

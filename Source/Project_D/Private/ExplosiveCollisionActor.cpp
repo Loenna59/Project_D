@@ -12,8 +12,8 @@ AExplosiveCollisionActor::AExplosiveCollisionActor()
 	Collision = CreateDefaultSubobject<USphereComponent>(TEXT("Collision"));
 	SetRootComponent(Collision);
 
-	Collision->SetSphereRadius(250.f);
-
+	Collision->SetSphereRadius(500.f);
+	Collision->SetCollisionProfileName("BlockAll");
 }
 
 // Called when the game starts or when spawned
@@ -28,5 +28,11 @@ void AExplosiveCollisionActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	if (CurrentTime > 1.f)
+	{
+		this->Destroy();
+	}
+	
+	CurrentTime += DeltaTime;
 }
 
