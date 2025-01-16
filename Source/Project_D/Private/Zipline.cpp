@@ -38,7 +38,7 @@ AZipline::AZipline()
 	StartCablePosition->SetRelativeLocation(FVector(0, 0, 45));
 	EndCablePosition->SetRelativeLocation(FVector(0, 0, 45));
 	
-	StartStickColliderBox->SetBoxExtent(FVector(50.0f, 50.0f, 150.0f));
+	StartStickColliderBox->SetBoxExtent(FVector(100.0f, 100.0f, 150.0f));
 	StartStickColliderBox->OnComponentBeginOverlap.AddDynamic(this, &AZipline::OnComponentBeginOverlap);
 	StartStickColliderBox->OnComponentEndOverlap.AddDynamic(this, &AZipline::OnComponentEndOverlap);
 }

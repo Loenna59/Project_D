@@ -60,29 +60,10 @@ void UActionComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	const FVector PlayerLocation = PlayerCapsule->GetComponentLocation();
+	// TODO: 종속성
+	APlayerCharacter* Player = Cast<APlayerCharacter>(GetOwner());
+	const FVector PlayerLocation = Player->GetActorLocation();
 	
-	FVector StartEnd = PlayerLocation;
-	StartEnd.Z = PlayerInterface->GetBottomZ();
-	const TArray<AActor*> ActorsToIgnore;
-	FHitResult HitResult;
-	const bool bHit = UKismetSystemLibrary::SphereTraceSingle(
-		GetWorld(),
-		StartEnd,
-		StartEnd,
-		4.0f,
-		UEngineTypes::ConvertToTraceType(ECC_Visibility),
-		false,
-		ActorsToIgnore,
-		bVerboseTick ? EDrawDebugTrace::ForOneFrame : EDrawDebugTrace::None,
-		HitResult,
-		true,
-		FLinearColor::Red,
-		FLinearColor::Green,
-		1.0f
-	);
-	bIsOnLand = bHit;
-
 	if (PlayerActionState == EActionState::Zipping)
 	{
 		bool bNear = true;
@@ -108,14 +89,34 @@ void UActionComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 			const FVector P0 = PlayerMovement->GetLocation();
 			const FVector VT = 600.0f * DeltaTime * Dir;
 			const FVector P = P0 + VT;
-			UE_LOG(LogTemp, Warning, TEXT("%s"), *P.ToString());
-
-			// TODO: 종속성
-			APlayerCharacter* Player = Cast<APlayerCharacter>(GetOwner());
+			
 			Player->SetActorLocation(P);
-			Player->SetActorRotation(UKismetMathLibrary::FindLookAtRotation(P0, ZippingEndPosition));
+			Player->SetActorRotation(FRotator(0.0f, UKismetMathLibrary::FindLookAtRotation(P0, ZippingEndPosition).Yaw, 0.0f));
 		}
+
+		return;
 	}
+	
+	FVector StartEnd = PlayerLocation;
+	StartEnd.Z = PlayerInterface->GetBottomZ();
+	const TArray<AActor*> ActorsToIgnore;
+	FHitResult HitResult;
+	const bool bHit = UKismetSystemLibrary::SphereTraceSingle(
+		GetWorld(),
+		StartEnd,
+		StartEnd,
+		4.0f,
+		UEngineTypes::ConvertToTraceType(ECC_Visibility),
+		false,
+		ActorsToIgnore,
+		bVerboseTick ? EDrawDebugTrace::ForOneFrame : EDrawDebugTrace::None,
+		HitResult,
+		true,
+		FLinearColor::Red,
+		FLinearColor::Green,
+		1.0f
+	);
+	bIsOnLand = bHit;
 }
 
 void UActionComponent::TriggerInteractWall()
@@ -126,33 +127,42 @@ void UActionComponent::TriggerInteractWall()
 	DetectWall(bDetect, HitLocation, ReverseNormal);
 	if (bDetect)
 	{
-		ScanWall(HitLocation, ReverseNormal);
-		if (FacedWallTopHitResult.bBlockingHit)
+		if (ScanWall(HitLocation, ReverseNormal))
 		{
 			MeasureWall();
 			TryInteractWall();
 		}
 	}
+
+	// DetectWall
+	FacedWallTopHitResult.Reset();
+
+	// ScanWall
+	FirstTopHitResult.Reset();
+	LastTopHitResult.Reset();
+	EndOfObstacleHitResult.Reset();
+	VaultLandingHitResult.Reset();
 }
 
 void UActionComponent::DetectWall(bool &bOutDetect, FVector &OutHitLocation, FRotator &OutReverseNormal) const
 {
-	const auto Owner = GetOwner();
+	const APlayerCharacter* Player = Cast<APlayerCharacter>(GetOwner());
+	check(Player);
 	const ETraceTypeQuery TraceChannel = UEngineTypes::ConvertToTraceType(ECC_Visibility);
 	FHitResult OutHit;
 
 	for (int i = 0; i < 8; i++)
 	{
 		const TArray<AActor*> ActorsToIgnore;
-		const FVector ActorLocation = Owner->GetActorLocation();
-		const FRotator ActorRotation = Owner->GetActorRotation();
+		const FVector ActorLocation = Player->GetActorLocation();
+		const FRotator ActorRotation = Player->GetActorRotation();
 		const FVector TempVector = UPlayerHelper::MoveVectorUpward(
 				UPlayerHelper::MoveVectorDownward(ActorLocation, 40.0f),
 				i * 20
 			);
 		const FVector Start = UPlayerHelper::MoveVectorBackward(TempVector, ActorRotation, 30.0f);
-		const FVector End = Owner->GetActorForwardVector() * 200.0f + TempVector;
-
+		const FVector End = Player->GetActorForwardVector() * 200.0f + TempVector;
+		
 		const bool bHit = UKismetSystemLibrary::SphereTraceSingle(
 			GetWorld(),
 			Start,
@@ -179,7 +189,7 @@ void UActionComponent::DetectWall(bool &bOutDetect, FVector &OutHitLocation, FRo
 	OutReverseNormal = UPlayerHelper::ReverseNormal(OutHit.Normal);
 }
 
-void UActionComponent::ScanWall(const FVector& DetectLocation, const FRotator& ReverseNormal)
+bool UActionComponent::ScanWall(const FVector& DetectLocation, const FRotator& ReverseNormal)
 {
 	const ETraceTypeQuery TraceChannel = UEngineTypes::ConvertToTraceType(ECC_Visibility);
 	FVector Start, End;
@@ -217,7 +227,8 @@ void UActionComponent::ScanWall(const FVector& DetectLocation, const FRotator& R
 	}
 	if (false == FacedWallTopHitResult.bBlockingHit)
 	{
-		return;
+		UE_LOG(LogTemp, Warning, TEXT("false == FacedWallTopHitResult.bBlockingHit"))
+		return false;
 	}
 	
 	// FacedWallTopHitResult.Location을 기준으로 20씩 전진시켜가며 널널하게 위아래로 10만큼씩 범위로 하여 SphereTrace
@@ -264,6 +275,12 @@ void UActionComponent::ScanWall(const FVector& DetectLocation, const FRotator& R
 		}
 	}
 
+	if (false == FirstTopHitResult.bBlockingHit || false ==  LastTopHitResult.bBlockingHit)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("false == FirstTopHitResult.bBlockingHit || false ==  LastTopHitResult.bBlockingHit"))
+		return false;
+	}
+
 	// LastTopHitResult는 장애물의 정확한 끝 지점이라고 볼 수 없다. (20씩 전진시켜가며 대강 측정한 것이기 때문)
 	// LastTopHitResult 기준에서 20만큼 앞에 있는 위치를 시작으로 LastTopHitResult 까지 SphereTrace 하면 정확한 장애물의 끝 지점을 찾을 수 있다.
 	Start = UPlayerHelper::MoveVectorForward(LastTopHitResult.ImpactPoint, WallRotation, 20.0f);
@@ -284,6 +301,12 @@ void UActionComponent::ScanWall(const FVector& DetectLocation, const FRotator& R
 		FLinearColor::Green,
 		2.0f
 	);
+
+	if (false == EndOfObstacleHitResult.bBlockingHit)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("false == EndOfObstacleHitResult.bBlockingHit"))
+		return false;
+	}
 
 	// 장애물의 정확한 끝 지점을 찾았다면 해당 지점부터 60만큼 앞에 있는 지점을 기준으로 시작하여 180만큼 아래에 있는 위치까지 SphereTrace
 	if (true == bHit)
@@ -311,24 +334,18 @@ void UActionComponent::ScanWall(const FVector& DetectLocation, const FRotator& R
 			
 		}
 	}
+
+	return true;
 }
 
 void UActionComponent::MeasureWall()
 {
-	// 만약 앞에 벽이 있는게 확실하다면
-	if (FacedWallTopHitResult.bBlockingHit && FirstTopHitResult.bBlockingHit)
-	{
-		// Player 전방에 있는 벽의 높이 = 장애물 꼭대기 위치의 Z좌표 - Player의 발 위치 Z좌표
-		WallHeight = FirstTopHitResult.ImpactPoint.Z - PlayerInterface->GetBottomZ();
+	// Player 전방에 있는 벽의 높이 = 장애물 꼭대기 위치의 Z좌표 - Player의 발 위치 Z좌표
+	WallHeight = FirstTopHitResult.ImpactPoint.Z - PlayerInterface->GetBottomZ();
 		
-		if (bVerboseMeasure)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("감지된 장애물의 높이 : %f"), WallHeight);
-		}
-	}
-	else
+	if (bVerboseMeasure)
 	{
-		WallHeight = 0.0f;
+		UE_LOG(LogTemp, Warning, TEXT("감지된 장애물의 높이 : %f"), WallHeight);
 	}
 }
 

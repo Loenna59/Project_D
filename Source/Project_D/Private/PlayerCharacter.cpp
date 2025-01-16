@@ -85,7 +85,7 @@ UMotionWarpingComponent* APlayerCharacter::GetMotionWarping()
 
 float APlayerCharacter::GetBottomZ()
 {
-	return GetActorLocation().Z - GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
+	return Super::GetCharacterMovement()->GetFeetLocation().Z;
 }
 
 void APlayerCharacter::SetUseControllerRotationPitch(const bool& bUse)

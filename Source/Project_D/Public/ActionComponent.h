@@ -119,17 +119,14 @@ public:
 	/// @param bOutDetect 
 	/// @param OutHitLocation 
 	/// @param OutReverseNormal 
-	/// @param bVerbose Trace 결과를 모두 DebugDraw 할 것인지 여부
 	void DetectWall(bool &bOutDetect, FVector &OutHitLocation, FRotator &OutReverseNormal) const;
 
 	/// 장애물을 파악하여 착지 지점 등을 계산
 	/// @param DetectLocation 벽을 감지한 위치
 	/// @param ReverseNormal
-	/// @param bVerbose Trace 결과를 모두 DebugDraw 할 것인지 여부
-	void ScanWall(const FVector& DetectLocation, const FRotator& ReverseNormal);
+	bool ScanWall(const FVector& DetectLocation, const FRotator& ReverseNormal);
 
 	/// 장애물의 높이를 계산
-	/// @param bVerbose 실시간으로 계산된 장애물의 높이를 Debug 할 것인지 여부
 	void MeasureWall();
 
 	// 
