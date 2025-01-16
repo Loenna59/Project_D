@@ -11,6 +11,16 @@ void UAttackZombieState::OnEnter(ABaseZombie* Zombie)
 	if (Zombie && Zombie->DetectedTarget)
 	{
 		UKismetSystemLibrary::PrintString(GetWorld(),TEXT("ATTACK"));
+		GetWorld()->GetTimerManager().SetTimer(
+			TimerHandle,
+			[Zombie] ()
+			{
+				Zombie->PlayAnimationMontage(EEnemyState::ATTACK);
+			},
+			Interval,
+			true
+		);
+		Zombie->PlayAnimationMontage(EEnemyState::ATTACK);
 	}
 }
 
