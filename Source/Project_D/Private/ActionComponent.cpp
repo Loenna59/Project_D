@@ -86,8 +86,8 @@ void UActionComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 		else
 		{
 			const FVector Dir = (ZippingEndPosition - PlayerLocation).GetSafeNormal();
-			const FVector P0 = PlayerMovement->GetLocation();
-			const FVector VT = 600.0f * DeltaTime * Dir;
+			const FVector P0 = PlayerLocation;
+			const FVector VT = 700.0f * DeltaTime * Dir;
 			const FVector P = P0 + VT;
 			
 			Player->SetActorLocation(P);
@@ -96,7 +96,8 @@ void UActionComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 
 		return;
 	}
-	
+
+	// 플레이어가 지면에 서 있는지 확인
 	FVector StartEnd = PlayerLocation;
 	StartEnd.Z = PlayerInterface->GetBottomZ();
 	const TArray<AActor*> ActorsToIgnore;
@@ -119,8 +120,10 @@ void UActionComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 	bIsOnLand = bHit;
 }
 
-void UActionComponent::TriggerInteractWall()
+bool UActionComponent::TriggerInteractWall()
 {
+	bool bInteracted = false;
+	
 	bool bDetect;
 	FVector HitLocation;
 	FRotator ReverseNormal;
@@ -130,7 +133,7 @@ void UActionComponent::TriggerInteractWall()
 		if (ScanWall(HitLocation, ReverseNormal))
 		{
 			MeasureWall();
-			TryInteractWall();
+			bInteracted = TryInteractWall();
 		}
 	}
 
@@ -142,6 +145,8 @@ void UActionComponent::TriggerInteractWall()
 	LastTopHitResult.Reset();
 	EndOfObstacleHitResult.Reset();
 	VaultLandingHitResult.Reset();
+
+	return bInteracted;
 }
 
 void UActionComponent::DetectWall(bool &bOutDetect, FVector &OutHitLocation, FRotator &OutReverseNormal) const
@@ -349,7 +354,7 @@ void UActionComponent::MeasureWall()
 	}
 }
 
-void UActionComponent::TryInteractWall()
+bool UActionComponent::TryInteractWall()
 {
 	const AActor* Owner = GetOwner();
 	const FVector Velocity = Owner->GetVelocity();
@@ -357,63 +362,73 @@ void UActionComponent::TryInteractWall()
 
 	// 캐릭터의 수평속도가 5 이하라면 서 있는 상태라고 판단
 	const bool bIsStanding = UKismetMathLibrary::NearlyEqual_FloatFloat(SizeXY, 0.0f, 5.0f);
-	
+
+	// TODO: 각 행동에 필요한 높이 값을 에디터에서 수정할 수 있도록 UPROPERTY 세팅
 	if (FirstTopHitResult.bBlockingHit)
 	{
 		if (bIsOnLand)
 		{
-			// TODO: 각 행동에 필요한 높이 값을 에디터에서 수정할 수 있도록 UPROPERTY 세팅
 			if (WallHeight <= 300.0f)
 			{
-				if (WallHeight <= 150.0f)
+				if (bIsStanding)
 				{
-					if (bIsStanding)
+					if (WallHeight > 150.0f)
 					{
-						// Mantle 동작 수행
 						if (bVerboseInteract)
 						{
-							UE_LOG(LogTemp, Warning, TEXT("Mantle 동작 수행"));
+							UE_LOG(LogTemp, Warning, TEXT("Climb 동작 수행"));
 						}
-					}
-					else
-					{
-						// Vault 동작 수행
-						if (WallHeight > 100.0f)
-						{
-							// Front Flip 동작 수행
-							if (bVerboseInteract)
-							{
-								UE_LOG(LogTemp, Warning, TEXT("Front Flip 동작 수행"));
-							}
-							TryVault(EVaults::FrontFlip);
-						}
-						else if (WallHeight > 90.0f)
-						{
-							// Two Hand Vault 동작 수행
-							if (bVerboseInteract)
-							{
-								UE_LOG(LogTemp, Warning, TEXT("Two Hand Vault 동작 수행"));
-							}
-							TryVault(EVaults::TwoHandVault);
-						}
-						else
-						{
-							// One Hand Vault 동작 수행
-							if (bVerboseInteract)
-							{
-								UE_LOG(LogTemp, Warning, TEXT("One Hand Vault 동작 수행"));
-							}
-							TryVault(EVaults::OneHandVault);
-						}
+						TryClimb();
+						return true;
 					}
 				}
 				else
 				{
-					if (bVerboseInteract)
+					if (WallHeight <= 150.0f)
 					{
-						UE_LOG(LogTemp, Warning, TEXT("Climb 동작 수행"));
+						if (false == bIsStanding)
+						{
+							// Vault 동작 수행
+					
+							if (WallHeight > 100.0f)
+							{
+								// Front Flip 동작 수행
+								if (bVerboseInteract)
+								{
+									UE_LOG(LogTemp, Warning, TEXT("Front Flip 동작 수행"));
+								}
+								TryVault(EVaults::FrontFlip);
+							}
+							else if (WallHeight > 90.0f)
+							{
+								// Two Hand Vault 동작 수행
+								if (bVerboseInteract)
+								{
+									UE_LOG(LogTemp, Warning, TEXT("Two Hand Vault 동작 수행"));
+								}
+								TryVault(EVaults::TwoHandVault);
+							}
+							else if (WallHeight > 50.0f)
+							{
+								// One Hand Vault 동작 수행
+								if (bVerboseInteract)
+								{
+									UE_LOG(LogTemp, Warning, TEXT("One Hand Vault 동작 수행"));
+								}
+								TryVault(EVaults::OneHandVault);
+							}
+							else
+							{
+								if (bVerboseInteract)
+								{
+									UE_LOG(LogTemp, Warning, TEXT("너무 낮은 벽"));
+								}
+								return false;
+							}
+							
+							return true;
+						}
 					}
-					TryClimb();
 				}
 			}
 			else
@@ -426,6 +441,8 @@ void UActionComponent::TryInteractWall()
 			}
 		}
 	}
+
+	return false;
 }
 
 void UActionComponent::OnVaultMontageStarted(UAnimMontage* Montage)
@@ -637,8 +654,14 @@ void UActionComponent::TriggerClimbMovement()
 	}
 }
 
-void UActionComponent::TryRideZipline()
+bool UActionComponent::TryRideZipline()
 {
+	// 근처에 Zipline이 없다면
+	if (false == bCanZipping || nullptr == TargetZipline)
+	{
+		return false;
+	}
+	
 	bCanZipping = false;
 	// Zipline을 타는 중에는 마우스 움직임이 발생해도 회전하지 않도록 합니다. (카메라만 회전)
 	PlayerInterface->SetUseControllerRotationYaw(false);
@@ -649,10 +672,12 @@ void UActionComponent::TryRideZipline()
 	
 	PlayerActionState = EActionState::Zipping;
 	
-	ZippingStartPosition = TargetZipline->StartCablePosition->GetComponentLocation();
-	ZippingEndPosition = TargetZipline->EndCablePosition->GetComponentLocation();
+	ZippingStartPosition = UPlayerHelper::MoveVectorDownward(TargetZipline->StartCablePosition->GetComponentLocation(), 100.0f);
+	ZippingEndPosition = UPlayerHelper::MoveVectorDownward(TargetZipline->EndCablePosition->GetComponentLocation(), 100.0f);
 	
 	// TODO: 종속성
     APlayerCharacter* Player = Cast<APlayerCharacter>(GetOwner());
     Player->SetActorLocation(ZippingStartPosition);
+
+	return true;
 }

@@ -113,7 +113,7 @@ public:
 	FHitResult WallTopHitResultForClimbMove;
 
 	// 장애물과의 상호작용을 시도
-	void TriggerInteractWall();
+	bool TriggerInteractWall();
 
 	/// 플레이어 앞에 장애물이 있는지 탐색
 	/// @param bOutDetect 
@@ -130,7 +130,7 @@ public:
 	void MeasureWall();
 
 	// 
-	void TryInteractWall();
+	bool TryInteractWall();
 
 	UFUNCTION()
 	void OnVaultMontageStarted(UAnimMontage* Montage);
@@ -168,5 +168,5 @@ public:
 	FVector ZippingEndPosition = FVector::ZeroVector;
 
 	//
-	void TryRideZipline();
+	bool TryRideZipline();
 };

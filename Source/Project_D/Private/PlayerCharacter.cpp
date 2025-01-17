@@ -178,25 +178,29 @@ void APlayerCharacter::CompletedMove(const FInputActionValue& InputActionValue)
 
 void APlayerCharacter::TriggeredJump()
 {
-	if (true == ActionComponent->bCanZipping && ActionComponent->TargetZipline)
+	// Zipline 탑승을 시도 해본다.
+	if (const bool bZipped = ActionComponent->TryRideZipline())
 	{
-		// 만약, 근처에 Zipline이 있고 탈 수 있는 상태라면,
-		ActionComponent->TryRideZipline();
+		return;
 	}
-	else
+
+	// 벽에 매달리거나 넘는 것을 시도 해본다.
+	if (true == ActionComponent->bCanInteract)
 	{
-		Jump(); // Character Class의 Jump 기능 호출
+		if (const bool bInteracted = ActionComponent->TriggerInteractWall())
+		{
+			return;
+		}
 	}
+
+	// 아무것도 안 했으면 그냥 점프를 한다.
+	Jump();
 }
 
 void APlayerCharacter::TriggeredSprint()
 {
 	UCharacterMovementComponent* MovementComponent = GetCharacterMovement();
 	MovementComponent->MaxWalkSpeed = 600.0f;
-	if (true == ActionComponent->bCanInteract)
-	{
-		ActionComponent->TriggerInteractWall();
-	}
 }
 
 void APlayerCharacter::CompletedSprint()
