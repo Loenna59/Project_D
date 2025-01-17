@@ -137,6 +137,7 @@ bool UActionComponent::TriggerInteractWall()
 		}
 	}
 
+	/*
 	// DetectWall
 	FacedWallTopHitResult.Reset();
 
@@ -145,6 +146,7 @@ bool UActionComponent::TriggerInteractWall()
 	LastTopHitResult.Reset();
 	EndOfObstacleHitResult.Reset();
 	VaultLandingHitResult.Reset();
+	*/
 
 	return bInteracted;
 }
@@ -378,7 +380,7 @@ bool UActionComponent::TryInteractWall()
 						{
 							UE_LOG(LogTemp, Warning, TEXT("Climb 동작 수행"));
 						}
-						TryClimb();
+						TryHang();
 						return true;
 					}
 				}
@@ -521,19 +523,21 @@ void UActionComponent::TryVault(const EVaults VaultType)
 	PlayerAnimInstance->Montage_Play(AnimMontage);
 }
 
-void UActionComponent::OnClimbMontageBlendingOut(UAnimMontage* Montage, bool bInterrupted)
+void UActionComponent::OnStartHangingMontageBlendingOut(UAnimMontage* Montage, bool bInterrupted)
 {
 	if (bVerboseMontage)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("UActionComponent::OnClimbMontageBlendingOut"));
+		UE_LOG(LogTemp, Warning, TEXT("UActionComponent::OnStartHangingMontageBlendingOut"));
 	}
 
+	bCanClimbing = true;
 	PlayerActionState = EActionState::Climbing;
+	PlayerAnimInterface->Execute_SetPlayerActionState(PlayerAnimInstance, EActionState::Climbing);
 	PlayerMovement->StopMovementImmediately();
-	PlayerAnimInstance->OnMontageBlendingOut.RemoveDynamic(this, &UActionComponent::OnClimbMontageBlendingOut);
+	PlayerAnimInstance->OnMontageBlendingOut.RemoveDynamic(this, &UActionComponent::OnStartHangingMontageBlendingOut);
 }
 
-void UActionComponent::TryClimb()
+void UActionComponent::TryHang()
 {
 	bCanInteract = false;
 	// Climbing 중에는 마우스 움직임이 발생해도 회전하지 않도록 합니다. (카메라만 회전)
@@ -541,15 +545,14 @@ void UActionComponent::TryClimb()
 	PlayerCapsule->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	PlayerMovement->SetMovementMode(MOVE_Flying);
 	PlayerMovement->StopMovementImmediately();
-	PlayerAnimInterface->Execute_SetPlayerActionState(PlayerAnimInstance, EActionState::Climbing);
 	
 	// TODO: 자연스러운 Climb 애니메이션 실행을 위해 필요한 보정 값을 에디터에서 수정할 수 있도록 UPROPERTY 세팅
-	const FVector TargetLocation = UPlayerHelper::MoveVectorDownward(
+	const FVector TargetLocation = UPlayerHelper::MoveVectorUpward(
 		UPlayerHelper::MoveVectorForward(
 			FirstTopHitResult.ImpactPoint, WallRotation, 5.0f), 110.0f);
-	PlayerMotionWarping->AddOrUpdateWarpTargetFromLocationAndRotation(TEXT("ClimbStart"), TargetLocation, WallRotation);
-	PlayerAnimInstance->OnMontageBlendingOut.AddDynamic(this, &UActionComponent::OnClimbMontageBlendingOut);
-	PlayerAnimInstance->Montage_Play(ClimbStart);
+	PlayerMotionWarping->AddOrUpdateWarpTargetFromLocationAndRotation(TEXT("Hanging"), TargetLocation, WallRotation);
+	PlayerAnimInstance->OnMontageBlendingOut.AddDynamic(this, &UActionComponent::OnStartHangingMontageBlendingOut);
+	PlayerAnimInstance->Montage_Play(Hanging);
 }
 
 void UActionComponent::MoveOnWall(const FVector2D& InMovementVector)
@@ -680,4 +683,43 @@ bool UActionComponent::TryRideZipline()
     Player->SetActorLocation(ZippingStartPosition);
 
 	return true;
+}
+
+void UActionComponent::OnClimbingMontageBlendingOut(UAnimMontage* Montage, bool bInterrupted)
+{
+	if (bVerboseMontage)
+    {
+    	UE_LOG(LogTemp, Warning, TEXT("UActionComponent::OnClimbingMontageBlendingOut"));
+    	UE_LOG(LogTemp, Warning, TEXT("Location : %s"), *PlayerMesh->GetComponentLocation().ToString());
+    }
+	
+	bCanInteract = true;
+	PlayerInterface->SetUseControllerRotationYaw(true);
+	PlayerCapsule->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	PlayerMovement->SetMovementMode(MOVE_Walking);
+	PlayerActionState = EActionState::WalkingOnGround;
+	PlayerAnimInterface->Execute_SetPlayerActionState(PlayerAnimInstance, EActionState::WalkingOnGround);
+	PlayerAnimInstance->OnMontageBlendingOut.RemoveDynamic(this, &UActionComponent::OnClimbingMontageBlendingOut);
+
+	PlayerCapsule->SetWorldLocation(UPlayerHelper::MoveVectorUpward(
+		UPlayerHelper::MoveVectorForward(FirstTopHitResult.ImpactPoint, WallRotation, 50.0f),
+		50.0f));
+	PlayerCapsule->SetWorldRotation(FRotator(0, PlayerCapsule->GetComponentRotation().Yaw, 0));
+	// PlayerAnimInstance->Montage_Play(Stand);
+}
+
+void UActionComponent::TryStand()
+{
+	UE_LOG(LogTemp, Warning, TEXT("TryStand"));
+	const FVector End = UPlayerHelper::MoveVectorUpward(
+		UPlayerHelper::MoveVectorForward(FirstTopHitResult.ImpactPoint, WallRotation, 50.0f),
+		50.0f
+	);
+	PlayerMotionWarping->AddOrUpdateWarpTargetFromLocationAndRotation(TEXT("Climbing"), End, WallRotation);
+
+	UE_LOG(LogTemp, Warning, TEXT("%s"), *End.ToString());
+	
+	bCanClimbing = false;
+	PlayerAnimInstance->OnMontageBlendingOut.AddDynamic(this, &UActionComponent::OnClimbingMontageBlendingOut);
+	PlayerAnimInstance->Montage_Play(Climbing);
 }

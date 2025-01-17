@@ -7,6 +7,7 @@
 #include "Components/ActorComponent.h"
 #include "ActionComponent.generated.h"
 
+class USpringArmComponent;
 class AZipline;
 class IPlayerAnimBlueprintInterface;
 class UCharacterMovementComponent;
@@ -71,7 +72,11 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Animation Montages")
 	UAnimMontage* FrontFlip = nullptr;
 	UPROPERTY(EditDefaultsOnly, Category = "Animation Montages")
-	UAnimMontage* ClimbStart = nullptr;
+	UAnimMontage* Hanging = nullptr;
+	UPROPERTY(EditDefaultsOnly, Category = "Animation Montages")
+	UAnimMontage* Climbing = nullptr;
+	UPROPERTY(EditDefaultsOnly, Category = "Animation Montages")
+	UAnimMontage* Stand = nullptr;
 	
 	IPlayerInterface* PlayerInterface = nullptr;
 	UPROPERTY()
@@ -85,6 +90,7 @@ public:
 	UPROPERTY()
 	UAnimInstance* PlayerAnimInstance = nullptr;
 	IPlayerAnimBlueprintInterface* PlayerAnimInterface = nullptr;
+	
 	UPROPERTY()
 	EActionState PlayerActionState = EActionState::WalkingOnGround;
 	
@@ -106,6 +112,8 @@ public:
 	bool bIsOnLand = false;
 	// 현재 Player가 장애물과의 Interact를 새롭게 시작할 수 있는지 여부
 	bool bCanInteract = true;
+	// 현재 Player가 벽에 매달린 상태로 Stand 몽타주를 실행 중인지 여부
+	bool bCanClimbing = false;
 
 	// Climb
 	FVector2D MovementVector = FVector2d::ZeroVector;
@@ -145,10 +153,10 @@ public:
 	void TryVault(const EVaults VaultType);
 
 	UFUNCTION()
-	void OnClimbMontageBlendingOut(UAnimMontage* Montage, bool bInterrupted);
+	void OnStartHangingMontageBlendingOut(UAnimMontage* Montage, bool bInterrupted);
 	
 	//
-	void TryClimb();
+	void TryHang();
 
 	//
 	void MoveOnWall(const FVector2D& InMovementVector);
@@ -158,6 +166,12 @@ public:
 
 	//
 	void TriggerClimbMovement();
+	
+	UFUNCTION()
+	void OnClimbingMontageBlendingOut(UAnimMontage* Montage, bool bInterrupted);
+	
+	//
+	void TryStand();
 
 public:
 	UPROPERTY()

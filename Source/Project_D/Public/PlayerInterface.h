@@ -30,6 +30,7 @@ public:
 	virtual UCapsuleComponent* GetCapsule() = 0;
 	virtual UCharacterMovementComponent* GetCharacterMovement() = 0;
 	virtual UMotionWarpingComponent* GetMotionWarping() = 0;
+	
 	/// Player 바닥 위치의 Z좌표값 반환
 	/// @return Player의 발이 지면으로부터 Z축으로 얼마만큼 떨어져있는지 나타내는 값
 	virtual float GetBottomZ() = 0;

@@ -92,5 +92,5 @@ public:
 	void MoveOnGround(const FVector2D& MovementVector);
 	
 	void OnZiplineBeginOverlap(AZipline* InZipline);
-	void OnZiplineEndOverlap(AZipline* InZipline);
+	void OnZiplineEndOverlap(const AZipline* InZipline);
 };

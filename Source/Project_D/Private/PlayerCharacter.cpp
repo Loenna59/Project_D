@@ -6,8 +6,6 @@
 #include "EnhancedInputSubsystems.h"
 #include "MotionWarpingComponent.h"
 #include "ActionComponent.h"
-#include "Camera/CameraComponent.h"
-#include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
 // Sets default values
@@ -18,7 +16,7 @@ APlayerCharacter::APlayerCharacter()
 
 	// true일 때 마우스 움직임에 따라 Player의 Yaw 축이 따라 움직인다.
 	bUseControllerRotationYaw = true;
-	
+
 	ActionComponent = CreateDefaultSubobject<UActionComponent>(TEXT("ActionComponent"));
 	MotionWarpingComponent = CreateDefaultSubobject<UMotionWarpingComponent>(TEXT("MotionWarpingComponent"));
 }
@@ -131,7 +129,7 @@ void APlayerCharacter::OnZiplineBeginOverlap(AZipline* InZipline)
 	ActionComponent->TargetZipline = InZipline;
 }
 
-void APlayerCharacter::OnZiplineEndOverlap(AZipline* InZipline)
+void APlayerCharacter::OnZiplineEndOverlap(const AZipline* InZipline)
 {
 	if (ActionComponent->TargetZipline == InZipline)
 	{
@@ -178,8 +176,10 @@ void APlayerCharacter::CompletedMove(const FInputActionValue& InputActionValue)
 
 void APlayerCharacter::TriggeredJump()
 {
+	UE_LOG(LogTemp, Warning, TEXT("%hhd"), ActionComponent->PlayerActionState);
+	
 	// Zipline 탑승을 시도 해본다.
-	if (const bool bZipped = ActionComponent->TryRideZipline())
+	if (true == ActionComponent->TryRideZipline())
 	{
 		return;
 	}
@@ -187,12 +187,21 @@ void APlayerCharacter::TriggeredJump()
 	// 벽에 매달리거나 넘는 것을 시도 해본다.
 	if (true == ActionComponent->bCanInteract)
 	{
-		if (const bool bInteracted = ActionComponent->TriggerInteractWall())
+		if (true == ActionComponent->TriggerInteractWall())
 		{
 			return;
 		}
 	}
 
+	if (EActionState::Climbing == ActionComponent->PlayerActionState)
+	{
+		if (true == ActionComponent->bCanClimbing)
+		{
+			ActionComponent->TryStand();
+		}
+		return;
+	}
+	
 	// 아무것도 안 했으면 그냥 점프를 한다.
 	Jump();
 }
