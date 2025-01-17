@@ -98,7 +98,7 @@ void ABaseZombie::Tick(float DeltaTime)
 			ECC_EngineTraceChannel2, // "Player"
 			DetectRadius,
 			true,
-			true,
+			false,
 			[this] (bool bHit, TArray<FHitResult> HitResults)
 			{
 				bool HitPlayer = false;
@@ -125,7 +125,7 @@ void ABaseZombie::Tick(float DeltaTime)
 					}
 					else
 					{
-						GameDebug::ShowDisplayLog(GetWorld(), FString::SanitizeFloat(Distance));
+						// GameDebug::ShowDisplayLog(GetWorld(), FString::SanitizeFloat(Distance));
 						FSM->ChangeState(EEnemyState::ATTACK, this);
 					}
 				}
