@@ -92,6 +92,8 @@ void UClawingZombieState::AddForceToBones(ABaseZombie* const Zombie)
 	{
 		if (UCapsuleComponent* const Collision = Zombie->GetCapsuleComponent())
 		{
+			MeshComponent->SetSimulatePhysics(true);
+			
 			if (Zombie->Attacker)
 			{
 				MeshComponent->AddForce(

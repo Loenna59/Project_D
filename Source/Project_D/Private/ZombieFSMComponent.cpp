@@ -3,6 +3,7 @@
 
 #include "ZombieFSMComponent.h"
 
+#include "DeathZombieState.h"
 #include "Kismet/KismetSystemLibrary.h"
 
 
@@ -32,6 +33,7 @@ void UZombieFSMComponent::SetupState(ABaseZombie* Zombie)
 	StateMap.Add(EEnemyState::WALK, NewObject<UWalkZombieState>(this));
 	StateMap.Add(EEnemyState::ATTACK, NewObject<UAttackZombieState>(this));
 	StateMap.Add(EEnemyState::CLAWING, NewObject<UClawingZombieState>(this));
+	StateMap.Add(EEnemyState::DEATH, NewObject<UDeathZombieState>(this));
 }
 
 void UZombieFSMComponent::ChangeState(EEnemyState NewState, ABaseZombie* Zombie)
@@ -41,6 +43,11 @@ void UZombieFSMComponent::ChangeState(EEnemyState NewState, ABaseZombie* Zombie)
 		bSetupCompleted = true;
 
 		SetupState(Zombie);
+	}
+	
+	if (CurrentState == EEnemyState::DEATH)
+	{
+		return;
 	}
 	
 	if (CurrentState != NewState)
@@ -55,7 +62,7 @@ void UZombieFSMComponent::ChangeState(EEnemyState NewState, ABaseZombie* Zombie)
 		
 		if (StateMap.Contains(CurrentState))
 		{
-            UKismetSystemLibrary::PrintString(GetWorld(), EnumToString(CurrentState));
+            // UKismetSystemLibrary::PrintString(GetWorld(), EnumToString(CurrentState));
 			StateMap[CurrentState]->OnEnter(Zombie);
 		}
 	}

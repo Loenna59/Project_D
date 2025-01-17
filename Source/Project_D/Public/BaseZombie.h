@@ -3,13 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "CollisionTrigger.h"
 #include "EEnemyState.h"
 #include "ZombieFSMComponent.h"
 #include "GameFramework/Character.h"
 #include "BaseZombie.generated.h"
 
 UCLASS()
-class PROJECT_D_API ABaseZombie : public ACharacter
+class PROJECT_D_API ABaseZombie : public ACharacter, public ICollisionTrigger
 {
 	GENERATED_BODY()
 
@@ -27,15 +28,14 @@ public:
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	EEnemyState EState = EEnemyState::NONE;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TMap<FName, int32> BoneDurability;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TArray<FName> BrokenBones;
+
+	TArray<FName> WeaknessBones;
 
 	UPROPERTY(EditAnywhere)
 	FName HeadBone;
@@ -68,19 +68,32 @@ public:
 	float AttackRadius = 200.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool IsAttacking = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class UAnimMontage* AttackMontage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TMap<FName, class UAnimMontage*> MontageMap;
 
 	// UPROPERTY(EditAnywhere, blueprintReadWrite)
 	// class USkeletalMeshComponent* BodyMesh;
-
-	UFUNCTION()
-	virtual void PlayAnimationMontage(EEnemyState State);
 	
-	UFUNCTION()
-	virtual void AnyDamage(int32 Damage, const FName& HitBoneName, class AActor* DamageCauser);
+	// UFUNCTION()
+	// virtual void AnyDamage(int32 Damage, const FName& HitBoneName, class AActor* DamageCauser);
 
 	virtual bool ContainsBrokenBones(TArray<FName> BoneNames);
-	
+
+	virtual void OnTriggerAttack(bool Start);
+
+	virtual void OnDisbale();
+
+	UFUNCTION()
+	virtual void OnTriggerEnter(AActor* OtherActor, ACollisionTriggerParam* Param) override;
+
+	UFUNCTION()
+	virtual void OnCollisionHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+
 protected:
 	virtual bool IsPhysicsBone(const FName& HitBoneName);
 	
@@ -95,5 +108,7 @@ protected:
 	virtual void ApplyPhysics(const FName& HitBoneName);
 
 	virtual FVector CalculateImpulse();
+
+	virtual bool InstantKilled(const FName& HitBoneName);
 
 };

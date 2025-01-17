@@ -5,9 +5,16 @@
 
 #include "BaseZombie.h"
 #include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetMathLibrary.h"
 
 void UAttackZombieState::OnEnter(ABaseZombie* Zombie)
 {
+	if (TimerHandle.IsValid())
+	{
+		GetWorld()->GetTimerManager().ClearTimer(TimerHandle);
+		TimerHandle.Invalidate();
+	}
+	
 	if (Zombie && Zombie->DetectedTarget)
 	{
 		UKismetSystemLibrary::PrintString(GetWorld(),TEXT("ATTACK"));
@@ -15,25 +22,47 @@ void UAttackZombieState::OnEnter(ABaseZombie* Zombie)
 			TimerHandle,
 			[Zombie] ()
 			{
-				Zombie->PlayAnimationMontage(EEnemyState::ATTACK);
+				Zombie->OnTriggerAttack(false);
 			},
 			Interval,
-			true
+			false
 		);
-		Zombie->PlayAnimationMontage(EEnemyState::ATTACK);
+		Zombie->OnTriggerAttack(true);
 	}
 }
 
 void UAttackZombieState::OnUpdate(ABaseZombie* Zombie)
 {
-	if (Zombie)
-	{
-		
+	if (Zombie && Zombie->DetectedTarget)
+	{	
+		FVector Distance = Zombie->DetectedTarget->GetActorLocation() - Zombie->GetActorLocation();
+		FVector Direction = Distance.GetSafeNormal();
+
+		FRotator LookAtRotation = FRotationMatrix::MakeFromX(Direction).Rotator();
+
+		// 현재 회전과 목표 회전을 선형 보간 (LERP)
+		FRotator SmoothedRotation = UKismetMathLibrary::RLerp(
+			Zombie->GetActorRotation(),  // 현재 회전
+			LookAtRotation,              // 목표 회전
+			GetWorld()->GetDeltaSeconds() * 5.0f, // 보간 속도
+			true                          // 짧은 쪽 경로 선택
+		);
+	
+		Zombie->SetActorRotation(SmoothedRotation);
+		Zombie->AddMovementInput(Direction);
+	
+		// UKismetSystemLibrary::PrintString(GetWorld(), "Walk On Update");
 	}
 }
 
 void UAttackZombieState::OnExit(ABaseZombie* Zombie)
 {
+	if (TimerHandle.IsValid())
+	{
+		GetWorld()->GetTimerManager().ClearTimer(TimerHandle);
+		TimerHandle.Invalidate();
+	}
+	
 	if (Zombie)
 	{
 		// UKismetSystemLibrary::PrintString(GetWorld(), "Attack On Exit");
