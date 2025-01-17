@@ -176,8 +176,6 @@ void APlayerCharacter::CompletedMove(const FInputActionValue& InputActionValue)
 
 void APlayerCharacter::TriggeredJump()
 {
-	UE_LOG(LogTemp, Warning, TEXT("%hhd"), ActionComponent->PlayerActionState);
-	
 	// Zipline 탑승을 시도 해본다.
 	if (true == ActionComponent->TryRideZipline())
 	{

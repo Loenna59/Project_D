@@ -70,7 +70,7 @@ void UActionComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 		bNear &= UKismetMathLibrary::NearlyEqual_FloatFloat(PlayerLocation.X, ZippingEndPosition.X, 50.0f);
 		bNear &= UKismetMathLibrary::NearlyEqual_FloatFloat(PlayerLocation.Y, ZippingEndPosition.Y, 50.0f);
 		bNear &= UKismetMathLibrary::NearlyEqual_FloatFloat(PlayerLocation.Z, ZippingEndPosition.Z, 50.0f);
-		if (bNear)
+		if (bNear) // 끝 지점에 거의 도달했다면 Player가 짚라인 탑승 상태를 벗어나도록 함
 		{
 			PlayerInterface->SetUseControllerRotationYaw(true);
 			PlayerCapsule->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
@@ -85,13 +85,15 @@ void UActionComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 		}
 		else
 		{
+			// 짚라인의 끝지점과 플레이어의 위치로 나아가야 할 방향을 구한다.
 			const FVector Dir = (ZippingEndPosition - PlayerLocation).GetSafeNormal();
 			const FVector P0 = PlayerLocation;
 			const FVector VT = 700.0f * DeltaTime * Dir;
 			const FVector P = P0 + VT;
-			
+
+			// Player는 Yaw 축으로만 변화시킨다.
 			Player->SetActorLocation(P);
-			Player->SetActorRotation(FRotator(0.0f, UKismetMathLibrary::FindLookAtRotation(P0, ZippingEndPosition).Yaw, 0.0f));
+			Player->SetActorRotation(FRotator(0.0f, UKismetMathLibrary::FindLookAtRotation(P, ZippingEndPosition).Yaw, 0.0f));
 		}
 
 		return;
@@ -127,13 +129,16 @@ bool UActionComponent::TriggerInteractWall()
 	bool bDetect;
 	FVector HitLocation;
 	FRotator ReverseNormal;
+	
+	// 정면에 벽이 있는가?
 	DetectWall(bDetect, HitLocation, ReverseNormal);
 	if (bDetect)
 	{
+		// 상호작용이 가능한 벽인가? 심층분석 (벽의 방향, 벽의 Top, 착륙지점 등 계산)
 		if (ScanWall(HitLocation, ReverseNormal))
 		{
-			MeasureWall();
-			bInteracted = TryInteractWall();
+			MeasureWall(); // 벽의 높이는?
+			bInteracted = TryInteractWall(); // 벽의 높이, Player의 상태에 따라 상호작용
 		}
 	}
 
@@ -606,7 +611,7 @@ void UActionComponent::TriggerClimbMovement()
 			UEngineTypes::ConvertToTraceType(ECC_Visibility),
 			false,
 			ActorsToIgnore,
-			EDrawDebugTrace::ForOneFrame,
+			EDrawDebugTrace::None, // TODO: Verbose
 			WallHitResultForClimbMove,
 			true
 		);
@@ -632,7 +637,7 @@ void UActionComponent::TriggerClimbMovement()
 		UEngineTypes::ConvertToTraceType(ECC_Visibility),
 		false,
 		ActorsToIgnore,
-		EDrawDebugTrace::ForOneFrame,
+		EDrawDebugTrace::None, // TODO: Verbose
 		WallTopHitResultForClimbMove,
 		true
 	);
