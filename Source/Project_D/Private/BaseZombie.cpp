@@ -125,7 +125,7 @@ void ABaseZombie::Tick(float DeltaTime)
 					}
 					else
 					{
-						GameDebug::ShowDisplayLog(GetWorld(), FString::SanitizeFloat(Distance));
+						// GameDebug::ShowDisplayLog(GetWorld(), FString::SanitizeFloat(Distance));
 						FSM->ChangeState(EEnemyState::ATTACK, this);
 					}
 				}
