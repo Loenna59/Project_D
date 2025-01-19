@@ -499,8 +499,8 @@ void UActionComponent::TryVault(const EVaults VaultType)
 	{
 	case EVaults::OneHandVault:
 		AnimMontage = OneHandVault;
-		Start = UPlayerHelper::MoveVectorDownward(FirstTopHitResult.Location, 15.0f);
-		End = VaultLandingHitResult.Location;
+		Start = UPlayerHelper::MoveVectorUpward(UPlayerHelper::MoveVectorBackward(FirstTopHitResult.Location, WallRotation, 45.0f), 300.0f);
+		End = UPlayerHelper::MoveVectorForward(VaultLandingHitResult.Location, WallRotation, 100.0f);
 		break;
 	case EVaults::TwoHandVault:
 		AnimMontage = TwoHandVault;
@@ -537,7 +537,7 @@ void UActionComponent::OnStartHangingMontageBlendingOut(UAnimMontage* Montage, b
 
 	bCanClimbing = true;
 	PlayerActionState = EActionState::Climbing;
-	PlayerAnimInterface->Execute_SetPlayerActionState(PlayerAnimInstance, EActionState::Climbing);
+	PlayerAnimInterface->SetPlayerActionState(EActionState::Climbing);
 	PlayerMovement->StopMovementImmediately();
 	PlayerAnimInstance->OnMontageBlendingOut.RemoveDynamic(this, &UActionComponent::OnStartHangingMontageBlendingOut);
 }
@@ -565,7 +565,7 @@ void UActionComponent::MoveOnWall(const FVector2D& InMovementVector)
 	MovementVector = InMovementVector;
 	if (false == PlayerAnimInstance->IsAnyMontagePlaying())
 	{
-		PlayerAnimInterface->Execute_SetMovementVector(PlayerAnimInstance, MovementVector);
+		PlayerAnimInterface->SetMovementVector(MovementVector);
 		TriggerClimbMovement();
 	}
 	else
@@ -579,7 +579,7 @@ void UActionComponent::MoveOnWall(const FVector2D& InMovementVector)
 void UActionComponent::ResetMoveValue()
 {
 	MovementVector = FVector2D::ZeroVector;
-	PlayerAnimInterface->Execute_SetMovementVector(PlayerAnimInstance, MovementVector);
+	PlayerAnimInterface->SetMovementVector(MovementVector);
 }
 
 void UActionComponent::TriggerClimbMovement()
@@ -703,7 +703,7 @@ void UActionComponent::OnClimbingMontageBlendingOut(UAnimMontage* Montage, bool 
 	PlayerCapsule->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	PlayerMovement->SetMovementMode(MOVE_Walking);
 	PlayerActionState = EActionState::WalkingOnGround;
-	PlayerAnimInterface->Execute_SetPlayerActionState(PlayerAnimInstance, EActionState::WalkingOnGround);
+	PlayerAnimInterface->SetPlayerActionState(EActionState::WalkingOnGround);
 	PlayerAnimInstance->OnMontageBlendingOut.RemoveDynamic(this, &UActionComponent::OnClimbingMontageBlendingOut);
 
 	PlayerCapsule->SetWorldLocation(UPlayerHelper::MoveVectorUpward(

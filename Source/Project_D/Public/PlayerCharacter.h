@@ -50,6 +50,7 @@ public:
 
 public:
 	// InputMappingContext & InputAction
+	
 	UPROPERTY(EditDefaultsOnly, Category = Input)
 	UInputMappingContext* ImcFPS = nullptr;
 	UPROPERTY(EditDefaultsOnly, Category = Input)

@@ -24,9 +24,9 @@ class PROJECT_D_API IPlayerAnimBlueprintInterface
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
 	//
-	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Player Anim Interface")
-	bool SetPlayerActionState(EActionState PlayerActionState);
+	UFUNCTION()
+	virtual bool SetPlayerActionState(EActionState PlayerActionState) = 0;
 
-	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Player Anim Interface")
-	bool SetMovementVector(const FVector2D& MovementVector);
+	UFUNCTION()
+	virtual bool SetMovementVector(const FVector2D& MovementVector) = 0;
 };

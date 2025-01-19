@@ -19,6 +19,13 @@ APlayerCharacter::APlayerCharacter()
 
 	ActionComponent = CreateDefaultSubobject<UActionComponent>(TEXT("ActionComponent"));
 	MotionWarpingComponent = CreateDefaultSubobject<UMotionWarpingComponent>(TEXT("MotionWarpingComponent"));
+
+	static ConstructorHelpers::FClassFinder<UAnimInstance> AnimInstance
+	(TEXT("/Script/Engine.AnimBlueprint'/Game/Blueprints/Player/ABP_Player.ABP_Player_C'"));
+	if (AnimInstance.Class)
+	{
+		Super::GetMesh()->SetAnimInstanceClass(AnimInstance.Class);
+	}
 }
 
 // Called when the game starts or when spawned
