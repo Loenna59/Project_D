@@ -132,6 +132,7 @@ bool UActionComponent::TriggerInteractWall()
 	
 	// 정면에 벽이 있는가?
 	DetectWall(bDetect, HitLocation, ReverseNormal);
+	
 	if (bDetect)
 	{
 		// 상호작용이 가능한 벽인가? 심층분석 (벽의 방향, 벽의 Top, 착륙지점 등 계산)
@@ -143,10 +144,8 @@ bool UActionComponent::TriggerInteractWall()
 	}
 
 	/*
-	// DetectWall
-	FacedWallTopHitResult.Reset();
-
 	// ScanWall
+	FacedWallTopHitResult.Reset();
 	FirstTopHitResult.Reset();
 	LastTopHitResult.Reset();
 	EndOfObstacleHitResult.Reset();
@@ -234,6 +233,7 @@ bool UActionComponent::ScanWall(const FVector& DetectLocation, const FRotator& R
 		if (true == bHit)
 		{
 			WallRotation = UPlayerHelper::ReverseNormal(FacedWallTopHitResult.Normal);
+			UE_LOG(LogTemp, Warning, TEXT("WallRotation : %s"), *WallRotation.ToString());
 			break;
 		}
 	}
@@ -242,6 +242,7 @@ bool UActionComponent::ScanWall(const FVector& DetectLocation, const FRotator& R
 		UE_LOG(LogTemp, Warning, TEXT("false == FacedWallTopHitResult.bBlockingHit"))
 		return false;
 	}
+	UE_LOG(LogTemp, Warning, TEXT("FacedWallTopImpactPoint : %s"), *FacedWallTopHitResult.ImpactPoint.ToString());
 	
 	// FacedWallTopHitResult.Location을 기준으로 20씩 전진시켜가며 널널하게 위아래로 10만큼씩 범위로 하여 SphereTrace
 	for (int i = 0; i < 10; i++)
@@ -292,6 +293,9 @@ bool UActionComponent::ScanWall(const FVector& DetectLocation, const FRotator& R
 		UE_LOG(LogTemp, Warning, TEXT("false == FirstTopHitResult.bBlockingHit || false ==  LastTopHitResult.bBlockingHit"))
 		return false;
 	}
+	
+	UE_LOG(LogTemp, Warning, TEXT("FirstTopImpactPoint : %s"), *FirstTopHitResult.ImpactPoint.ToString());
+	UE_LOG(LogTemp, Warning, TEXT("LastTopImpactPoint : %s"), *LastTopHitResult.ImpactPoint.ToString());
 
 	// LastTopHitResult는 장애물의 정확한 끝 지점이라고 볼 수 없다. (20씩 전진시켜가며 대강 측정한 것이기 때문)
 	// LastTopHitResult 기준에서 20만큼 앞에 있는 위치를 시작으로 LastTopHitResult 까지 SphereTrace 하면 정확한 장애물의 끝 지점을 찾을 수 있다.
@@ -319,6 +323,7 @@ bool UActionComponent::ScanWall(const FVector& DetectLocation, const FRotator& R
 		UE_LOG(LogTemp, Warning, TEXT("false == EndOfObstacleHitResult.bBlockingHit"))
 		return false;
 	}
+	UE_LOG(LogTemp, Warning, TEXT("EndOfObstacleImpactPoint : %s"), *EndOfObstacleHitResult.ImpactPoint.ToString());
 
 	// 장애물의 정확한 끝 지점을 찾았다면 해당 지점부터 60만큼 앞에 있는 지점을 기준으로 시작하여 180만큼 아래에 있는 위치까지 SphereTrace
 	if (true == bHit)
@@ -343,7 +348,7 @@ bool UActionComponent::ScanWall(const FVector& DetectLocation, const FRotator& R
 
 		if (true == bHit)
 		{
-			
+			UE_LOG(LogTemp, Warning, TEXT("VaultLandingImpactPoint : %s"), *VaultLandingHitResult.ImpactPoint.ToString());
 		}
 	}
 
@@ -396,26 +401,7 @@ bool UActionComponent::TryInteractWall()
 						if (false == bIsStanding)
 						{
 							// Vault 동작 수행
-					
-							if (WallHeight > 100.0f)
-							{
-								// Front Flip 동작 수행
-								if (bVerboseInteract)
-								{
-									UE_LOG(LogTemp, Warning, TEXT("Front Flip 동작 수행"));
-								}
-								TryVault(EVaults::FrontFlip);
-							}
-							else if (WallHeight > 90.0f)
-							{
-								// Two Hand Vault 동작 수행
-								if (bVerboseInteract)
-								{
-									UE_LOG(LogTemp, Warning, TEXT("Two Hand Vault 동작 수행"));
-								}
-								TryVault(EVaults::TwoHandVault);
-							}
-							else if (WallHeight > 50.0f)
+							if (WallHeight > 50.0f)
 							{
 								// One Hand Vault 동작 수행
 								if (bVerboseInteract)
@@ -499,8 +485,8 @@ void UActionComponent::TryVault(const EVaults VaultType)
 	{
 	case EVaults::OneHandVault:
 		AnimMontage = OneHandVault;
-		Start = UPlayerHelper::MoveVectorUpward(UPlayerHelper::MoveVectorBackward(FirstTopHitResult.Location, WallRotation, 45.0f), 300.0f);
-		End = UPlayerHelper::MoveVectorForward(VaultLandingHitResult.Location, WallRotation, 100.0f);
+		Start = FirstTopHitResult.Location;
+		End = VaultLandingHitResult.Location;
 		break;
 	case EVaults::TwoHandVault:
 		AnimMontage = TwoHandVault;
@@ -552,10 +538,8 @@ void UActionComponent::TryHang()
 	PlayerMovement->StopMovementImmediately();
 	
 	// TODO: 자연스러운 Climb 애니메이션 실행을 위해 필요한 보정 값을 에디터에서 수정할 수 있도록 UPROPERTY 세팅
-	const FVector TargetLocation = UPlayerHelper::MoveVectorUpward(
-		UPlayerHelper::MoveVectorForward(
-			FirstTopHitResult.ImpactPoint, WallRotation, 5.0f), 110.0f);
-	PlayerMotionWarping->AddOrUpdateWarpTargetFromLocationAndRotation(TEXT("Hanging"), TargetLocation, WallRotation);
+	const FVector TargetLocation = FirstTopHitResult.ImpactPoint;
+	PlayerMotionWarping->AddOrUpdateWarpTargetFromLocation(TEXT("HangEnd"), TargetLocation);
 	PlayerAnimInstance->OnMontageBlendingOut.AddDynamic(this, &UActionComponent::OnStartHangingMontageBlendingOut);
 	PlayerAnimInstance->Montage_Play(Hanging);
 }
@@ -611,7 +595,7 @@ void UActionComponent::TriggerClimbMovement()
 			UEngineTypes::ConvertToTraceType(ECC_Visibility),
 			false,
 			ActorsToIgnore,
-			EDrawDebugTrace::None, // TODO: Verbose
+			EDrawDebugTrace::ForDuration, // TODO: Verbose
 			WallHitResultForClimbMove,
 			true
 		);
@@ -637,7 +621,7 @@ void UActionComponent::TriggerClimbMovement()
 		UEngineTypes::ConvertToTraceType(ECC_Visibility),
 		false,
 		ActorsToIgnore,
-		EDrawDebugTrace::None, // TODO: Verbose
+		EDrawDebugTrace::ForDuration, // TODO: Verbose
 		WallTopHitResultForClimbMove,
 		true
 	);
@@ -657,12 +641,13 @@ void UActionComponent::TriggerClimbMovement()
 		const float DeltaSeconds = GetWorld()->GetDeltaSeconds();
 		const float X = UKismetMathLibrary::FInterpTo(Current.X, Target.X, DeltaSeconds, 5.0f);
 		const float Y = UKismetMathLibrary::FInterpTo(Current.Y, Target.Y, DeltaSeconds, 5.0f);
-		const FVector NewLocation = FVector(X, Y, ImpactPoint.Z - 107.0f);
+		const FVector NewLocation = FVector(X, Y, ImpactPoint.Z);
+		UE_LOG(LogTemp, Warning, TEXT("%s"), *NewLocation.ToString());
 		PlayerCapsule->SetWorldLocationAndRotation(NewLocation, WallRotation);
 	}
 }
 
-bool UActionComponent::TryRideZipline()
+bool UActionComponent::TriggerRideZipline()
 {
 	// 근처에 Zipline이 없다면
 	if (false == bCanZipping || nullptr == TargetZipline)
@@ -713,14 +698,14 @@ void UActionComponent::OnClimbingMontageBlendingOut(UAnimMontage* Montage, bool 
 	// PlayerAnimInstance->Montage_Play(Stand);
 }
 
-void UActionComponent::TryStand()
+void UActionComponent::TriggerClimb()
 {
-	UE_LOG(LogTemp, Warning, TEXT("TryStand"));
+	UE_LOG(LogTemp, Warning, TEXT("TriggerClimb"));
 	const FVector End = UPlayerHelper::MoveVectorUpward(
 		UPlayerHelper::MoveVectorForward(FirstTopHitResult.ImpactPoint, WallRotation, 50.0f),
 		50.0f
 	);
-	PlayerMotionWarping->AddOrUpdateWarpTargetFromLocationAndRotation(TEXT("Climbing"), End, WallRotation);
+	// PlayerMotionWarping->AddOrUpdateWarpTargetFromLocationAndRotation(TEXT("Climbing"), End, WallRotation);
 
 	UE_LOG(LogTemp, Warning, TEXT("%s"), *End.ToString());
 	

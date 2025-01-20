@@ -171,7 +171,7 @@ public:
 	void OnClimbingMontageBlendingOut(UAnimMontage* Montage, bool bInterrupted);
 	
 	//
-	void TryStand();
+	void TriggerClimb();
 
 public:
 	UPROPERTY()
@@ -182,5 +182,5 @@ public:
 	FVector ZippingEndPosition = FVector::ZeroVector;
 
 	//
-	bool TryRideZipline();
+	bool TriggerRideZipline();
 };

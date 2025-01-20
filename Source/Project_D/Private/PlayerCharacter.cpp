@@ -184,7 +184,7 @@ void APlayerCharacter::CompletedMove(const FInputActionValue& InputActionValue)
 void APlayerCharacter::TriggeredJump()
 {
 	// Zipline 탑승을 시도 해본다.
-	if (true == ActionComponent->TryRideZipline())
+	if (true == ActionComponent->TriggerRideZipline())
 	{
 		return;
 	}
@@ -202,7 +202,7 @@ void APlayerCharacter::TriggeredJump()
 	{
 		if (true == ActionComponent->bCanClimbing)
 		{
-			ActionComponent->TryStand();
+			ActionComponent->TriggerClimb();
 		}
 		return;
 	}
