@@ -86,7 +86,7 @@ public:
 
 	virtual void OnTriggerAttack(bool Start);
 
-	virtual void OnDisbale();
+	virtual void OnDead();
 
 	UFUNCTION()
 	virtual void OnTriggerEnter(AActor* OtherActor, ACollisionTriggerParam* Param) override;

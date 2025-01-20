@@ -297,7 +297,7 @@ bool ABaseZombie::ContainsBrokenBones(TArray<FName> BoneNames)
 	return false;
 }
 
-void ABaseZombie::OnDisbale()
+void ABaseZombie::OnDead()
 {
 	// if (USkeletalMeshComponent* const MeshComponent = GetMesh())
 	// {
