@@ -107,3 +107,51 @@ void TraceChannelHelper::SphereTraceByChannel(
 
 	Callback(bHit, HitResults);
 }
+
+void TraceChannelHelper::BoxTraceByChannel(
+	const UWorld* World,
+	AActor* Actor,
+	FVector Start,
+	FVector End,
+	FRotator Rotator,
+	ECollisionChannel CollisionChannel,
+	FVector HalfSize,
+	bool IgnoreSelf,
+	bool DrawDebug,
+	TFunction<void(bool, FHitResult)> Callback)
+{
+	FHitResult HitResult;
+	FCollisionQueryParams CollisionParams;
+
+	if (IgnoreSelf)
+	{
+		CollisionParams.AddIgnoredActor(Actor);
+	}
+	
+	bool bHit = World->SweepSingleByChannel(
+		HitResult,
+		Start,
+		End,
+		Rotator.Quaternion(),
+		CollisionChannel,
+		FCollisionShape::MakeBox(HalfSize),
+		CollisionParams
+	);
+
+	if (DrawDebug)
+	{
+		DrawDebugBoxTraceSingle(
+			World,
+			Start,
+			End,
+			HalfSize,
+			Rotator,
+			EDrawDebugTrace::ForDuration,
+			bHit,
+			HitResult,
+			FColor::Yellow,
+			FColor::Green,
+			1.f
+		);
+	}
+}
