@@ -45,6 +45,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Essential Movement Data")
 	bool bIsFalling = false;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Essential Movement Data")
+	bool bIsAttack = false;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	EActionState PlayerState;
 

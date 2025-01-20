@@ -675,6 +675,11 @@ bool UActionComponent::TriggerRideZipline()
 	return true;
 }
 
+void UActionComponent::TriggerMeleeAttack() 
+{
+	PlayerAnimInstance->Montage_Play(MeleeAttack);
+}
+
 void UActionComponent::OnClimbingMontageBlendingOut(UAnimMontage* Montage, bool bInterrupted)
 {
 	if (bVerboseMontage)

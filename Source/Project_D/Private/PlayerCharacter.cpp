@@ -65,6 +65,7 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 		PlayerInput->BindAction(IaJump, ETriggerEvent::Triggered, this, &APlayerCharacter::TriggeredJump);
 		PlayerInput->BindAction(IaSprint, ETriggerEvent::Triggered, this, &APlayerCharacter::TriggeredSprint);
 		PlayerInput->BindAction(IaSprint, ETriggerEvent::Completed, this, &APlayerCharacter::CompletedSprint);
+		PlayerInput->BindAction(IaAttack, ETriggerEvent::Triggered, this, &APlayerCharacter::TriggeredAttack);
 	}
 }
 
@@ -209,6 +210,11 @@ void APlayerCharacter::TriggeredJump()
 	
 	// 아무것도 안 했으면 그냥 점프를 한다.
 	Jump();
+}
+
+void APlayerCharacter::TriggeredAttack()
+{
+	ActionComponent->TriggerMeleeAttack();
 }
 
 void APlayerCharacter::TriggeredSprint()

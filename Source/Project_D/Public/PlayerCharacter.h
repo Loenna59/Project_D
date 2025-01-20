@@ -63,6 +63,8 @@ public:
 	UInputAction* IaJump = nullptr;
 	UPROPERTY(EditDefaultsOnly, Category = Input)
 	UInputAction* IaSprint = nullptr;
+	UPROPERTY(EditDefaultsOnly, Category = Input)
+	UInputAction* IaAttack = nullptr;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	UActionComponent* ActionComponent = nullptr;
@@ -85,6 +87,9 @@ public:
 
 	// 점프 입력 처리
 	void TriggeredJump();
+
+	// 공격 입력 처리
+	void TriggeredAttack();
 	
 	void TriggeredSprint();
 	void CompletedSprint();

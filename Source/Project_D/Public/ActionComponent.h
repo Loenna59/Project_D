@@ -77,6 +77,8 @@ public:
 	UAnimMontage* Climbing = nullptr;
 	UPROPERTY(EditDefaultsOnly, Category = "Animation Montages")
 	UAnimMontage* Stand = nullptr;
+	UPROPERTY(EditDefaultsOnly, Category = "Animation Montages")
+    UAnimMontage* MeleeAttack = nullptr;
 	
 	IPlayerInterface* PlayerInterface = nullptr;
 	UPROPERTY()
@@ -183,4 +185,6 @@ public:
 
 	//
 	bool TriggerRideZipline();
+
+	void TriggerMeleeAttack();
 };
