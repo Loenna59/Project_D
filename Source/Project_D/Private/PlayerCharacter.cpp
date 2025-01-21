@@ -6,7 +6,13 @@
 #include "EnhancedInputSubsystems.h"
 #include "MotionWarpingComponent.h"
 #include "ActionComponent.h"
+#include "BaseZombie.h"
+#include "BlankTriggerParam.h"
+#include "PlayerHelper.h"
+#include "TraceChannelHelper.h"
+#include "ZombieTriggerParam.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 // Sets default values
 APlayerCharacter::APlayerCharacter()
@@ -17,6 +23,15 @@ APlayerCharacter::APlayerCharacter()
 	// true일 때 마우스 움직임에 따라 Player의 Yaw 축이 따라 움직인다.
 	bUseControllerRotationYaw = true;
 
+	static ConstructorHelpers::FObjectFinder<USkeletalMesh> SkeletalMeshAsset
+	(TEXT("/Script/Engine.SkeletalMesh'/Game/Assets/Player/Models/character.character'"));
+	if (SkeletalMeshAsset.Object)
+	{
+		Super::GetMesh()->SetSkeletalMeshAsset(SkeletalMeshAsset.Object);
+	}
+	
+	WeaponMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("WeaponMesh"));
+	
 	ActionComponent = CreateDefaultSubobject<UActionComponent>(TEXT("ActionComponent"));
 	MotionWarpingComponent = CreateDefaultSubobject<UMotionWarpingComponent>(TEXT("MotionWarpingComponent"));
 
@@ -33,6 +48,9 @@ void APlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
+	WeaponMesh->AttachToComponent(Super::GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, "weapon_rSocket");
+	WeaponMesh->OnComponentBeginOverlap.AddDynamic(this, &APlayerCharacter::OnWeaponBeginOverlap);
+	
 	if (const auto PlayerController = Cast<APlayerController>(Controller))
 	{
 		if (const auto Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
@@ -142,6 +160,56 @@ void APlayerCharacter::OnZiplineEndOverlap(const AZipline* InZipline)
 	if (ActionComponent->TargetZipline == InZipline)
 	{
 		ActionComponent->bCanZipping = false;
+	}
+}
+
+void APlayerCharacter::OnWeaponBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	
+	if (ICollisionTrigger* Trigger = Cast<ICollisionTrigger>(OtherActor))
+	{
+		if (ABaseZombie* Zombie = Cast<ABaseZombie>(OtherActor))
+		{
+			TArray<AActor*> ActorsToIgnore;
+			FHitResult HitResult;
+			const bool bHit = UKismetSystemLibrary::SphereTraceSingle(
+				GetWorld(),
+				WeaponMesh->GetComponentLocation(),
+				WeaponMesh->GetComponentLocation(),
+				30.0f,
+				UEngineTypes::ConvertToTraceType(ECC_Visibility),
+				false,
+				ActorsToIgnore,
+				EDrawDebugTrace::ForDuration,
+				HitResult,
+				true
+			);
+
+			if (bHit)
+			{
+				AActor* HitActor = HitResult.GetActor();
+				if (HitActor)
+				{
+					if (ICollisionTrigger* Trigger2 = Cast<ICollisionTrigger>(HitActor))
+					{
+						if (ABaseZombie* Zombie2 = Cast<ABaseZombie>(HitActor))
+						{
+							AZombieTriggerParam* Param = NewObject<AZombieTriggerParam>();
+							Param->Damage = 10;
+							Param->HitBoneName = HitResult.BoneName;
+									
+							Trigger2->OnTriggerEnter(HitActor, Param);
+						}
+						else
+						{
+							ABlankTriggerParam* Param = NewObject<ABlankTriggerParam>();
+							Trigger2->OnTriggerEnter(HitActor, Param);
+						}
+					}
+				}
+			}
+		}
 	}
 }
 

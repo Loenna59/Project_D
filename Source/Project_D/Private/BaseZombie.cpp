@@ -71,10 +71,12 @@ void ABaseZombie::BeginPlay()
 	FSM = NewObject<UZombieFSMComponent>(this);
 	AddOwnedComponent(FSM);
 	FSM->RegisterComponent();
-
+	
 	FSM->ChangeState(EEnemyState::IDLE, this);
 
 	GetCapsuleComponent()->OnComponentHit.AddDynamic(this, &ABaseZombie::OnCollisionHit);
+
+	GetMesh()->SetGenerateOverlapEvents(true);
 }
 
 // Called every frame
