@@ -10,6 +10,7 @@
 #include "ZombieTriggerParam.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SphereComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Project_D/Project_DCharacter.h"
 
@@ -19,18 +20,17 @@ ABaseZombie::ABaseZombie()
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	// BodyMesh = CreateDefaultSubobject<USkeletalMeshComponent>("BodyMesh");
-	// BodyMesh->SetupAttachment(GetRootComponent());
+	GetCharacterMovement()->Mass = 75.f;
+	GetCharacterMovement()->MaxWalkSpeed = 30.f;
 
-	// if (UCapsuleComponent* const Capsule = GetCapsuleComponent())
-	// {
-	// 	Capsule->SetCollisionProfileName(TEXT("Enemy"));
-	// 	if (USkeletalMeshComponent* const MeshComponent = GetMesh())
-	// 	{
-	// 		MeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	// 	}
-	// }
-	
+	GetMesh()->SetRelativeLocation(FVector(0, 0, -90));
+	GetMesh()->SetRelativeRotation(FRotator(0, -90, 0));
+
+	GetCapsuleComponent()->SetCollisionProfileName("Enemy");
+	GetMesh()->SetCollisionEnabled(ECollisionEnabled::Type::QueryAndPhysics);
+	GetMesh()->SetCollisionObjectType(ECC_PhysicsBody);
+	GetMesh()->SetCollisionResponseToAllChannels(ECR_Block);
+	GetMesh()->SetCollisionResponseToChannel(ECC_GameTraceChannel2, ECR_Ignore);
 }
 
 void ABaseZombie::SetupInternal()
@@ -328,7 +328,7 @@ void ABaseZombie::OnTriggerEnter(AActor* OtherActor, ACollisionTriggerParam* Par
 	
 		FName BoneName = RenameBoneName(HitBoneName);
 
-		GameDebug::ShowDisplayLog(GetWorld(), HitBoneName.ToString());
+		// GameDebug::ShowDisplayLog(GetWorld(), HitBoneName.ToString());
 
 		if (ApplyDamageToBone(BoneName, Damage))
 		{

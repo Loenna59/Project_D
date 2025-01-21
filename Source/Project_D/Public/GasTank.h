@@ -23,6 +23,9 @@ public:
 	virtual void Tick(float DeltaSeconds) override;
 
 	virtual void OnDead() override;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	class UStaticMeshComponent* GasCylinder;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class UJetBalloonComponent* JetBalloonComponent;
@@ -30,8 +33,13 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class UParticleSystem* ExplosionVFX;
 
+	// UFUNCTION()
+	virtual void OnTriggerEnter(AActor* OtherActor, ACollisionTriggerParam* Param) override;
+
 	bool IsExplosion = false;
 
 	float DeadTime = 0;
 	float DelayDeadTime = 2.f;
+
+	int32 GasTankDurablity = 5;
 };

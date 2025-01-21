@@ -4,6 +4,7 @@
 #include "GasTank.h"
 
 #include "ExplosiveCollisionActor.h"
+#include "GameDebug.h"
 #include "Kismet/GameplayStatics.h"
 #include "PhysicsEngine/RadialForceActor.h"
 
@@ -11,7 +12,10 @@
 AGasTank::AGasTank()
 {
 	PrimaryActorTick.bCanEverTick = true;
-	
+
+	GasCylinder = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("GasCylinder"));
+	GasCylinder->SetupAttachment(GetMesh());
+	GasCylinder->SetCollisionProfileName("Enemy");
 }
 
 void AGasTank::BeginPlay()
@@ -25,8 +29,6 @@ void AGasTank::BeginPlay()
 
 void AGasTank::Tick(float DeltaSeconds)
 {
-	//Super::Tick(DeltaSeconds);
-
 	if (IsExplosion)
 	{
 		JetBalloonComponent->StartSimulate(GetMesh());
@@ -50,11 +52,35 @@ void AGasTank::Tick(float DeltaSeconds)
 			this->Destroy();
 		}
 	}
+	else
+	{
+		Super::Tick(DeltaSeconds);
+	}
 
 }
 
 void AGasTank::OnDead()
 {
-	IsExplosion = true;
-	//Super::OnDead();
+	if (GasTankDurablity <= 0)
+	{
+		IsExplosion = true;
+	}
+	
+	Super::OnDead();
+}
+
+void AGasTank::OnTriggerEnter(AActor* OtherActor, ACollisionTriggerParam* Param)
+{
+	if (GasTankDurablity > 0 && Param->HitResult.Component == GasCylinder)
+	{
+		GasTankDurablity -= 1;
+		if (GasTankDurablity <= 0)
+		{
+			FSM->ChangeState(EEnemyState::DEATH, this);
+		}
+	}
+	else
+	{
+		Super::OnTriggerEnter(OtherActor, Param);
+	}
 }

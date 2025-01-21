@@ -37,7 +37,7 @@ void UWalkZombieState::OnUpdate(ABaseZombie* Zombie)
 		FRotator SmoothedRotation = UKismetMathLibrary::RLerp(
 			Zombie->GetActorRotation(),  // 현재 회전
 			LookAtRotation,              // 목표 회전
-			GetWorld()->GetDeltaSeconds() * 5.0f, // 보간 속도
+			GetWorld()->GetDeltaSeconds(), // 보간 속도
 			true                          // 짧은 쪽 경로 선택
 		);
 		

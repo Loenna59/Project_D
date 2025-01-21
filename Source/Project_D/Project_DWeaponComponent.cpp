@@ -82,26 +82,32 @@ void UProject_DWeaponComponent::Fire()
 					if (bHit)
 					{
 						
-						// if (HitResult.Component.IsValid())
-						// {
-						// 	GameDebug::ShowDisplayLog(GetWorld(), HitResult.Component->GetName());
-						// }
 						AActor* HitActor = HitResult.GetActor();
+						
+						if (HitResult.Component.IsValid())
+						{
+							HitActor = HitResult.Component->GetOwner();
+							// GameDebug::ShowDisplayLog(GetWorld(), HitActor->GetName());
+						}
+						
 						if (HitActor)
 						{
 							if (ICollisionTrigger* Trigger = Cast<ICollisionTrigger>(HitActor))
 							{
+								
 								if (ABaseZombie* Zombie = Cast<ABaseZombie>(HitActor))
 								{
 									AZombieTriggerParam* Param = NewObject<AZombieTriggerParam>();
 									Param->Damage = 5;
 									Param->HitBoneName = HitResult.BoneName;
+									Param->HitResult = HitResult;
 									
 									Trigger->OnTriggerEnter(HitActor, Param);
 								}
 								else
 								{
 									ABlankTriggerParam* Param = NewObject<ABlankTriggerParam>();
+									Param->HitResult = HitResult;
 									Trigger->OnTriggerEnter(HitActor, Param);
 								}
 							}

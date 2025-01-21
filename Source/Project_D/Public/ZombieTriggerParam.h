@@ -15,8 +15,7 @@ class PROJECT_D_API AZombieTriggerParam : public ACollisionTriggerParam
 public:
 	// Sets default values for this actor's properties
 	AZombieTriggerParam();
-
-public:
+	
 	int32 Damage;
 
 	FName HitBoneName;

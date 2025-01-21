@@ -10,4 +10,7 @@ UCLASS(Abstract)
 class PROJECT_D_API ACollisionTriggerParam : public AActor
 {
 	GENERATED_BODY()
+
+public:
+	FHitResult HitResult;
 };
