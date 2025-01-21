@@ -48,6 +48,7 @@ void APathField::BeginPlay()
 {
 	Super::BeginPlay();
 
+	TextRender->SetVisibility(false);
 	
 }
 
