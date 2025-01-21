@@ -24,7 +24,7 @@ APlayerCharacter::APlayerCharacter()
 	bUseControllerRotationYaw = true;
 
 	static ConstructorHelpers::FObjectFinder<USkeletalMesh> SkeletalMeshAsset
-	(TEXT("/Script/Engine.SkeletalMesh'/Game/Assets/Player/Models/character.character'"));
+	(TEXT("/Script/Engine.SkeletalMesh'/Game/Assets/Player/Character/character.character'"));
 	if (SkeletalMeshAsset.Object)
 	{
 		Super::GetMesh()->SetSkeletalMeshAsset(SkeletalMeshAsset.Object);
@@ -48,7 +48,7 @@ void APlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	WeaponMesh->AttachToComponent(Super::GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, "weapon_rSocket");
+	WeaponMesh->AttachToComponent(Super::GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, "RightHandWeaponSocket");
 	WeaponMesh->OnComponentBeginOverlap.AddDynamic(this, &APlayerCharacter::OnWeaponBeginOverlap);
 	
 	if (const auto PlayerController = Cast<APlayerController>(Controller))
@@ -265,15 +265,6 @@ void APlayerCharacter::TriggeredJump()
 		{
 			return;
 		}
-	}
-
-	if (EPlayerState::Hanging == State)
-	{
-		if (true == ActionComponent->bCanClimbing)
-		{
-			ActionComponent->TriggerClimb();
-		}
-		return;
 	}
 	
 	// 아무것도 안 했으면 그냥 점프를 한다.

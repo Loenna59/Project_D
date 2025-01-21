@@ -58,15 +58,7 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Animation Montages")
 	UAnimMontage* OneHandVault = nullptr;
 	UPROPERTY(EditDefaultsOnly, Category = "Animation Montages")
-	UAnimMontage* TwoHandVault = nullptr;
-	UPROPERTY(EditDefaultsOnly, Category = "Animation Montages")
-	UAnimMontage* FrontFlip = nullptr;
-	UPROPERTY(EditDefaultsOnly, Category = "Animation Montages")
-	UAnimMontage* Hanging = nullptr;
-	UPROPERTY(EditDefaultsOnly, Category = "Animation Montages")
-	UAnimMontage* Climbing = nullptr;
-	UPROPERTY(EditDefaultsOnly, Category = "Animation Montages")
-	UAnimMontage* Stand = nullptr;
+	UAnimMontage* IdleToHang = nullptr;
 	UPROPERTY(EditDefaultsOnly, Category = "Animation Montages")
     UAnimMontage* MeleeAttack = nullptr;
 
@@ -135,10 +127,10 @@ public:
 	void PlayAction(const EActions ActionType);
 
 	UFUNCTION()
-	void OnStartHangingMontageBlendingOut(UAnimMontage* Montage, bool bInterrupted);
+	void OnStartHangMontageBlendingOut(UAnimMontage* Montage, bool bInterrupted);
 	
 	//
-	void TryHang();
+	void TriggerHang();
 
 	//
 	void MoveOnWall(const FVector2D& InMovementVector);
@@ -147,13 +139,7 @@ public:
 	void ResetMoveValue();
 
 	//
-	void TriggerClimbMovement();
-	
-	UFUNCTION()
-	void OnClimbingMontageBlendingOut(UAnimMontage* Montage, bool bInterrupted);
-	
-	//
-	void TriggerClimb();
+	void TriggerHangingHorizontalMovement();
 
 public:
 	UPROPERTY()
