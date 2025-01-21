@@ -67,6 +67,11 @@ void APathFindingBoard::FindPaths(int32 DestIndex)
 		Fields[i]->ClearPath();
 	}
 	
+	if (DestIndex < 0 || DestIndex >= Length)
+	{
+		return;
+	}
+	
 	Fields[DestIndex]->BecomeDestination();
 	SearchFrontier.Enqueue(Fields[DestIndex]);
 

@@ -36,6 +36,9 @@ public:
 	class UStaticMeshComponent* Mesh;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	class UTextRenderComponent* TextRender;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class APathField* North;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class APathField* East;
@@ -76,9 +79,11 @@ public:
 	UPROPERTY(EditAnywhere)
 	float Height;
 
-	void SetHeight();
+	UPROPERTY(EditAnywhere)
+	float SlopeAngle = 0;
 
 	bool CanMoveTo(APathField* Neighbor);
+	void SetHeight();
 
 	static void MakeEastWestNeighbors(APathField* East, APathField* West);
 	static void MakeNorthSouthNeighbors(APathField* North, APathField* South);

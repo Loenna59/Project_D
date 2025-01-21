@@ -5,6 +5,7 @@
 
 #include "GameDebug.h"
 #include "TraceChannelHelper.h"
+#include "Components/TextRenderComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
 
 FQuat APathField::NorthRotation = FQuat(FRotator(0.f, 180.f, 0.f));
@@ -34,12 +35,19 @@ APathField::APathField()
 	{
 		Mesh->SetMaterial(0, Mat.Object);
 	}
+
+	TextRender = CreateDefaultSubobject<UTextRenderComponent>("Distance");
+	TextRender->SetRelativeLocation(FVector(0, 0, 1.f));
+	TextRender->SetRelativeRotation(FRotator(90, 0, 0));
+	TextRender->SetTextRenderColor(FColor::Red);
+	TextRender->SetupAttachment(Mesh);
 }
 
 // Called when the game starts or when spawned
 void APathField::BeginPlay()
 {
 	Super::BeginPlay();
+
 	
 }
 
@@ -48,13 +56,14 @@ void APathField::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	TextRender->SetText(FText::FromString(FString::FromInt(Distance)));
 }
 
 void APathField::ClearPath()
 {
 	Distance = TNumericLimits<int32>::Max();
 	NextOnPath = nullptr;
-	Mesh->SetVisibility(true);
+	Mesh->SetVisibility(false);
 }
 
 void APathField::BecomeDestination()
@@ -70,7 +79,7 @@ bool APathField::HasPath()
 
 void APathField::ShowPath()
 {
-	if (Distance == 0)
+	if (Distance == 0 || !HasPath())
 	{
 		Mesh->SetVisibility(false);
 		return;
@@ -80,24 +89,30 @@ void APathField::ShowPath()
 
 	FQuat Rotation = FQuat::Identity;
 
+	if (!NextOnPath)
+	{
+		SetActorRotation(Rotation);
+		return;
+	}
+
 	if (North && NextOnPath->GetName() == North->GetName())
 	{
-		Rotation = NorthRotation;
+		Rotation = NorthRotation * FQuat(FVector::RightVector, FMath::DegreesToRadians(SlopeAngle));
 	}
 	else
 	if (East && NextOnPath->GetName() == East->GetName())
 	{
-		Rotation = EastRotation;
+		Rotation = EastRotation * FQuat(FVector::ForwardVector, FMath::DegreesToRadians(SlopeAngle));;
 	}
 	else
 	if (South && NextOnPath->GetName() == South->GetName())
 	{
-		Rotation = SouthRotation;
+		Rotation = SouthRotation * FQuat(FVector::RightVector, FMath::DegreesToRadians(SlopeAngle));;
 	}
 	else
 	if (West && NextOnPath->GetName() == West->GetName())
 	{
-		Rotation = WestRotation;
+		Rotation = WestRotation * FQuat(FVector::ForwardVector, FMath::DegreesToRadians(SlopeAngle));;
 	}
 	
 	SetActorRotation(Rotation);
@@ -109,7 +124,7 @@ class APathField* APathField::GrowPathTo(APathField* Neighbor)
 	{
 		return nullptr;
 	}
-
+	
 	Neighbor->Distance = this->Distance + 1;
 	Neighbor->NextOnPath = this;
 
@@ -139,24 +154,27 @@ class APathField* APathField::GrowPathWest()
 
 void APathField::SetHeight()
 {
-	FVector Start = GetActorLocation() - FVector(0, 0, 100);
-	FVector End = GetActorLocation() + FVector(0, 0, 200);
+	FVector Start = GetActorLocation();
+	FVector End = GetActorLocation() - FVector(0, 0, 1000);
 
-	TraceChannelHelper::BoxTraceByChannel(
+	TraceChannelHelper::LineTraceByChannel(
 		GetWorld(),
 		this,
 		Start,
 		End,
-		FRotator::ZeroRotator,
 		ECC_Visibility,
-		FVector::OneVector * 50,
 		true,
-		true,
+		false,
 		[this] (bool bHit, FHitResult HitResult)
 		{
 			if (bHit)
 			{
 				Height = HitResult.ImpactPoint.Z;
+				FVector NewLocation = FVector(GetActorLocation().X, GetActorLocation().Y, Height);
+				SetActorLocation(NewLocation);
+
+				FVector ImpactNormal = HitResult.ImpactNormal;
+				SlopeAngle = FMath::Acos(FVector::DotProduct(ImpactNormal, FVector::UpVector)) * (180.f / PI);
 			}
 			else
 			{
@@ -174,11 +192,8 @@ bool APathField::CanMoveTo(APathField* Neighbor)
 	}
 
 	float HeightDiff = FMath::Abs(Neighbor->Height - Height);
-	float Dist = FVector::Dist2D(GetActorLocation(), Neighbor->GetActorLocation());
 
-	float SlopeAngle = FMath::Atan2(HeightDiff, Dist) * (100 / PI);
-
-	bool bCan = SlopeAngle <= 45.f;
+	bool bCan = SlopeAngle <= 45.f && HeightDiff < 200;
 
 	Mesh->SetVisibility(bCan);
 
