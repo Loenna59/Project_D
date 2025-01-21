@@ -128,7 +128,7 @@ void APlayerCharacter::MoveOnGround(const FVector2D& MovementVector)
 
 void APlayerCharacter::OnZiplineBeginOverlap(AZipline* InZipline)
 {
-	if (ActionComponent->PlayerActionState == EActionState::Zipping)
+	if (EPlayerState::Zipping == State)
 	{
 		return;
 	}
@@ -163,15 +163,15 @@ void APlayerCharacter::TriggeredMove(const FInputActionValue& InputValue)
 
 	if (Controller)
 	{
-		switch (ActionComponent->PlayerActionState)
+		switch (State)
 		{
-		case EActionState::WalkingOnGround:
+		case EPlayerState::WalkingOnGround:
 			MoveOnGround(MovementVector);
 			break;
-		case EActionState::Climbing:
+		case EPlayerState::Hanging:
 			ActionComponent->MoveOnWall(MovementVector);
 			break;
-		case EActionState::Zipping:
+		case EPlayerState::Zipping:
 			break;
 		}
 	}
@@ -191,7 +191,7 @@ void APlayerCharacter::TriggeredJump()
 	}
 
 	// 벽에 매달리거나 넘는 것을 시도 해본다.
-	if (true == ActionComponent->bCanInteract)
+	if (true == ActionComponent->bCanAction)
 	{
 		if (true == ActionComponent->TriggerInteractWall())
 		{
@@ -199,7 +199,7 @@ void APlayerCharacter::TriggeredJump()
 		}
 	}
 
-	if (EActionState::Climbing == ActionComponent->PlayerActionState)
+	if (EPlayerState::Hanging == State)
 	{
 		if (true == ActionComponent->bCanClimbing)
 		{

@@ -20,12 +20,7 @@ class PROJECT_D_API UPlayerAnimInstance : public UAnimInstance, public IPlayerAn
 
 protected:
 	virtual void NativeInitializeAnimation() override;
-
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
-	
-	virtual bool SetPlayerActionState(EActionState PlayerActionState) override;
-	
-	virtual bool SetMovementVector(const FVector2D& InMovementVector) override;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "References")
 	APlayerCharacter* Owner;
@@ -45,12 +40,13 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Essential Movement Data")
 	bool bIsFalling = false;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Essential Movement Data")
-	bool bIsAttack = false;
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	EActionState PlayerState;
+	EPlayerState PlayerState;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	FVector2D MovementVector;
+
+public:
+	virtual bool SetPlayerActionState(EPlayerState PlayerActionState) override;
+	virtual bool SetMovementVector(const FVector2D& InMovementVector) override;
 };

@@ -15,6 +15,14 @@ class UActionComponent;
 class UInputAction;
 class UInputMappingContext;
 
+UENUM()
+enum class EPlayerState : uint8
+{
+	WalkingOnGround,
+	Hanging,
+	Zipping
+};
+
 UCLASS()
 class PROJECT_D_API APlayerCharacter : public ACharacter, public IPlayerInterface
 {
@@ -65,6 +73,9 @@ public:
 	UInputAction* IaSprint = nullptr;
 	UPROPERTY(EditDefaultsOnly, Category = Input)
 	UInputAction* IaAttack = nullptr;
+
+	UPROPERTY()
+	EPlayerState State = EPlayerState::WalkingOnGround;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	UActionComponent* ActionComponent = nullptr;

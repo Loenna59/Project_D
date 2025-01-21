@@ -7,6 +7,7 @@
 #include "Components/ActorComponent.h"
 #include "ActionComponent.generated.h"
 
+class UPlayerAnimInstance;
 class USpringArmComponent;
 class AZipline;
 class IPlayerAnimBlueprintInterface;
@@ -16,19 +17,9 @@ class UMotionWarpingComponent;
 class IPlayerInterface;
 
 UENUM()
-enum class EVaults : uint8
+enum class EActions : uint8
 {
-	OneHandVault,
-	TwoHandVault,
-	FrontFlip
-};
-
-UENUM()
-enum class EActionState : uint8
-{
-	WalkingOnGround,
-	Climbing,
-	Zipping
+	OneHandVault
 };
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
@@ -43,7 +34,6 @@ public:
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
-	void Initialize();
 
 public:	
 	// Called every frame
@@ -79,22 +69,12 @@ public:
 	UAnimMontage* Stand = nullptr;
 	UPROPERTY(EditDefaultsOnly, Category = "Animation Montages")
     UAnimMontage* MeleeAttack = nullptr;
-	
-	IPlayerInterface* PlayerInterface = nullptr;
+
 	UPROPERTY()
-	USkeletalMeshComponent* PlayerMesh = nullptr;
-	UPROPERTY()
-	UCapsuleComponent* PlayerCapsule = nullptr;
-	UPROPERTY()
-	UCharacterMovementComponent* PlayerMovement = nullptr;
-	UPROPERTY()
-	UMotionWarpingComponent* PlayerMotionWarping = nullptr;
-	UPROPERTY()
-	UAnimInstance* PlayerAnimInstance = nullptr;
-	IPlayerAnimBlueprintInterface* PlayerAnimInterface = nullptr;
+	APlayerCharacter* Player = nullptr;
 	
 	UPROPERTY()
-	EActionState PlayerActionState = EActionState::WalkingOnGround;
+    UPlayerAnimInstance* PlayerAnimInstance = nullptr;
 	
 	// 현재 마주보고 있는 장애물의 가장 높은 지점
 	FHitResult FacedWallTopHitResult;
@@ -113,7 +93,7 @@ public:
 	// 현재 Player가 지면에 서 있는지 여부
 	bool bIsOnLand = false;
 	// 현재 Player가 장애물과의 Interact를 새롭게 시작할 수 있는지 여부
-	bool bCanInteract = true;
+	bool bCanAction = true;
 	// 현재 Player가 벽에 매달린 상태로 Stand 몽타주를 실행 중인지 여부
 	bool bCanClimbing = false;
 
@@ -152,7 +132,7 @@ public:
 	void OnVaultMontageBlendingOut(UAnimMontage* Montage, bool bInterrupted);
 	
 	//
-	void TryVault(const EVaults VaultType);
+	void PlayAction(const EActions ActionType);
 
 	UFUNCTION()
 	void OnStartHangingMontageBlendingOut(UAnimMontage* Montage, bool bInterrupted);

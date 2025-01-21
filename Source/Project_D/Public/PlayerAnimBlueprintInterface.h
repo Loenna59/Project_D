@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "ActionComponent.h" // EActionState 포함
+#include "ActionComponent.h" // EPlayerState 포함
 #include "UObject/Interface.h"
 #include "PlayerAnimBlueprintInterface.generated.h"
 
@@ -25,7 +25,7 @@ class PROJECT_D_API IPlayerAnimBlueprintInterface
 public:
 	//
 	UFUNCTION()
-	virtual bool SetPlayerActionState(EActionState PlayerActionState) = 0;
+	virtual bool SetPlayerActionState(EPlayerState PlayerActionState) = 0;
 
 	UFUNCTION()
 	virtual bool SetMovementVector(const FVector2D& MovementVector) = 0;

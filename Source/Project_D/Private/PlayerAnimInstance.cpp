@@ -36,7 +36,7 @@ void UPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	}
 }
 
-bool UPlayerAnimInstance::SetPlayerActionState(EActionState PlayerActionState)
+bool UPlayerAnimInstance::SetPlayerActionState(const EPlayerState PlayerActionState)
 {
 	PlayerState = PlayerActionState;
 	return true;
