@@ -33,13 +33,8 @@ void UPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 
 		// Set Is Falling from the movement components falling state.
 		bIsFalling = Movement->IsFalling();
-		
+
+		PlayerState = Player->State;
 		MovementVector = Player->MovementVector;
 	}
-}
-
-bool UPlayerAnimInstance::SetPlayerActionState(const EPlayerState PlayerActionState)
-{
-	PlayerState = PlayerActionState;
-	return true;
 }

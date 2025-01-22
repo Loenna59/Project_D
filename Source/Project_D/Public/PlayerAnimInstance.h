@@ -44,7 +44,4 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	FVector2D MovementVector = FVector2D::ZeroVector;
-
-public:
-	virtual bool SetPlayerActionState(EPlayerState PlayerActionState) override;
 };

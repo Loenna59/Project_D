@@ -491,7 +491,6 @@ void UActionComponent::OnStartHangMontageBlendingOut(UAnimMontage* Montage, bool
 	PlayerAnimInstance->OnMontageBlendingOut.RemoveDynamic(this, &UActionComponent::OnStartHangMontageBlendingOut);
 	
 	Player->State = EPlayerState::Hanging;
-	PlayerAnimInstance->SetPlayerActionState(EPlayerState::Hanging);
 	Player->GetCharacterMovement()->StopMovementImmediately();
 	
 }
