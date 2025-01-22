@@ -8,7 +8,9 @@
 #include "ActionComponent.h"
 #include "BaseZombie.h"
 #include "BlankTriggerParam.h"
+#include "PlayerHUD.h"
 #include "ZombieTriggerParam.h"
+#include "Blueprint/UserWidget.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
 
@@ -20,7 +22,7 @@ APlayerCharacter::APlayerCharacter()
 
 	// true일 때 마우스 움직임에 따라 Player의 Yaw 축이 따라 움직인다.
 	bUseControllerRotationYaw = true;
-
+	
 	static ConstructorHelpers::FObjectFinder<USkeletalMesh> SkeletalMeshAsset
 	(TEXT("/Script/Engine.SkeletalMesh'/Game/Assets/Player/Character/character.character'"));
 	if (SkeletalMeshAsset.Object)
@@ -46,9 +48,19 @@ void APlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
+	// HUD
+	PlayerHUD = Cast<UPlayerHUD>(CreateWidget(GetWorld(), PlayerHUDFactory));
+    check(PlayerHUD);
+    if (PlayerHUD)
+    {
+    	PlayerHUD->AddToViewport();
+    }
+
+	// Weapon Mesh Attach & Bind Event
 	WeaponMesh->AttachToComponent(Super::GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, "RightHandWeaponSocket");
 	WeaponMesh->OnComponentBeginOverlap.AddDynamic(this, &APlayerCharacter::OnWeaponBeginOverlap);
-	
+
+	// Add Input Mapping Context
 	if (const auto PlayerController = Cast<APlayerController>(Controller))
 	{
 		if (const auto Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
@@ -57,6 +69,7 @@ void APlayerCharacter::BeginPlay()
 		}
 	}
 
+	// Movement Init
 	UCharacterMovementComponent* MovementComponent = GetCharacterMovement();
 	MovementComponent->MaxWalkSpeed = 300.0f;
 }

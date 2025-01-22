@@ -9,6 +9,7 @@
 #include "GameFramework/Character.h"
 #include "PlayerCharacter.generated.h"
 
+class UPlayerHUD;
 class UMotionWarpingComponent;
 class UCameraComponent;
 class UActionComponent;
@@ -57,7 +58,13 @@ public:
 	virtual void SetUseControllerRotationRoll(const bool& bUse) override;
 
 public:
-	// InputMappingContext & InputAction
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<UPlayerHUD> PlayerHUDFactory = nullptr;
+
+	UPROPERTY()
+	UPlayerHUD* PlayerHUD = nullptr;
+	int Hp = 100;
+	int MaxHp = 100;
 	
 	UPROPERTY(EditDefaultsOnly, Category = Input)
 	UInputMappingContext* ImcFPS = nullptr;
