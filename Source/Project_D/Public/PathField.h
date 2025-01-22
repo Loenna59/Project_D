@@ -88,7 +88,7 @@ public:
 	UPROPERTY()
 	FVector ExitPoint;
 
-	bool CanMoveTo(APathField* Neighbor, float Weight, float Angle);
+	bool CanMoveTo(APathField* Neighbor, float Weight, float Angle) const;
 	void SetHeight();
 
 	static void MakeEastWestNeighbors(APathField* East, APathField* West);

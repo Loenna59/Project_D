@@ -100,22 +100,22 @@ void APathField::ShowPath()
 		return;
 	}
 
-	if (North && NextOnPath->GetName() == North->GetName())
+	if (North && NextOnPath == North)
 	{
 		Rotation = NorthRotation * FQuat(FVector::LeftVector, FMath::DegreesToRadians(SlopeAngle));
 	}
 	else
-	if (East && NextOnPath->GetName() == East->GetName())
+	if (East && NextOnPath == East)
 	{
 		Rotation = EastRotation * FQuat(FVector::ForwardVector, FMath::DegreesToRadians(SlopeAngle));
 	}
 	else
-	if (South && NextOnPath->GetName() == South->GetName())
+	if (South && NextOnPath == South)
 	{
 		Rotation = SouthRotation * FQuat(FVector::RightVector, FMath::DegreesToRadians(SlopeAngle));;
 	}
 	else
-	if (West && NextOnPath->GetName() == West->GetName())
+	if (West && NextOnPath == West)
 	{
 		Rotation = WestRotation* FQuat(FVector::BackwardVector, FMath::DegreesToRadians(SlopeAngle));
 	}
@@ -142,7 +142,7 @@ class APathField* APathField::GrowPathTo(APathField* Neighbor, float Weight)
 
 	//λ = lamda = 2
 
-	float CalculateDistance = this->Distance + 1 + (2 * FMath::Sqrt(HeightCost));
+	float CalculateDistance = this->Distance + 1 + 2 * HeightCost;
 
 	Neighbor->Distance = CalculateDistance;
 	Neighbor->NextOnPath = this;
@@ -214,7 +214,7 @@ void APathField::SetHeight()
 	);
 }
 
-bool APathField::CanMoveTo(APathField* Neighbor, float Weight, float Angle)
+bool APathField::CanMoveTo(APathField* Neighbor, float Weight, float Angle) const
 {
 	if (!Neighbor)
 	{
@@ -241,6 +241,8 @@ void APathField::MakeEastWestNeighbors(APathField* East, APathField* West)
 	{
 		East->West = West;
 	}
+
+	// if (West && East) { UE_LOG(LogTemp, Log, TEXT("Connected %s to %s"), *West->GetName(), *East->GetName()); }
 }
 
 void APathField::MakeNorthSouthNeighbors(APathField* North, APathField* South)
@@ -254,5 +256,7 @@ void APathField::MakeNorthSouthNeighbors(APathField* North, APathField* South)
 	{
 		South->North = North;
 	}
+	
+	// if (North && South) { UE_LOG(LogTemp, Log, TEXT("Connected %s to %s"), *North->GetName(), *South->GetName()); }
 }
 
