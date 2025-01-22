@@ -107,12 +107,9 @@ bool UActionComponent::TriggerInteractWall()
 	
 	if (bDetect)
 	{
-		// 상호작용이 가능한 벽인가? 심층분석 (벽의 방향, 벽의 Top, 착륙지점 등 계산)
-		if (ScanWall(HitLocation, ReverseNormal))
-		{
-			MeasureWall(); // 벽의 높이는?
-			bInteracted = TryInteractWall(); // 벽의 높이, Player의 상태에 따라 상호작용
-		}
+		ScanWall(HitLocation, ReverseNormal);
+		MeasureWall();
+		bInteracted = TryInteractWall();
 	}
 
 	/*
@@ -129,45 +126,49 @@ bool UActionComponent::TriggerInteractWall()
 
 void UActionComponent::DetectWall(bool &bOutDetect, FVector &OutHitLocation, FRotator &OutReverseNormal) const
 {
-	const ETraceTypeQuery TraceChannel = UEngineTypes::ConvertToTraceType(ECC_Visibility);
 	FHitResult OutHit;
-
 	for (int i = 0; i < 8; i++)
 	{
 		const TArray<AActor*> ActorsToIgnore;
-		const FVector ActorLocation = Player->GetActorLocation();
-		const FRotator ActorRotation = Player->GetActorRotation();
 		const FVector TempVector = UPlayerHelper::MoveVectorUpward(
-				UPlayerHelper::MoveVectorDownward(ActorLocation, 40.0f),
-				i * 20
-			);
-		const FVector Start = UPlayerHelper::MoveVectorBackward(TempVector, ActorRotation, 30.0f);
-		const FVector End = Player->GetActorForwardVector() * 200.0f + TempVector;
+			UPlayerHelper::MoveVectorDownward(
+				Player->GetActorLocation(),
+				60.0f
+			),
+			i * 20.0f
+		);
+		
+		const FVector Start = UPlayerHelper::MoveVectorBackward(
+			TempVector,
+			Player->GetActorRotation(),
+			30.0f
+		);
+		const FVector End = TempVector + Player->GetActorForwardVector() * 200.0f;
 		
 		const bool bHit = UKismetSystemLibrary::SphereTraceSingle(
 			GetWorld(),
 			Start,
 			End,
 			10.0f,
-			TraceChannel,
+			UEngineTypes::ConvertToTraceType(ECC_Visibility),
 			false,
 			ActorsToIgnore,
-			bVerboseDetect ? EDrawDebugTrace::ForOneFrame : EDrawDebugTrace::None,
+			bVerboseDetect ? EDrawDebugTrace::ForDuration : EDrawDebugTrace::None,
 			OutHit,
 			true,
 			FLinearColor::Red,
 			FLinearColor::Green,
-			5.0f
+			2.0f
 		);
 
 		if (true == bHit)
 		{
+			bOutDetect = OutHit.bBlockingHit;
+			OutHitLocation = OutHit.Location;
+			OutReverseNormal = UPlayerHelper::ReverseNormal(OutHit.Normal);
 			break;
 		}
 	}
-	bOutDetect = OutHit.bBlockingHit;
-	OutHitLocation = OutHit.Location;
-	OutReverseNormal = UPlayerHelper::ReverseNormal(OutHit.Normal);
 }
 
 bool UActionComponent::ScanWall(const FVector& DetectLocation, const FRotator& ReverseNormal)
@@ -191,12 +192,12 @@ bool UActionComponent::ScanWall(const FVector& DetectLocation, const FRotator& R
 			TraceChannel,
 			false,
 			ActorsToIgnore,
-			bVerboseScan ? EDrawDebugTrace::ForOneFrame : EDrawDebugTrace::None,
+			bVerboseScan ? EDrawDebugTrace::ForDuration : EDrawDebugTrace::None,
 			FacedWallTopHitResult,
 			true,
 			FLinearColor::Red,
 			FLinearColor::Green,
-			5.0f
+			2.0f
 		);
 
 		// LineTrace가 벽에 충돌하면
@@ -494,76 +495,82 @@ void UActionComponent::PlayAction(const EActions ActionType)
 
 void UActionComponent::OnStartHangMontageBlendingOut(UAnimMontage* Montage, bool bInterrupted)
 {
-	if (bVerboseMontage)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("UActionComponent::OnStartHangMontageBlendingOut"));
-	}
-
-	bCanClimbing = true;
+	UE_LOG(LogTemp, Display, TEXT("UActionComponent::OnStartHangMontageBlendingOut"));
+	PlayerAnimInstance->OnMontageBlendingOut.RemoveDynamic(this, &UActionComponent::OnStartHangMontageBlendingOut);
+	
 	Player->State = EPlayerState::Hanging;
 	PlayerAnimInstance->SetPlayerActionState(EPlayerState::Hanging);
 	Player->GetCharacterMovement()->StopMovementImmediately();
-	PlayerAnimInstance->OnMontageBlendingOut.RemoveDynamic(this, &UActionComponent::OnStartHangMontageBlendingOut);
+	
+}
+
+void UActionComponent::OnStartHangMontageEnded(UAnimMontage* Montage, bool bInterrupted)
+{
+	UE_LOG(LogTemp, Display, TEXT("UActionComponent::OnStartHangMontageEnded"));
+	PlayerAnimInstance->OnMontageBlendingOut.RemoveDynamic(this, &UActionComponent::OnStartHangMontageEnded);
+
+	const FVector TargetLocation = UPlayerHelper::MoveVectorDownward(
+		UPlayerHelper::MoveVectorBackward(FirstTopHitResult.ImpactPoint, WallRotation, 18.0f),
+		103.0f
+	);
+	Player->SetActorLocationAndRotation(TargetLocation, WallRotation);
 }
 
 void UActionComponent::TriggerHang()
 {
+	UE_LOG(LogTemp, Display, TEXT("UActionComponent::TriggerHang"));
 	bCanAction = false;
 	// Hang Idle 중에는 마우스 움직임이 발생해도 회전하지 않도록 합니다. (카메라만 회전)
 	Player->SetUseControllerRotationYaw(false);
 	Player->GetCapsule()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	Player->GetCharacterMovement()->SetMovementMode(MOVE_Flying);
 	Player->GetCharacterMovement()->StopMovementImmediately();
+
+	const FVector TargetLocation = UPlayerHelper::MoveVectorDownward(
+		UPlayerHelper::MoveVectorBackward(FirstTopHitResult.ImpactPoint, WallRotation, 18.0f),
+		103.0f
+	);
+	Player->MotionWarpingComponent->AddOrUpdateWarpTargetFromLocationAndRotation(TEXT("HangEnd"), TargetLocation, WallRotation);
 	
-	// TODO: 자연스러운 Climb 애니메이션 실행을 위해 필요한 보정 값을 에디터에서 수정할 수 있도록 UPROPERTY 세팅
-	const FVector TargetLocation = FirstTopHitResult.ImpactPoint;
-	Player->MotionWarpingComponent->AddOrUpdateWarpTargetFromLocation(TEXT("HangEnd"), TargetLocation);
 	PlayerAnimInstance->OnMontageBlendingOut.AddDynamic(this, &UActionComponent::OnStartHangMontageBlendingOut);
+	PlayerAnimInstance->OnMontageEnded.AddDynamic(this, &UActionComponent::OnStartHangMontageEnded);
 	PlayerAnimInstance->Montage_Play(IdleToHang);
 }
 
-void UActionComponent::MoveOnWall(const FVector2D& InMovementVector)
+void UActionComponent::MoveOnWall()
 {
-	MovementVector = InMovementVector;
 	if (false == PlayerAnimInstance->IsAnyMontagePlaying())
 	{
-		PlayerAnimInstance->SetMovementVector(MovementVector);
 		TriggerHangingHorizontalMovement();
 	}
 	else
 	{
 		Player->GetCharacterMovement()->StopMovementImmediately();
-		ResetMoveValue();
 	}
-	
-}
-
-void UActionComponent::ResetMoveValue()
-{
-	MovementVector = FVector2D::ZeroVector;
-	PlayerAnimInstance->SetMovementVector(MovementVector);
 }
 
 void UActionComponent::TriggerHangingHorizontalMovement()
 {
 	UCapsuleComponent* Capsule = Player->GetCapsule();
 	UCharacterMovementComponent* Movement = Player->GetCharacterMovement();
+	const FVector WorldLocation = Capsule->GetComponentLocation();
+	const FRotator WorldRotation = Capsule->GetComponentRotation();
 	
 	const TArray<AActor*> ActorsToIgnore;
 	for (int i = 0; i < 3; i++)
 	{
-		FVector Start = UPlayerHelper::MoveVectorDownward(
+		const FVector Start = UPlayerHelper::MoveVectorDownward(
 			UPlayerHelper::MoveVectorRight(
-				UPlayerHelper::MoveVectorUpward(Player->GetCapsule()->GetComponentLocation(), 120.0f),
-				Capsule->GetComponentRotation(),
-				MovementVector.X * 10.0f
+				UPlayerHelper::MoveVectorUpward(WorldLocation, 120.0f),
+				WorldRotation,
+				Player->MovementVector.X * 10.0f
 			),
 			i * 10
 		);
 
 		const FVector End = UPlayerHelper::MoveVectorForward(
 			Start,
-			Capsule->GetComponentRotation(),
+			WorldRotation,
 			60.0f
 		);
 
@@ -576,20 +583,20 @@ void UActionComponent::TriggerHangingHorizontalMovement()
 			false,
 			ActorsToIgnore,
 			EDrawDebugTrace::ForDuration, // TODO: Verbose
-			WallHitResultForClimbMove,
+			WallHitResultForHangingHorizontalMove,
 			true
 		);
 
 		if (true == bHit)
 		{
-			WallRotation = UPlayerHelper::ReverseNormal(WallHitResultForClimbMove.ImpactNormal);
+			WallRotation = UPlayerHelper::ReverseNormal(WallHitResultForHangingHorizontalMove.ImpactNormal);
 			break;
 		}
 		Movement->StopMovementImmediately();
 	}
 	
 	const FVector Start = UPlayerHelper::MoveVectorUpward(
-		UPlayerHelper::MoveVectorForward(WallHitResultForClimbMove.ImpactPoint, WallRotation, 2.0f),
+		UPlayerHelper::MoveVectorForward(WallHitResultForHangingHorizontalMove.ImpactPoint, WallRotation, 2.0f),
 		20.0f
 	);
 	const FVector End = UPlayerHelper::MoveVectorDownward(Start, 100.0f);
@@ -602,26 +609,31 @@ void UActionComponent::TriggerHangingHorizontalMovement()
 		false,
 		ActorsToIgnore,
 		EDrawDebugTrace::ForDuration, // TODO: Verbose
-		WallTopHitResultForClimbMove,
-		true
+		WallHitResultForHangingHorizontalMove,
+		true,
+		FLinearColor::Black,
+		FLinearColor::Blue,
+		5.0f
 	);
 	
-	if (true == WallTopHitResultForClimbMove.bStartPenetrating)
+	if (true == WallHitResultForHangingHorizontalMove.bStartPenetrating)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("1"));
 		// 시작 지점이 이미 다른 Mesh에 의해 Overlap 되어 있는 경우 즉시 Player의 움직임을 멈춘다.
 		Movement->StopMovementImmediately();
 	}
-	else if (true == WallTopHitResultForClimbMove.bBlockingHit)
+	else if (true == WallHitResultForHangingHorizontalMove.bBlockingHit)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("2"));
 		Movement->StopMovementImmediately();
 
-		const FVector ImpactPoint = WallTopHitResultForClimbMove.ImpactPoint;
+		const FVector ImpactPoint = WallHitResultForHangingHorizontalMove.ImpactPoint;
 		const FVector Current = Capsule->GetComponentLocation();
 		const FVector Target = UPlayerHelper::MoveVectorBackward(ImpactPoint, WallRotation, 35.0f);
 		const float DeltaSeconds = GetWorld()->GetDeltaSeconds();
 		const float X = UKismetMathLibrary::FInterpTo(Current.X, Target.X, DeltaSeconds, 5.0f);
 		const float Y = UKismetMathLibrary::FInterpTo(Current.Y, Target.Y, DeltaSeconds, 5.0f);
-		const FVector NewLocation = FVector(X, Y, ImpactPoint.Z);
+		const FVector NewLocation = FVector(X, Y, ImpactPoint.Z - 107.0f);
 		UE_LOG(LogTemp, Warning, TEXT("%s"), *NewLocation.ToString());
 		Capsule->SetWorldLocationAndRotation(NewLocation, WallRotation);
 	}

@@ -23,7 +23,7 @@ protected:
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 
 	UPROPERTY()
-	APlayerCharacter* Owner = nullptr;
+	APlayerCharacter* Player = nullptr;
 	UPROPERTY()
 	UCharacterMovementComponent* Movement = nullptr;
 	
@@ -47,5 +47,4 @@ protected:
 
 public:
 	virtual bool SetPlayerActionState(EPlayerState PlayerActionState) override;
-	virtual bool SetMovementVector(const FVector2D& InMovementVector) override;
 };

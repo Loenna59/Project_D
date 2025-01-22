@@ -8,8 +8,6 @@
 #include "ActionComponent.h"
 #include "BaseZombie.h"
 #include "BlankTriggerParam.h"
-#include "PlayerHelper.h"
-#include "TraceChannelHelper.h"
 #include "ZombieTriggerParam.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
@@ -127,7 +125,7 @@ void APlayerCharacter::SetUseControllerRotationRoll(const bool& bUse)
 	bUseControllerRotationRoll = bUse;
 }
 
-void APlayerCharacter::MoveOnGround(const FVector2D& MovementVector)
+void APlayerCharacter::MoveOnGround()
 {
 	// find out which way is forward
 	const FRotator Rotation = Controller->GetControlRotation();
@@ -227,17 +225,18 @@ void APlayerCharacter::TriggeredLookUp(const FInputActionValue& InputValue)
 
 void APlayerCharacter::TriggeredMove(const FInputActionValue& InputValue)
 {
-	const FVector2D MovementVector = InputValue.Get<FVector2D>();
-
+	MovementVector = InputValue.Get<FVector2D>();
+	UE_LOG(LogTemp, Warning, TEXT("%s"), *MovementVector.ToString());
+	
 	if (Controller)
 	{
 		switch (State)
 		{
 		case EPlayerState::WalkingOnGround:
-			MoveOnGround(MovementVector);
+			MoveOnGround();
 			break;
 		case EPlayerState::Hanging:
-			ActionComponent->MoveOnWall(MovementVector);
+			ActionComponent->MoveOnWall();
 			break;
 		case EPlayerState::Zipping:
 			break;
@@ -245,9 +244,9 @@ void APlayerCharacter::TriggeredMove(const FInputActionValue& InputValue)
 	}
 }
 
-void APlayerCharacter::CompletedMove(const FInputActionValue& InputActionValue)
+void APlayerCharacter::CompletedMove()
 {
-	ActionComponent->ResetMoveValue();
+	MovementVector = FVector2D::ZeroVector;
 }
 
 void APlayerCharacter::TriggeredJump()

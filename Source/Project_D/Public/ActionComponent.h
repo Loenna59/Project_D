@@ -60,6 +60,10 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Animation Montages")
 	UAnimMontage* IdleToHang = nullptr;
 	UPROPERTY(EditDefaultsOnly, Category = "Animation Montages")
+	float IdleToHangParam1 = 18.0f;
+	UPROPERTY(EditDefaultsOnly, Category = "Animation Montages")
+	float IdleToHangParam2 = 203.0f;
+	UPROPERTY(EditDefaultsOnly, Category = "Animation Montages")
     UAnimMontage* MeleeAttack = nullptr;
 
 	UPROPERTY()
@@ -86,22 +90,18 @@ public:
 	bool bIsOnLand = false;
 	// 현재 Player가 장애물과의 Interact를 새롭게 시작할 수 있는지 여부
 	bool bCanAction = true;
-	// 현재 Player가 벽에 매달린 상태로 Stand 몽타주를 실행 중인지 여부
-	bool bCanClimbing = false;
 
 	// Climb
-	FVector2D MovementVector = FVector2d::ZeroVector;
-	FHitResult WallHitResultForClimbMove;
-	FHitResult WallTopHitResultForClimbMove;
+	FHitResult WallHitResultForHangingHorizontalMove;
 
 	// 장애물과의 상호작용을 시도
 	bool TriggerInteractWall();
 
 	/// 플레이어 앞에 장애물이 있는지 탐색
 	/// @param bOutDetect 
-	/// @param OutHitLocation 
-	/// @param OutReverseNormal 
-	void DetectWall(bool &bOutDetect, FVector &OutHitLocation, FRotator &OutReverseNormal) const;
+	/// @param OutHitLocation
+	/// @param OutReverseNormal  
+	void DetectWall(bool& bOutDetect, FVector& OutHitLocation, FRotator& OutReverseNormal) const;
 
 	/// 장애물을 파악하여 착지 지점 등을 계산
 	/// @param DetectLocation 벽을 감지한 위치
@@ -128,15 +128,14 @@ public:
 
 	UFUNCTION()
 	void OnStartHangMontageBlendingOut(UAnimMontage* Montage, bool bInterrupted);
-	
+
+	UFUNCTION()
+	void OnStartHangMontageEnded(UAnimMontage* Montage, bool bInterrupted);
 	//
 	void TriggerHang();
 
 	//
-	void MoveOnWall(const FVector2D& InMovementVector);
-
-	//
-	void ResetMoveValue();
+	void MoveOnWall();
 
 	//
 	void TriggerHangingHorizontalMovement();

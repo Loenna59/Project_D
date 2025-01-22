@@ -11,10 +11,10 @@ void UPlayerAnimInstance::NativeInitializeAnimation()
 {
 	Super::NativeInitializeAnimation();
 	
-	Owner = Cast<APlayerCharacter>(GetOwningActor());
-	if (Owner)
+	Player = Cast<APlayerCharacter>(GetOwningActor());
+	if (Player)
 	{
-		Movement = Owner->GetCharacterMovement();
+		Movement = Player->GetCharacterMovement();
 	}
 }
 
@@ -33,17 +33,13 @@ void UPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 
 		// Set Is Falling from the movement components falling state.
 		bIsFalling = Movement->IsFalling();
+		
+		MovementVector = Player->MovementVector;
 	}
 }
 
 bool UPlayerAnimInstance::SetPlayerActionState(const EPlayerState PlayerActionState)
 {
 	PlayerState = PlayerActionState;
-	return true;
-}
-
-bool UPlayerAnimInstance::SetMovementVector(const FVector2D& InMovementVector)
-{
-	MovementVector = InMovementVector;
 	return true;
 }

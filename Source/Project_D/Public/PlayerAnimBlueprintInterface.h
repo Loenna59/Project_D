@@ -26,7 +26,4 @@ public:
 	//
 	UFUNCTION()
 	virtual bool SetPlayerActionState(EPlayerState PlayerActionState) = 0;
-
-	UFUNCTION()
-	virtual bool SetMovementVector(const FVector2D& MovementVector) = 0;
 };

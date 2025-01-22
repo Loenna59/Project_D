@@ -88,6 +88,7 @@ public:
 	
 	// 이동 방향
 	FVector Direction = FVector::ZeroVector;
+	FVector2D MovementVector = FVector2d::ZeroVector;
 
 	// 좌우 회전 입력 처리
 	void TriggeredTurn(const FInputActionValue& InputValue);
@@ -97,7 +98,7 @@ public:
 
 	// 상하좌우 이동 입력 처리
 	void TriggeredMove(const FInputActionValue& InputValue);
-	void CompletedMove(const FInputActionValue& InputActionValue);
+	void CompletedMove();
 
 	// 점프 입력 처리
 	void TriggeredJump();
@@ -109,7 +110,7 @@ public:
 	void CompletedSprint();
 	
 	// 서 있는 상태에서 플레이어 이동 처리
-	void MoveOnGround(const FVector2D& MovementVector);
+	void MoveOnGround();
 	
 	void OnZiplineBeginOverlap(AZipline* InZipline);
 	void OnZiplineEndOverlap(const AZipline* InZipline);
