@@ -28,16 +28,28 @@ public:
 
 	int32 GetFieldIndex(FVector WorldLocation);
 
+	class APathField* FindField(FVector WorldLocation);
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FVector2D BoardSize = FVector2D(2, 2);
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 FieldSize = 50;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TSubclassOf<class APathField> FieldFactory;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float MovableCost = 25.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float MovableSlopeAngle = 45.f;
 	
 	class APathField** Fields;
 
 	TQueue<class APathField*> SearchFrontier;
 
+	UPROPERTY()
 	class AActor* DestinationActor;
 
 	int32 LastDestIndex = -1;

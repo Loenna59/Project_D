@@ -28,7 +28,7 @@ void APathFindingBoard::BeginPlay()
 		{
 			for (int32 x = 0; x < BoardSize.X; x++, i++)
 			{
-				APathField* Field = GetWorld()->SpawnActor<APathField>(FieldFactory, GetActorLocation() + FVector(x * 100, y * 100, 0), FRotator::ZeroRotator);
+				APathField* Field = GetWorld()->SpawnActor<APathField>(FieldFactory, GetActorLocation() + FVector(x * FieldSize, y * FieldSize, 0), FRotator::ZeroRotator);
 				Field->SetActorScale3D(FVector::OneVector);
 				Field->ClearPath();
 				Field->SetHeight();
@@ -84,46 +84,46 @@ void APathFindingBoard::FindPaths(int32 DestIndex)
 			{
 				if (Field->GetIsAlternative())
 				{
-					if (Field->CanMoveTo(Field->North))
+					if (Field->CanMoveTo(Field->North, MovableCost, MovableSlopeAngle))
 					{
-						SearchFrontier.Enqueue(Field->GrowPathNorth());
+						SearchFrontier.Enqueue(Field->GrowPathNorth(MovableCost));
 					}
 
-					if (Field->CanMoveTo(Field->South))
+					if (Field->CanMoveTo(Field->South, MovableCost, MovableSlopeAngle))
 					{
-						SearchFrontier.Enqueue(Field->GrowPathSouth());
+						SearchFrontier.Enqueue(Field->GrowPathSouth(MovableCost));
 					}
 
-					if (Field->CanMoveTo(Field->East))
+					if (Field->CanMoveTo(Field->East, MovableCost, MovableSlopeAngle))
 					{
-						SearchFrontier.Enqueue(Field->GrowPathEast());
+						SearchFrontier.Enqueue(Field->GrowPathEast(MovableCost));
 					}
 
-					if (Field->CanMoveTo(Field->West))
+					if (Field->CanMoveTo(Field->West, MovableCost, MovableSlopeAngle))
 					{
-						SearchFrontier.Enqueue(Field->GrowPathWest());
+						SearchFrontier.Enqueue(Field->GrowPathWest(MovableCost));
 					}
 				}
 				else
 				{
-					if (Field->CanMoveTo(Field->West))
+					if (Field->CanMoveTo(Field->West, MovableCost, MovableSlopeAngle))
 					{
-						SearchFrontier.Enqueue(Field->GrowPathWest());
+						SearchFrontier.Enqueue(Field->GrowPathWest(MovableCost));
 					}
 					
-					if (Field->CanMoveTo(Field->East))
+					if (Field->CanMoveTo(Field->East, MovableCost, MovableSlopeAngle))
 					{
-						SearchFrontier.Enqueue(Field->GrowPathEast());
+						SearchFrontier.Enqueue(Field->GrowPathEast(MovableCost));
 					}
 					
-					if (Field->CanMoveTo(Field->South))
+					if (Field->CanMoveTo(Field->South, MovableCost, MovableSlopeAngle))
 					{
-						SearchFrontier.Enqueue(Field->GrowPathSouth());
+						SearchFrontier.Enqueue(Field->GrowPathSouth(MovableCost));
 					}
 					
-					if (Field->CanMoveTo(Field->North))
+					if (Field->CanMoveTo(Field->North, MovableCost, MovableSlopeAngle))
 					{
-						SearchFrontier.Enqueue(Field->GrowPathNorth());
+						SearchFrontier.Enqueue(Field->GrowPathNorth(MovableCost));
 					}
 
 				}
@@ -139,10 +139,22 @@ void APathFindingBoard::FindPaths(int32 DestIndex)
 
 int32 APathFindingBoard::GetFieldIndex(FVector WorldLocation)
 {
-	int32 Col = FMath::FloorToInt((WorldLocation.X - GetActorLocation().X) / 100);
-	int32 Row = FMath::FloorToInt((WorldLocation.Y - GetActorLocation().Y) / 100);
+	int32 Col = FMath::FloorToInt((WorldLocation.X - GetActorLocation().X) / FieldSize);
+	int32 Row = FMath::FloorToInt((WorldLocation.Y - GetActorLocation().Y) / FieldSize);
 
 	return Row * BoardSize.X + Col;
+}
+
+class APathField* APathFindingBoard::FindField(FVector WorldLocation)
+{
+	int32 Index = GetFieldIndex(WorldLocation);
+
+	if (Index < 0 || Index >= BoardSize.X * BoardSize.Y)
+	{
+		return nullptr;
+	}
+
+	return Fields[Index];
 }
 
 // Called every frame

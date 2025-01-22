@@ -81,7 +81,7 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 MaxHp = 100;
-
+	
 	virtual bool ContainsBrokenBones(TArray<FName> BoneNames);
 
 	virtual void OnTriggerAttack(bool Start);
@@ -93,6 +93,22 @@ public:
 
 	UFUNCTION()
 	virtual void OnCollisionHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+
+
+	//PathFinding
+	UPROPERTY()
+	class APathFindingBoard* PathFindingBoard;
+
+	UPROPERTY()
+	class APathField* FromPathField;
+	UPROPERTY()
+	class APathField* ToPathField;
+
+	FVector FromLocation;
+	FVector ToLocation;
+
+	class APathField* GetPlacedPathField();
+	bool MoveNextField(APathField* Start);
 
 protected:
 	virtual bool IsPhysicsBone(const FName& HitBoneName);

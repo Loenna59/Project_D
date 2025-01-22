@@ -49,22 +49,25 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class APathField* NextOnPath;
 
+	class APathField* GetNextOnPath() const
+	{
+		return NextOnPath;
+	}
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 Distance;
 
 	void ClearPath();
 	void BecomeDestination();
-
 	bool HasPath();
-
 	void ShowPath();
 
-	class APathField* GrowPathTo(APathField* Neighbor);
+	class APathField* GrowPathTo(APathField* Neighbor, float Weight);
 	
-	class APathField* GrowPathNorth();
-	class APathField* GrowPathEast();
-	class APathField* GrowPathSouth();
-	class APathField* GrowPathWest();
+	class APathField* GrowPathNorth(float Weight);
+	class APathField* GrowPathEast(float Weight);
+	class APathField* GrowPathSouth(float Weight);
+	class APathField* GrowPathWest(float Weight);
 
 	[[nodiscard]] bool GetIsAlternative() const
 	{
@@ -82,7 +85,10 @@ public:
 	UPROPERTY(EditAnywhere)
 	float SlopeAngle = 0;
 
-	bool CanMoveTo(APathField* Neighbor);
+	UPROPERTY()
+	FVector ExitPoint;
+
+	bool CanMoveTo(APathField* Neighbor, float Weight, float Angle);
 	void SetHeight();
 
 	static void MakeEastWestNeighbors(APathField* East, APathField* West);

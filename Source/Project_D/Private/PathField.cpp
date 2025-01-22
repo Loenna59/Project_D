@@ -6,6 +6,7 @@
 #include "GameDebug.h"
 #include "TraceChannelHelper.h"
 #include "Components/TextRenderComponent.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "Kismet/KismetSystemLibrary.h"
 
 FQuat APathField::NorthRotation = FQuat(FRotator(0.f, 180.f, 0.f));
@@ -49,7 +50,9 @@ void APathField::BeginPlay()
 	Super::BeginPlay();
 
 	TextRender->SetVisibility(false);
-	
+	// Mesh->SetVisibility(false);
+
+	// Mesh->SetRelativeScale3D(FVector::OneVector * 0.3f);
 }
 
 // Called every frame
@@ -57,20 +60,21 @@ void APathField::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	TextRender->SetText(FText::FromString(FString::FromInt(Distance)));
+	// TextRender->SetText(FText::FromString(FString::FromInt(Distance)));
 }
 
 void APathField::ClearPath()
 {
 	Distance = TNumericLimits<int32>::Max();
 	NextOnPath = nullptr;
-	Mesh->SetVisibility(false);
+	// Mesh->SetVisibility(false);
 }
 
 void APathField::BecomeDestination()
 {
 	Distance = 0;
 	NextOnPath = nullptr;
+	ExitPoint = GetActorLocation();
 }
 
 bool APathField::HasPath()
@@ -82,11 +86,11 @@ void APathField::ShowPath()
 {
 	if (Distance == 0 || !HasPath())
 	{
-		Mesh->SetVisibility(false);
+		// Mesh->SetVisibility(false);
 		return;
 	}
 
-	Mesh->SetVisibility(true);
+	// Mesh->SetVisibility(true);
 
 	FQuat Rotation = FQuat::Identity;
 
@@ -98,12 +102,12 @@ void APathField::ShowPath()
 
 	if (North && NextOnPath->GetName() == North->GetName())
 	{
-		Rotation = NorthRotation * FQuat(FVector::RightVector, FMath::DegreesToRadians(SlopeAngle));
+		Rotation = NorthRotation * FQuat(FVector::LeftVector, FMath::DegreesToRadians(SlopeAngle));
 	}
 	else
 	if (East && NextOnPath->GetName() == East->GetName())
 	{
-		Rotation = EastRotation * FQuat(FVector::ForwardVector, FMath::DegreesToRadians(SlopeAngle));;
+		Rotation = EastRotation * FQuat(FVector::ForwardVector, FMath::DegreesToRadians(SlopeAngle));
 	}
 	else
 	if (South && NextOnPath->GetName() == South->GetName())
@@ -113,43 +117,59 @@ void APathField::ShowPath()
 	else
 	if (West && NextOnPath->GetName() == West->GetName())
 	{
-		Rotation = WestRotation * FQuat(FVector::ForwardVector, FMath::DegreesToRadians(SlopeAngle));;
+		Rotation = WestRotation* FQuat(FVector::BackwardVector, FMath::DegreesToRadians(SlopeAngle));
 	}
 	
 	SetActorRotation(Rotation);
 }
 
-class APathField* APathField::GrowPathTo(APathField* Neighbor)
+class APathField* APathField::GrowPathTo(APathField* Neighbor, float Weight)
 {
 	if (!HasPath() || !Neighbor || Neighbor->HasPath())
 	{
 		return nullptr;
 	}
-	
-	Neighbor->Distance = this->Distance + 1;
+
+	float HeightDiff = Neighbor->Height - Height; //+: 오르막 -: 내리막
+	float HeightCost = FMath::Abs(HeightDiff);
+
+	if (HeightCost < Weight)
+	{
+		HeightCost = 0;
+	}
+
+	//float SlopeFactor = HeightDiff > 0? 2.f : 1.f;
+
+	//λ = lamda = 2
+
+	float CalculateDistance = this->Distance + 1 + (2 * FMath::Sqrt(HeightCost));
+
+	Neighbor->Distance = CalculateDistance;
 	Neighbor->NextOnPath = this;
 
+	Neighbor->ExitPoint = (Neighbor->GetActorLocation() + GetActorLocation()) * 0.5f;
+	
 	return Neighbor;
 }
 
-class APathField* APathField::GrowPathNorth()
+class APathField* APathField::GrowPathNorth(float Weight)
 {
-	return GrowPathTo(North);
+	return GrowPathTo(North, Weight);
 }
 
-class APathField* APathField::GrowPathEast()
+class APathField* APathField::GrowPathEast(float Weight)
 {
-	return GrowPathTo(East);
+	return GrowPathTo(East, Weight);
 }
 
-class APathField* APathField::GrowPathSouth()
+class APathField* APathField::GrowPathSouth(float Weight)
 {
-	return GrowPathTo(South);
+	return GrowPathTo(South, Weight);
 }
 
-class APathField* APathField::GrowPathWest()
+class APathField* APathField::GrowPathWest(float Weight)
 {
-	return GrowPathTo(West);
+	return GrowPathTo(West, Weight);
 }
 
 
@@ -176,6 +196,15 @@ void APathField::SetHeight()
 
 				FVector ImpactNormal = HitResult.ImpactNormal;
 				SlopeAngle = FMath::Acos(FVector::DotProduct(ImpactNormal, FVector::UpVector)) * (180.f / PI);
+
+				if (FMath::Abs(ImpactNormal.X) > FMath::Abs((ImpactNormal.Y))) // East, West
+				{
+					SlopeAngle *= (ImpactNormal.X < 0)? -1 : 1;
+				}
+				else
+				{
+					SlopeAngle *= (ImpactNormal.Y < 0)? -1 : 1;
+				}
 			}
 			else
 			{
@@ -185,7 +214,7 @@ void APathField::SetHeight()
 	);
 }
 
-bool APathField::CanMoveTo(APathField* Neighbor)
+bool APathField::CanMoveTo(APathField* Neighbor, float Weight, float Angle)
 {
 	if (!Neighbor)
 	{
@@ -194,9 +223,9 @@ bool APathField::CanMoveTo(APathField* Neighbor)
 
 	float HeightDiff = FMath::Abs(Neighbor->Height - Height);
 
-	bool bCan = SlopeAngle <= 45.f && HeightDiff < 200;
+	bool bCan = FMath::Abs(SlopeAngle) <= Angle && HeightDiff < Weight;
 
-	Mesh->SetVisibility(bCan);
+	// Mesh->SetVisibility(bCan);
 
 	return bCan;
 }

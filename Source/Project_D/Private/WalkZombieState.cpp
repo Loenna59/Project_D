@@ -5,6 +5,7 @@
 
 #include "BaseZombie.h"
 #include "BiterAnimInstance.h"
+#include "GameDebug.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Kismet/KismetSystemLibrary.h"
 
@@ -21,30 +22,37 @@ void UWalkZombieState::OnEnter(ABaseZombie* Zombie)
 				BiterAnimInstance->bIsWalking = true;
 			}
 		}
+
+		Zombie->MoveNextField(Zombie->GetPlacedPathField());
 	}
 }
 
 void UWalkZombieState::OnUpdate(ABaseZombie* Zombie)
 {
-	if (Zombie && Zombie->DetectedTarget)
-	{	
-		FVector Distance = Zombie->DetectedTarget->GetActorLocation() - Zombie->GetActorLocation();
+	if (Zombie && Zombie->ToPathField)
+	{
+		float CurrentDist = FVector::Dist(Zombie->ToLocation, Zombie->GetActorLocation());
+
+		// GameDebug::ShowDisplayLog(GetWorld(), FString::SanitizeFloat(CurrentDist));
+
+		if (CurrentDist <= 110 || CurrentDist >= 200) // 길을 잃은 것 같다면 강제로 다음 패스로
+		{
+			Zombie->MoveNextField(Zombie->ToPathField);
+		}
+		
+		FVector Distance = Zombie->ToLocation - Zombie->FromLocation;
 		FVector Direction = Distance.GetSafeNormal();
 
 		FRotator LookAtRotation = FRotationMatrix::MakeFromX(Direction).Rotator();
-
-		// 현재 회전과 목표 회전을 선형 보간 (LERP)
 		FRotator SmoothedRotation = UKismetMathLibrary::RLerp(
 			Zombie->GetActorRotation(),  // 현재 회전
 			LookAtRotation,              // 목표 회전
 			GetWorld()->GetDeltaSeconds(), // 보간 속도
 			true                          // 짧은 쪽 경로 선택
 		);
-		
+
 		Zombie->SetActorRotation(SmoothedRotation);
 		Zombie->AddMovementInput(Direction);
-		
-		// UKismetSystemLibrary::PrintString(GetWorld(), "Walk On Update");
 	}
 }
 

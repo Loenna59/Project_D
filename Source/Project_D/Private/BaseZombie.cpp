@@ -6,6 +6,7 @@
 #include "ExplosiveCollisionActor.h"
 #include "GameDebug.h"
 #include "KismetTraceUtils.h"
+#include "PathFindingBoard.h"
 #include "TraceChannelHelper.h"
 #include "ZombieTriggerParam.h"
 #include "Components/CapsuleComponent.h"
@@ -77,6 +78,13 @@ void ABaseZombie::BeginPlay()
 	FSM->ChangeState(EEnemyState::IDLE, this);
 
 	GetCapsuleComponent()->OnComponentHit.AddDynamic(this, &ABaseZombie::OnCollisionHit);
+
+	if (AActor* TmpActor = UGameplayStatics::GetActorOfClass(GetWorld(), APathFindingBoard::StaticClass()))
+	{
+		PathFindingBoard = Cast<APathFindingBoard>(TmpActor);
+
+		MoveNextField(GetPlacedPathField());
+	}
 }
 
 // Called every frame
@@ -374,4 +382,24 @@ void ABaseZombie::OnCollisionHit(UPrimitiveComponent* HitComponent, AActor* Othe
 		GameDebug::ShowDisplayLog(GetWorld(), "Death");
 		FSM->ChangeState(EEnemyState::DEATH, this);
 	}
+}
+
+bool ABaseZombie::MoveNextField(APathField* Start)
+{
+	if (!Start->GetNextOnPath())
+	{
+		return false;
+	}
+	
+	FromPathField = Start;
+	ToPathField = FromPathField->GetNextOnPath();
+	FromLocation = FromPathField->GetActorLocation();
+	ToLocation = ToPathField->GetActorLocation(); //FromPathField->ExitPoint;
+
+	return true;
+}
+
+class APathField* ABaseZombie::GetPlacedPathField()
+{
+	return PathFindingBoard->FindField(GetActorLocation());
 }
