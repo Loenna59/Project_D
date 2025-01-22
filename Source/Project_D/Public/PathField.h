@@ -7,10 +7,29 @@
 #include "PathField.generated.h"
 
 UENUM(BlueprintType)
-enum class FieldContentType : uint8
+enum class EPathDirection : uint8
 {
-	Empty,
-	Destination
+	North,
+	East,
+	South,
+	West
+};
+
+class EPathDirectionExtensions
+{
+public:
+	// 방향에 따른 회전 값 반환
+	static FQuat GetRotation(EPathDirection Direction)
+	{
+		static const FQuat Rotations[] = {
+			FQuat(FRotator(0.f, 180.f, 0.f)),
+			FQuat(FRotator(0.0f, 90.0f, 0.0f)),
+			FQuat::Identity,
+			FQuat(FRotator(0.0f, 270.0f, 0.0f))
+		};
+
+		return Rotations[static_cast<uint8>(Direction)];
+	}
 };
 
 UCLASS()
@@ -62,14 +81,14 @@ public:
 	bool HasPath();
 	void ShowPath();
 
-	class APathField* GrowPathTo(APathField* Neighbor, float Weight);
+	class APathField* GrowPathTo(APathField* Neighbor, EPathDirection Direction, float Weight);
 	
 	class APathField* GrowPathNorth(float Weight);
 	class APathField* GrowPathEast(float Weight);
 	class APathField* GrowPathSouth(float Weight);
 	class APathField* GrowPathWest(float Weight);
 
-	[[nodiscard]] bool GetIsAlternative() const
+	bool GetIsAlternative() const
 	{
 		return IsAlternative;
 	}
@@ -87,6 +106,9 @@ public:
 
 	UPROPERTY()
 	FVector ExitPoint;
+
+	UPROPERTY()
+	EPathDirection PathDirection;
 
 	bool CanMoveTo(APathField* Neighbor, float Weight, float Angle) const;
 	void SetHeight();

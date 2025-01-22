@@ -392,9 +392,11 @@ bool ABaseZombie::MoveNextField(APathField* Start)
 	}
 	
 	FromPathField = Start;
-	ToPathField = FromPathField->GetNextOnPath();
+	ToPathField = Start->GetNextOnPath();
 	FromLocation = FromPathField->GetActorLocation();
 	ToLocation = ToPathField->GetActorLocation(); //FromPathField->ExitPoint;
+
+	// SetActorRotation(EPathDirectionExtensions::GetRotation(FromPathField->PathDirection));
 
 	return true;
 }

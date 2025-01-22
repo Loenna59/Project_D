@@ -123,7 +123,7 @@ void APathField::ShowPath()
 	SetActorRotation(Rotation);
 }
 
-class APathField* APathField::GrowPathTo(APathField* Neighbor, float Weight)
+class APathField* APathField::GrowPathTo(APathField* Neighbor, EPathDirection Direction, float Weight)
 {
 	if (!HasPath() || !Neighbor || Neighbor->HasPath())
 	{
@@ -146,30 +146,30 @@ class APathField* APathField::GrowPathTo(APathField* Neighbor, float Weight)
 
 	Neighbor->Distance = CalculateDistance;
 	Neighbor->NextOnPath = this;
-
 	Neighbor->ExitPoint = (Neighbor->GetActorLocation() + GetActorLocation()) * 0.5f;
+	Neighbor->PathDirection = Direction;
 	
 	return Neighbor;
 }
 
 class APathField* APathField::GrowPathNorth(float Weight)
 {
-	return GrowPathTo(North, Weight);
+	return GrowPathTo(North, EPathDirection::North, Weight);
 }
 
 class APathField* APathField::GrowPathEast(float Weight)
 {
-	return GrowPathTo(East, Weight);
+	return GrowPathTo(East, EPathDirection::East, Weight);
 }
 
 class APathField* APathField::GrowPathSouth(float Weight)
 {
-	return GrowPathTo(South, Weight);
+	return GrowPathTo(South, EPathDirection::South, Weight);
 }
 
 class APathField* APathField::GrowPathWest(float Weight)
 {
-	return GrowPathTo(West, Weight);
+	return GrowPathTo(West, EPathDirection::West, Weight);
 }
 
 
