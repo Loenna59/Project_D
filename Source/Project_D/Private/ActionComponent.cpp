@@ -107,19 +107,19 @@ bool UActionComponent::TriggerInteractWall()
 	
 	if (bDetect)
 	{
-		ScanWall(HitLocation, ReverseNormal);
-		MeasureWall();
-		bInteracted = TryInteractWall();
-	}
+		FacedWallTopHitResult.Reset();
+		FirstTopHitResult.Reset();
+		LastTopHitResult.Reset();
+		EndOfObstacleHitResult.Reset();
+		VaultLandingHitResult.Reset();
 
-	/*
-	// ScanWall
-	FacedWallTopHitResult.Reset();
-	FirstTopHitResult.Reset();
-	LastTopHitResult.Reset();
-	EndOfObstacleHitResult.Reset();
-	VaultLandingHitResult.Reset();
-	*/
+		ScanWall(HitLocation, ReverseNormal);
+		if (FirstTopHitResult.bBlockingHit)
+		{
+			MeasureWall();
+			bInteracted = TryInteractWall();
+		}
+	}
 
 	return bInteracted;
 }
@@ -355,59 +355,52 @@ bool UActionComponent::TryInteractWall()
 	// TODO: 각 행동에 필요한 높이 값을 에디터에서 수정할 수 있도록 UPROPERTY 세팅
 	if (FirstTopHitResult.bBlockingHit)
 	{
-		if (bIsOnLand)
+		if (WallHeight <= 300.0f)
 		{
-			if (WallHeight <= 300.0f)
+			if (bIsStanding)
 			{
-				if (bIsStanding)
+				if (WallHeight > 150.0f)
 				{
-					if (WallHeight > 150.0f)
+					if (bVerboseInteract)
 					{
-						if (bVerboseInteract)
-						{
-							UE_LOG(LogTemp, Warning, TEXT("Climb 동작 수행"));
-						}
-						TriggerHang();
-						return true;
+						UE_LOG(LogTemp, Warning, TEXT("Climb 동작 수행"));
 					}
-				}
-				else
-				{
-					if (WallHeight <= 150.0f)
-					{
-						if (false == bIsStanding)
-						{
-							// Vault 동작 수행
-							if (WallHeight > 50.0f)
-							{
-								// One Hand Vault 동작 수행
-								if (bVerboseInteract)
-								{
-									UE_LOG(LogTemp, Warning, TEXT("One Hand Vault 동작 수행"));
-								}
-								PlayAction(EActions::OneHandVault);
-							}
-							else
-							{
-								if (bVerboseInteract)
-								{
-									UE_LOG(LogTemp, Warning, TEXT("너무 낮은 벽"));
-								}
-								return false;
-							}
-							
-							return true;
-						}
-					}
+					TriggerHang();
+					return true;
 				}
 			}
 			else
 			{
-				// 너무 높은 벽
-				if (bVerboseInteract)
+				if (WallHeight <= 140.0f)
 				{
-					UE_LOG(LogTemp, Warning, TEXT("너무 높은 벽"));
+					if (WallHeight > 50.0f)
+					{
+						// One Hand Vault 동작 수행
+						if (bVerboseInteract)
+						{
+							UE_LOG(LogTemp, Warning, TEXT("One Hand Vault 동작 수행"));
+						}
+						PlayAction(EActions::OneHandVault);
+					}
+					else
+					{
+						if (bVerboseInteract)
+						{
+							UE_LOG(LogTemp, Warning, TEXT("너무 낮은 벽"));
+						}
+						return false;
+					}
+					
+					return true;
 				}
+			}
+		}
+		else
+		{
+			// 너무 높은 벽
+			if (bVerboseInteract)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("너무 높은 벽"));
 			}
 		}
 	}
@@ -469,8 +462,8 @@ void UActionComponent::PlayAction(const EActions ActionType)
 	{
 	case EActions::OneHandVault:
 		// Set Montage
-		AnimMontage = OneHandVault;
 
+		AnimMontage = OneHandVault;
 		// Set Montage Delegate
 		PlayerAnimInstance->OnMontageStarted.AddDynamic(this, &UActionComponent::OnVaultMontageStarted);
 		PlayerAnimInstance->OnMontageEnded.AddDynamic(this, &UActionComponent::OnVaultMontageEnded);
@@ -488,8 +481,7 @@ void UActionComponent::PlayAction(const EActions ActionType)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Start : %s, End : %s"), *Start.ToString(), *End.ToString());
 	}
-
-	// Play Montage
+	
 	PlayerAnimInstance->Montage_Play(AnimMontage);
 }
 

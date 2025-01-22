@@ -226,7 +226,6 @@ void APlayerCharacter::TriggeredLookUp(const FInputActionValue& InputValue)
 void APlayerCharacter::TriggeredMove(const FInputActionValue& InputValue)
 {
 	MovementVector = InputValue.Get<FVector2D>();
-	UE_LOG(LogTemp, Warning, TEXT("%s"), *MovementVector.ToString());
 	
 	if (Controller)
 	{
