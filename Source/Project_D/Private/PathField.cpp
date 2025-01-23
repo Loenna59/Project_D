@@ -50,7 +50,7 @@ void APathField::BeginPlay()
 	Super::BeginPlay();
 
 	TextRender->SetVisibility(false);
-	// Mesh->SetVisibility(false);
+	Mesh->SetVisibility(false);
 
 	// Mesh->SetRelativeScale3D(FVector::OneVector * 0.3f);
 }
@@ -176,7 +176,7 @@ class APathField* APathField::GrowPathWest(float Weight)
 void APathField::SetHeight()
 {
 	FVector Start = GetActorLocation();
-	FVector End = GetActorLocation() - FVector(0, 0, 1000);
+	FVector End = GetActorLocation() - FVector(0, 0, 2000);
 
 	TraceChannelHelper::LineTraceByChannel(
 		GetWorld(),

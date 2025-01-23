@@ -3,6 +3,10 @@
 
 #include "Biter.h"
 
+#include "GameDebug.h"
+#include "PlayerCharacter.h"
+#include "Components/BoxComponent.h"
+
 // void ABiter::SetupInternal()
 // {
 // 	HeadBone = "Head";
@@ -50,3 +54,66 @@
 // 		HitBoneName == FName("RightLeg") ||
 // 		HitBoneName == FName("RightFoot");
 // }
+
+ABiter::ABiter()
+{
+	PrimaryActorTick.bStartWithTickEnabled = true;
+
+	AttackPoint = CreateDefaultSubobject<UBoxComponent>(TEXT("AttackPoint"));
+	AttackPoint->SetupAttachment(GetMesh());
+	
+	if (AttackPoint && GetMesh()->DoesSocketExist(TEXT("AttackSocket")))
+    {
+    	AttackPoint->SetupAttachment(
+    		GetMesh(),
+    		TEXT("AttackSocket")
+    	);
+    }
+	
+	AttackPoint->SetBoxExtent(FVector(50, 50, 50));
+	AttackPoint->SetCollisionProfileName(TEXT("EnemyAttack"));
+	AttackPoint->SetGenerateOverlapEvents(true);
+
+	
+	SetActiveAttackCollision(false);
+
+}
+
+void ABiter::BeginPlay()
+{
+	Super::BeginPlay();
+
+	AttackPoint->OnComponentBeginOverlap.AddDynamic(this, &ABiter::OnOverlappedAttackPoint);
+}
+
+void ABiter::OnTriggerAttack(bool Start)
+{
+	IsAttacking = Start;
+	if (IsAttacking)
+	{
+		if (MontageMap.Contains("Attack"))
+		{
+			PlayAnimMontage(MontageMap["Attack"], 1.f, "Attack");
+		}
+		SetActiveAttackCollision(true);
+		return;
+	}
+
+	SetActiveAttackCollision(false);
+	FSM->ChangeState(EEnemyState::IDLE, this);
+}
+
+void ABiter::SetActiveAttackCollision(bool Active) const
+{
+	AttackPoint->SetVisibility(Active);
+	AttackPoint->SetCollisionEnabled(Active? ECollisionEnabled::QueryOnly : ECollisionEnabled::NoCollision);
+}
+
+void ABiter::OnOverlappedAttackPoint(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (APlayerCharacter* const Player = Cast<APlayerCharacter>(OtherActor))
+	{
+		Player->OnDamaged(20);
+	}
+}
