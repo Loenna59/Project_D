@@ -123,6 +123,7 @@ void APlayerCharacter::Landed(const FHitResult& Hit)
 			// 그렇지 않다면 낙사 데미지를 온전히 받는다.
 			UE_LOG(LogTemp, Warning, TEXT("낙사 데미지 : %f"), Damage);
 			// 데미지 처리
+			OnDamaged(Damage);
 		}
 	}
 	
@@ -280,10 +281,11 @@ void APlayerCharacter::OnWeaponBeginOverlap(UPrimitiveComponent* OverlappedCompo
 	}
 }
 
-void APlayerCharacter::OnDamaged(int Amount)
+void APlayerCharacter::OnDamaged(const int Amount)
 {
 	UE_LOG(LogTemp, Warning, TEXT("APlayerCharacter::OnDamaged(%d)"), Amount);
 	Hp -= Amount;
+	PlayerHUD->OnChangeHp(Hp, MaxHp);
 	if (Hp <= 0)
 	{
 		OnDead();
