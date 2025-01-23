@@ -5,6 +5,7 @@
 
 #include "GameDebug.h"
 #include "PlayerCharacter.h"
+#include "TraceChannelHelper.h"
 #include "Components/BoxComponent.h"
 
 // void ABiter::SetupInternal()
@@ -83,7 +84,7 @@ void ABiter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	AttackPoint->OnComponentBeginOverlap.AddDynamic(this, &ABiter::OnOverlappedAttackPoint);
+	// AttackPoint->OnComponentBeginOverlap.AddDynamic(this, &ABiter::OnOverlappedAttackPoint);
 }
 
 void ABiter::OnTriggerAttack(bool Start)
@@ -91,15 +92,54 @@ void ABiter::OnTriggerAttack(bool Start)
 	IsAttacking = Start;
 	if (IsAttacking)
 	{
+		if (AttackTimerHandle.IsValid())
+		{
+			GetWorld()->GetTimerManager().ClearTimer(AttackTimerHandle);
+		}
+		
+		GetWorld()->GetTimerManager().SetTimer(
+			AttackTimerHandle,
+			[this]
+			{
+				TraceChannelHelper::SphereTraceByChannel(
+					GetWorld(),
+					this,
+					AttackPoint->GetComponentLocation(),
+					AttackPoint->GetComponentLocation(),
+					FRotator::ZeroRotator,
+					ECC_Visibility,
+					50,
+					true,
+					true,
+					[this] (bool bHit, TArray<FHitResult> HitResults)
+					{
+						for (FHitResult HitResult : HitResults)
+						{
+							if (AActor* Actor = HitResult.GetActor())
+							{
+								if (APlayerCharacter* P = Cast<APlayerCharacter>(Actor))
+								{
+									// GameDebug::ShowDisplayLog(GetWorld(), "ATTACK");
+									P->OnDamaged(10);
+								}
+							}
+						}
+					}
+				);
+				//SetActiveAttackCollision(true);
+			},
+			AttackTiming,
+			false
+		);
+		
 		if (MontageMap.Contains("Attack"))
 		{
 			PlayAnimMontage(MontageMap["Attack"], 1.f, "Attack");
 		}
-		SetActiveAttackCollision(true);
+		
 		return;
 	}
-
-	SetActiveAttackCollision(false);
+	// SetActiveAttackCollision(false);
 	FSM->ChangeState(EEnemyState::IDLE, this);
 }
 
@@ -112,8 +152,8 @@ void ABiter::SetActiveAttackCollision(bool Active) const
 void ABiter::OnOverlappedAttackPoint(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if (APlayerCharacter* const Player = Cast<APlayerCharacter>(OtherActor))
+	if (APlayerCharacter* Player = Cast<APlayerCharacter>(OtherActor))
 	{
-		Player->OnDamaged(20);
+		Player->OnDamaged(1);
 	}
 }

@@ -33,6 +33,6 @@ void UIdleZombieState::OnExit(class ABaseZombie* Zombie)
 {
 	if (Zombie)
 	{
-		UKismetSystemLibrary::PrintString(GetWorld(), "Idle On Exit");
+		// UKismetSystemLibrary::PrintString(GetWorld(), "Idle On Exit");
 	}
 }

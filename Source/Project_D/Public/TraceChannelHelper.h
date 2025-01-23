@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Biter.h"
 
 /**
  * 
@@ -17,8 +18,8 @@ public:
 	static void LineTraceByChannel(
 		const UWorld* World,
 		AActor* Actor,
-		FVector Start,
-		FVector End,
+		const FVector& Start,
+		const FVector& End,
 		ECollisionChannel CollisionChannel,
 		bool IgnoreSelf,
 		bool DrawDebug,
@@ -28,9 +29,9 @@ public:
 	static void SphereTraceByChannel(
 		const UWorld* World,
 		AActor* Actor,
-		FVector Start,
-		FVector End,
-		FRotator Rotator,
+		const FVector& Start,
+		const FVector& End,
+		const FRotator& Rotator,
 		ECollisionChannel CollisionChannel,
 		float Radius,
 		bool IgnoreSelf,
@@ -41,11 +42,11 @@ public:
 	static void BoxTraceByChannel(
 		const UWorld* World,
 		AActor* Actor,
-		FVector Start,
-		FVector End,
-		FRotator Rotator,
+		const FVector& Start,
+		const FVector& End,
+		const FRotator& Rotator,
 		ECollisionChannel CollisionChannel,
-		FVector HalfSize,
+		const FVector& HalfSize,
 		bool IgnoreSelf,
 		bool DrawDebug,
 		TFunction<void(bool, FHitResult)> Callback

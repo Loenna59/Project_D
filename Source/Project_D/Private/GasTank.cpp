@@ -5,6 +5,9 @@
 
 #include "ExplosiveCollisionActor.h"
 #include "GameDebug.h"
+#include "PlayerCharacter.h"
+#include "TraceChannelHelper.h"
+#include "Components/BoxComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "PhysicsEngine/RadialForceActor.h"
 
@@ -16,6 +19,23 @@ AGasTank::AGasTank()
 	GasCylinder = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("GasCylinder"));
 	GasCylinder->SetupAttachment(GetMesh());
 	GasCylinder->SetCollisionProfileName("Enemy");
+
+	AttackPoint = CreateDefaultSubobject<UBoxComponent>(TEXT("AttackPoint"));
+	AttackPoint->SetupAttachment(GetMesh());
+	
+	if (AttackPoint && GetMesh()->DoesSocketExist(TEXT("AttackSocket")))
+	{
+		AttackPoint->SetupAttachment(
+			GetMesh(),
+			TEXT("AttackSocket")
+		);
+	}
+	
+	AttackPoint->SetCollisionProfileName(TEXT("EnemyAttack"));
+	AttackPoint->SetGenerateOverlapEvents(true);
+
+	
+	SetActiveAttackCollision(false);
 }
 
 void AGasTank::BeginPlay()
@@ -83,4 +103,66 @@ void AGasTank::OnTriggerEnter(AActor* OtherActor, ACollisionTriggerParam* Param)
 	{
 		Super::OnTriggerEnter(OtherActor, Param);
 	}
+}
+
+void AGasTank::OnTriggerAttack(bool Start)
+{
+	IsAttacking = Start;
+	if (IsAttacking)
+	{
+		if (AttackTimerHandle.IsValid())
+		{
+			GetWorld()->GetTimerManager().ClearTimer(AttackTimerHandle);
+		}
+		
+		GetWorld()->GetTimerManager().SetTimer(
+			AttackTimerHandle,
+			[this]
+			{
+				TraceChannelHelper::SphereTraceByChannel(
+					GetWorld(),
+					this,
+					AttackPoint->GetComponentLocation(),
+					AttackPoint->GetComponentLocation(),
+					FRotator::ZeroRotator,
+					ECC_Visibility,
+					50,
+					true,
+					true,
+					[this] (bool bHit, TArray<FHitResult> HitResults)
+					{
+						for (FHitResult HitResult : HitResults)
+						{
+							if (AActor* Actor = HitResult.GetActor())
+							{
+								if (APlayerCharacter* P = Cast<APlayerCharacter>(Actor))
+								{
+									// GameDebug::ShowDisplayLog(GetWorld(), "ATTACK");
+									P->OnDamaged(10);
+								}
+							}
+						}
+					}
+				);
+				//SetActiveAttackCollision(true);
+			},
+			AttackTiming,
+			false
+		);
+		
+		if (MontageMap.Contains("Attack"))
+		{
+			PlayAnimMontage(MontageMap["Attack"], 1.f, "Attack");
+		}
+		
+		return;
+	}
+	// SetActiveAttackCollision(false);
+	FSM->ChangeState(EEnemyState::IDLE, this);
+}
+
+void AGasTank::SetActiveAttackCollision(bool Active) const
+{
+	AttackPoint->SetVisibility(Active);
+	AttackPoint->SetCollisionEnabled(Active? ECollisionEnabled::QueryOnly : ECollisionEnabled::NoCollision);
 }

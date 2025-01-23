@@ -42,4 +42,14 @@ public:
 	float DelayDeadTime = 2.f;
 
 	int32 GasTankDurablity = 5;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	class UBoxComponent* AttackPoint;
+
+	virtual void OnTriggerAttack(bool Start) override;
+
+	void SetActiveAttackCollision(bool Active) const;
+	
+	FTimerHandle AttackTimerHandle;
+	float AttackTiming = 1.f;
 };

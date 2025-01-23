@@ -35,4 +35,8 @@ public:
 
 	UFUNCTION()
 	void OnOverlappedAttackPoint(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
+
+	FTimerHandle AttackTimerHandle;
+	float AttackTiming = 1.f;
+
 };
