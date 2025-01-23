@@ -9,6 +9,7 @@
 #include "GameFramework/Character.h"
 #include "PlayerCharacter.generated.h"
 
+class UGameOverUI;
 class UPlayerHUD;
 class UMotionWarpingComponent;
 class UCameraComponent;
@@ -61,7 +62,8 @@ public:
 public:
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<UPlayerHUD> PlayerHUDFactory = nullptr;
-
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<UGameOverUI> GameOverUIFactory = nullptr;
 	UPROPERTY()
 	UPlayerHUD* PlayerHUD = nullptr;
 	int Hp = 100;
