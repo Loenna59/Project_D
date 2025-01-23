@@ -84,10 +84,10 @@ void APlayerCharacter::Landed(const FHitResult& Hit)
 	// 착지 당시 속도를 선형 보간 하여 낙사 데미지를 구한다.
 	// 떨어질 당시의 속도(GetVelocity().Z에 부호 반전) -> 데미지
 	// >= 1000 -> 0
-	// >= 1200 -> 50
-	// >= 1400 -> 100
+	// >= 1500 -> 50
+	// >= 2000 -> 100
 	const float Damage = FMath::GetMappedRangeValueClamped(
-		FVector2D(1000.0f, 1400.0f),
+		FVector2D(1000.0f, 2000.0f),
 		FVector2D(0.0f, 100.0f),
 		-GetVelocity().Z
 	);
@@ -116,13 +116,13 @@ void APlayerCharacter::Landed(const FHitResult& Hit)
 		{
 			// 만약, Fall Safety Zone이라면, 낙사 데미지를 면제하고 안착하는 애니메이션을 재생한다.
 			UE_LOG(LogTemp, Warning, TEXT("Fall Safety Zone 진입으로 낙사 데미지 면제"));
+			ActionComponent->TriggerLandOnFallSafetyZone();
 		}
 		else
 		{
 			// 그렇지 않다면 낙사 데미지를 온전히 받는다.
 			UE_LOG(LogTemp, Warning, TEXT("낙사 데미지 : %f"), Damage);
 			// 데미지 처리
-			// 애니메이션 처리
 		}
 	}
 	

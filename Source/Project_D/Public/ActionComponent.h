@@ -65,6 +65,8 @@ public:
 	float IdleToHangParam2 = 203.0f;
 	UPROPERTY(EditDefaultsOnly, Category = "Animation Montages")
     UAnimMontage* MeleeAttack = nullptr;
+	UPROPERTY(EditDefaultsOnly, Category = "Animation Montages")
+	UAnimMontage* LandOnFallSafetyZone = nullptr;
 
 	UPROPERTY()
 	APlayerCharacter* Player = nullptr;
@@ -152,4 +154,6 @@ public:
 	bool TriggerRideZipline();
 
 	void TriggerMeleeAttack();
+	
+	void TriggerLandOnFallSafetyZone();
 };
