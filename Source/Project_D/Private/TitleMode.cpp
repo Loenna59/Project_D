@@ -3,6 +3,7 @@
 
 #include "TitleMode.h"
 
+#include "PlayerCharacter.h"
 #include "Blueprint/UserWidget.h"
 #include "UI/TitleUI.h"
 
@@ -14,4 +15,8 @@ void ATitleMode::BeginPlay()
 	
 	UUserWidget* UI = CreateWidget<UTitleUI>(GetWorld(), UIFactory, TEXT("TitleUI"));
 	UI->AddToViewport();
+
+	APlayerController* PC = GetWorld()->GetFirstPlayerController();
+	PC->SetInputMode(FInputModeUIOnly());
+	PC->SetShowMouseCursor(true);
 }

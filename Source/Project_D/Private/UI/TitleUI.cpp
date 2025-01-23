@@ -3,6 +3,7 @@
 
 #include "UI/TitleUI.h"
 
+#include "PlayerCharacter.h"
 #include "Components/Button.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -12,10 +13,14 @@ void UTitleUI::NativeConstruct()
 
 	StartButton->OnClicked.AddDynamic(this, &UTitleUI::OnPlayGame);
 	QuitButton->OnClicked.AddDynamic(this, &UTitleUI::OnQuitGame);
+	
 }
 
 void UTitleUI::OnPlayGame()
 {
+	APlayerController* PC = GetWorld()->GetFirstPlayerController();
+	PC->SetInputMode(FInputModeGameOnly());
+	PC->SetShowMouseCursor(false);
 	UGameplayStatics::OpenLevel(GetWorld(), GameLevelName);
 }
 
