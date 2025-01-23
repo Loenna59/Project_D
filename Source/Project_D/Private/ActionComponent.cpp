@@ -430,8 +430,6 @@ void UActionComponent::OnVaultMontageBlendingOut(UAnimMontage* Montage, bool bIn
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Vault BlendingOut Location : %s"), *Player->GetMesh()->GetComponentLocation().ToString());
 	}
-	Player->GetCapsule()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-	Player->GetCharacterMovement()->SetMovementMode(MOVE_Walking);
 	PlayerAnimInstance->OnMontageBlendingOut.RemoveDynamic(this, &UActionComponent::OnVaultMontageBlendingOut);
 }
 
@@ -444,6 +442,8 @@ void UActionComponent::OnVaultMontageEnded(UAnimMontage* Montage, bool bInterrup
 		UE_LOG(LogTemp, Warning, TEXT("Vault Ended Location : %s"), *Player->GetMesh()->GetComponentLocation().ToString());
 	}
 	bCanAction = true;
+	Player->GetCapsule()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	Player->GetCharacterMovement()->SetMovementMode(MOVE_Walking);
 	PlayerAnimInstance->OnMontageEnded.RemoveDynamic(this, &UActionComponent::OnVaultMontageEnded);
 }
 
