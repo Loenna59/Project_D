@@ -22,7 +22,7 @@ void APathFindingBoard::BeginPlay()
 
 	if (FieldFactory)
 	{
-		Fields = new APathField*[BoardSize.X * BoardSize.Y];
+		Fields.SetNum(BoardSize.X * BoardSize.Y);
 		
 		for (int32 i = 0, y = 0; y < BoardSize.Y; y++)
 		{

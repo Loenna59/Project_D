@@ -44,8 +44,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float MovableSlopeAngle = 45.f;
-	
-	class APathField** Fields;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TArray<class APathField*> Fields;
 
 	TQueue<class APathField*> SearchFrontier;
 
