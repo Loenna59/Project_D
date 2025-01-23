@@ -7,6 +7,7 @@
 #include "GameDebug.h"
 #include "KismetTraceUtils.h"
 #include "PathFindingBoard.h"
+#include "PlayerCharacter.h"
 #include "TraceChannelHelper.h"
 #include "ZombieTriggerParam.h"
 #include "Components/CapsuleComponent.h"
@@ -117,11 +118,14 @@ void ABaseZombie::Tick(float DeltaTime)
 					for (FHitResult Hit : HitResults)
 					{
 						   AActor* HitActor = Hit.GetActor();
-						   if (HitActor && HitActor->IsA<AProject_DCharacter>())
+						   if (HitActor)
 						   {
-							   DetectedTarget = HitActor;
-							   HitPlayer = true;
-							   break;
+						   		if (HitActor->IsA<AProject_DCharacter>() || HitActor->IsA<APlayerCharacter>())
+						   		{
+						   			DetectedTarget = HitActor;
+									   HitPlayer = true;
+									   break;
+						   		}
 						   }
 					}
 				}
@@ -386,7 +390,7 @@ void ABaseZombie::OnCollisionHit(UPrimitiveComponent* HitComponent, AActor* Othe
 
 bool ABaseZombie::MoveNextField(APathField* Start)
 {
-	if (!Start->GetNextOnPath())
+	if (!Start || !Start->GetNextOnPath())
 	{
 		return false;
 	}

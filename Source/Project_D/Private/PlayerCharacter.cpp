@@ -9,6 +9,7 @@
 #include "BaseZombie.h"
 #include "BlankTriggerParam.h"
 #include "FallSafetyZone.h"
+#include "GameDebug.h"
 #include "PlayerHUD.h"
 #include "ZombieTriggerParam.h"
 #include "Blueprint/UserWidget.h"
@@ -264,7 +265,7 @@ void APlayerCharacter::OnWeaponBeginOverlap(UPrimitiveComponent* OverlappedCompo
 						if (ABaseZombie* Zombie2 = Cast<ABaseZombie>(HitActor))
 						{
 							AZombieTriggerParam* Param = NewObject<AZombieTriggerParam>();
-							Param->Damage = 10;
+							Param->Damage = 50;
 							Param->HitBoneName = HitResult.BoneName;
 									
 							Trigger2->OnTriggerEnter(HitActor, Param);
@@ -283,7 +284,9 @@ void APlayerCharacter::OnWeaponBeginOverlap(UPrimitiveComponent* OverlappedCompo
 
 void APlayerCharacter::OnDamaged(const int Amount)
 {
-	UE_LOG(LogTemp, Warning, TEXT("APlayerCharacter::OnDamaged(%d)"), Amount);
+	//UE_LOG(LogTemp, Warning, TEXT("APlayerCharacter::OnDamaged(%d)"), Amount);
+
+	GameDebug::ShowDisplayLog(GetWorld(), FString::Printf(TEXT("APlayerCharacter::OnDamaged(%d)"), Amount), true);
 	Hp -= Amount;
 	PlayerHUD->OnChangeHp(Hp, MaxHp);
 	if (Hp <= 0)

@@ -13,12 +13,26 @@ UCLASS()
 class PROJECT_D_API ABiter : public ABaseZombie
 {
 	GENERATED_BODY()
-
+	
 // protected:
 // 	virtual void SetupInternal() override;
 // 	
 // 	virtual FName RenameBoneName(const FName& HitBoneName) override;
 //
 // 	virtual bool IsPhysicsBone(const FName& HitBoneName) override;
-	
+
+	virtual void BeginPlay() override;
+
+public:
+	ABiter();
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	class UBoxComponent* AttackPoint;
+
+	virtual void OnTriggerAttack(bool Start) override;
+
+	void SetActiveAttackCollision(bool Active) const;
+
+	UFUNCTION()
+	void OnOverlappedAttackPoint(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
 };
