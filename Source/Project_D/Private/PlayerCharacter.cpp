@@ -279,6 +279,25 @@ void APlayerCharacter::OnWeaponBeginOverlap(UPrimitiveComponent* OverlappedCompo
 	}
 }
 
+void APlayerCharacter::OnDamaged(int Amount)
+{
+	UE_LOG(LogTemp, Warning, TEXT("APlayerCharacter::OnDamaged(%d)"), Amount);
+	Hp -= Amount;
+	if (Hp <= 0)
+	{
+		OnDead();
+	}
+
+	// 피격 애니메이션 재생
+}
+
+void APlayerCharacter::OnDead()
+{
+	UE_LOG(LogTemp, Warning, TEXT("APlayerCharacter::OnDead"));
+
+	// 상태 변경
+}
+
 void APlayerCharacter::TriggeredTurn(const FInputActionValue& InputValue)
 {
 	const float Val = InputValue.Get<float>();
