@@ -115,6 +115,7 @@ public:
 	int MaxHp = 100;
 	bool bIsDead = false;
 	bool bIsAttacking = false;
+	bool bIsKicking = false;
 	void OnDamaged(int Amount);
 	void OnDead();
 

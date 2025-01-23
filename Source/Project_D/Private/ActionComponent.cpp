@@ -656,29 +656,62 @@ bool UActionComponent::TriggerRideZipline()
 	return true;
 }
 
-void UActionComponent::OnMeleeAttackMontageBlendingOut(UAnimMontage* Montage, bool bInterrupted)
+void UActionComponent::OnMeleeAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted)
 {
+	UE_LOG(LogTemp, Display, TEXT("UActionComponent::OnMeleeAttackMontageEnded"));
 	Player->bIsAttacking = false;
-	PlayerAnimInstance->OnMontageBlendingOut.RemoveDynamic(this, &UActionComponent::OnMeleeAttackMontageBlendingOut);
+	PlayerAnimInstance->OnMontageBlendingOut.RemoveDynamic(this, &UActionComponent::OnMeleeAttackMontageEnded);
 }
 
 void UActionComponent::TriggerMeleeAttack() 
 {
-	PlayerAnimInstance->OnMontageBlendingOut.AddDynamic(this, &UActionComponent::OnMeleeAttackMontageBlendingOut);
+	UE_LOG(LogTemp, Display, TEXT("UActionComponent::TriggerMeleeAttack"));
+	PlayerAnimInstance->OnMontageEnded.AddDynamic(this, &UActionComponent::OnMeleeAttackMontageEnded);
 	PlayerAnimInstance->Montage_Play(MeleeAttack);
+}
+
+void UActionComponent::OnStandingKickMontageEnded(UAnimMontage* Montage, bool bInterrupted)
+{
+	UE_LOG(LogTemp, Display, TEXT("UActionComponent::OnStandingKickMontageEnded"));
+	Player->bIsKicking = false;
+	Player->EnableInput(GetWorld()->GetFirstPlayerController());
+    PlayerAnimInstance->OnMontageEnded.RemoveDynamic(this, &UActionComponent::OnStandingKickMontageEnded);
 }
 
 void UActionComponent::TriggerStandingKick()
 {
+	UE_LOG(LogTemp, Display, TEXT("UActionComponent::TriggerStandingKick"));
+	if (true == Player->bIsKicking)
+	{
+		return;
+	}
+	Player->bIsKicking = true;
+	Player->DisableInput(GetWorld()->GetFirstPlayerController());
+	PlayerAnimInstance->OnMontageEnded.AddDynamic(this, &UActionComponent::OnStandingKickMontageEnded);
 	PlayerAnimInstance->Montage_Play(StandingKick);
+}
+
+void UActionComponent::OnDropkickMontageEnded(UAnimMontage* Montage, bool bInterrupted)
+{
+	UE_LOG(LogTemp, Display, TEXT("UActionComponent::OnDropkickMontageEnded"));
+	Player->bIsKicking = false;
+	PlayerAnimInstance->OnMontageEnded.RemoveDynamic(this, &UActionComponent::OnDropkickMontageEnded);
 }
 
 void UActionComponent::TriggerDropkick()
 {
+	UE_LOG(LogTemp, Display, TEXT("UActionComponent::TriggerDropkick"));
+	if (true == Player->bIsKicking)
+	{
+		return;
+	}
+	Player->bIsKicking = true;
+	PlayerAnimInstance->OnMontageEnded.AddDynamic(this, &UActionComponent::OnDropkickMontageEnded);
 	PlayerAnimInstance->Montage_Play(Dropkick);
 }
 
 void UActionComponent::TriggerLandOnFallSafetyZone()
 {
+	UE_LOG(LogTemp, Display, TEXT("UActionComponent::TriggerLandOnFallSafetyZone"));
 	PlayerAnimInstance->Montage_Play(LandOnFallSafetyZone);
 }

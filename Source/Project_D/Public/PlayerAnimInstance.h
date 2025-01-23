@@ -50,4 +50,7 @@ protected:
 
 	UFUNCTION()
 	void AnimNotify_OnDropkickImpact();
+
+	UFUNCTION()
+	void AnimNotify_OnStandingKickImpact();
 };
