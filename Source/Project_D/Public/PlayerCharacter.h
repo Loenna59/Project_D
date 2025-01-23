@@ -112,7 +112,7 @@ public:
 	void StartedJump();
 
 	// 공격 입력 처리
-	void TriggeredAttack();
+	void StartedAttack();
 	
 	void TriggeredSprint();
 	void CompletedSprint();
