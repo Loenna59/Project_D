@@ -114,6 +114,6 @@ void ABiter::OnOverlappedAttackPoint(UPrimitiveComponent* OverlappedComponent, A
 {
 	if (APlayerCharacter* const Player = Cast<APlayerCharacter>(OtherActor))
 	{
-		Player->OnDamaged(20);
+		Player->OnDamaged(1);
 	}
 }
