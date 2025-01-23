@@ -37,4 +37,17 @@ public:
 		bool DrawDebug,
 		TFunction<void(bool, TArray<struct FHitResult>)> Callback
 	);
+
+	static void BoxTraceByChannel(
+		const UWorld* World,
+		AActor* Actor,
+		FVector Start,
+		FVector End,
+		FRotator Rotator,
+		ECollisionChannel CollisionChannel,
+		FVector HalfSize,
+		bool IgnoreSelf,
+		bool DrawDebug,
+		TFunction<void(bool, FHitResult)> Callback
+	);
 };

@@ -49,7 +49,7 @@ void UAttackZombieState::OnUpdate(ABaseZombie* Zombie)
 		);
 	
 		Zombie->SetActorRotation(SmoothedRotation);
-		Zombie->AddMovementInput(Direction);
+		// Zombie->AddMovementInput(Direction);
 	
 		// UKismetSystemLibrary::PrintString(GetWorld(), "Walk On Update");
 	}

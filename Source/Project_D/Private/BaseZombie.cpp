@@ -6,10 +6,12 @@
 #include "ExplosiveCollisionActor.h"
 #include "GameDebug.h"
 #include "KismetTraceUtils.h"
+#include "PathFindingBoard.h"
 #include "TraceChannelHelper.h"
 #include "ZombieTriggerParam.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SphereComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Project_D/Project_DCharacter.h"
 
@@ -19,18 +21,17 @@ ABaseZombie::ABaseZombie()
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	// BodyMesh = CreateDefaultSubobject<USkeletalMeshComponent>("BodyMesh");
-	// BodyMesh->SetupAttachment(GetRootComponent());
+	GetCharacterMovement()->Mass = 75.f;
+	GetCharacterMovement()->MaxWalkSpeed = 30.f;
 
-	// if (UCapsuleComponent* const Capsule = GetCapsuleComponent())
-	// {
-	// 	Capsule->SetCollisionProfileName(TEXT("Enemy"));
-	// 	if (USkeletalMeshComponent* const MeshComponent = GetMesh())
-	// 	{
-	// 		MeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	// 	}
-	// }
-	
+	GetMesh()->SetRelativeLocation(FVector(0, 0, -90));
+	GetMesh()->SetRelativeRotation(FRotator(0, -90, 0));
+
+	GetCapsuleComponent()->SetCollisionProfileName("Enemy");
+	GetMesh()->SetCollisionEnabled(ECollisionEnabled::Type::QueryAndPhysics);
+	GetMesh()->SetCollisionObjectType(ECC_PhysicsBody);
+	GetMesh()->SetCollisionResponseToAllChannels(ECR_Block);
+	GetMesh()->SetCollisionResponseToChannel(ECC_GameTraceChannel2, ECR_Ignore);
 }
 
 void ABaseZombie::SetupInternal()
@@ -41,24 +42,26 @@ void ABaseZombie::SetupInternal()
 	LeftHandBone = "hand_l";
 
 	BoneDurability.Add(FName("head"), 15);
-	BoneDurability.Add(FName("spine_01"), 20);
+	// BoneDurability.Add(FName("spine_01"), 20);
 	BoneDurability.Add(FName("upperarm_l"), 15);
 	BoneDurability.Add(FName("upperarm_r"), 15);
 	BoneDurability.Add(FName("lowerarm_l"), 10);
 	BoneDurability.Add(FName("lowerarm_r"), 10);
 	BoneDurability.Add(FName("hand_l"), 5);
 	BoneDurability.Add(FName("hand_r"), 5);
-	BoneDurability.Add(FName("thigh_l"), 15);
-	BoneDurability.Add(FName("thigh_r"), 15);
-	BoneDurability.Add(FName("calf_l"), 10);
-	BoneDurability.Add(FName("calf_r"), 10);
-	BoneDurability.Add(FName("foot_l"), 5);
-	BoneDurability.Add(FName("foot_r"), 5);
+	// BoneDurability.Add(FName("thigh_l"), 15);
+	// BoneDurability.Add(FName("thigh_r"), 15);
+	// BoneDurability.Add(FName("calf_l"), 10);
+	// BoneDurability.Add(FName("calf_r"), 10);
+	// BoneDurability.Add(FName("foot_l"), 5);
+	// BoneDurability.Add(FName("foot_r"), 5);
 
 	BoneArray_R = {"upperarm_r", "lowerarm_r", "hand_r"};
 	BoneArray_L = {"upperarm_l", "lowerarm_l", "hand_l"};
 
-	WeaknessBones = { "head", "spine_01" };
+	WeaknessBones = { "head" };
+
+	CurrentHp = MaxHp;
 }
 
 // Called when the game starts or when spawned
@@ -71,12 +74,17 @@ void ABaseZombie::BeginPlay()
 	FSM = NewObject<UZombieFSMComponent>(this);
 	AddOwnedComponent(FSM);
 	FSM->RegisterComponent();
-	
+
 	FSM->ChangeState(EEnemyState::IDLE, this);
 
 	GetCapsuleComponent()->OnComponentHit.AddDynamic(this, &ABaseZombie::OnCollisionHit);
 
-	GetMesh()->SetGenerateOverlapEvents(true);
+	if (AActor* TmpActor = UGameplayStatics::GetActorOfClass(GetWorld(), APathFindingBoard::StaticClass()))
+	{
+		PathFindingBoard = Cast<APathFindingBoard>(TmpActor);
+
+		MoveNextField(GetPlacedPathField());
+	}
 }
 
 // Called every frame
@@ -277,13 +285,13 @@ bool ABaseZombie::InstantKilled(const FName& HitBoneName)
 bool ABaseZombie::IsPhysicsBone(const FName& HitBoneName)
 {
 	return HitBoneName == FName("head") ||
-		HitBoneName == FName("spine_01") ||
-		HitBoneName == FName("thigh_l") ||
-		HitBoneName == FName("thigh_r") ||
-		HitBoneName == FName("foot_l") ||
-		HitBoneName == FName("foot_r") ||
-		HitBoneName == FName("calf_l") ||
-		HitBoneName == FName("calf_r");
+		HitBoneName == FName("spine_01"); //||
+		// HitBoneName == FName("thigh_l") ||
+		// HitBoneName == FName("thigh_r") ||
+		// HitBoneName == FName("foot_l") ||
+		// HitBoneName == FName("foot_r") ||
+		// HitBoneName == FName("calf_l") ||
+		// HitBoneName == FName("calf_r");
 }
 
 bool ABaseZombie::ContainsBrokenBones(TArray<FName> BoneNames)
@@ -299,12 +307,13 @@ bool ABaseZombie::ContainsBrokenBones(TArray<FName> BoneNames)
 	return false;
 }
 
-void ABaseZombie::OnDisbale()
+void ABaseZombie::OnDead()
 {
-	// if (USkeletalMeshComponent* const MeshComponent = GetMesh())
-	// {
-	// 	MeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	// }
+	if (USkeletalMeshComponent* const MeshComponent = GetMesh())
+	{
+		MeshComponent->SetSimulatePhysics(true);
+		// MeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	}
 
 	FTimerHandle TimerHandle;
 
@@ -330,7 +339,7 @@ void ABaseZombie::OnTriggerEnter(AActor* OtherActor, ACollisionTriggerParam* Par
 	
 		FName BoneName = RenameBoneName(HitBoneName);
 
-		GameDebug::ShowDisplayLog(GetWorld(), HitBoneName.ToString());
+		// GameDebug::ShowDisplayLog(GetWorld(), HitBoneName.ToString());
 
 		if (ApplyDamageToBone(BoneName, Damage))
 		{
@@ -341,16 +350,24 @@ void ABaseZombie::OnTriggerEnter(AActor* OtherActor, ACollisionTriggerParam* Par
 
 			if (InstantKilled(BoneName))
 			{
-				GameDebug::ShowDisplayLog(GetWorld(), "Death");
+				// GameDebug::ShowDisplayLog(GetWorld(), "Death");
 				FSM->ChangeState(EEnemyState::DEATH, this);
 				return;
 			}
 		}
 
+		CurrentHp -= Damage;
+		if (CurrentHp <= 0)
+		{
+			FSM->ChangeState(EEnemyState::DEATH, this);
+			return;
+		}
+		
 		if (MontageMap.Contains("Hit"))
 		{
 			PlayAnimMontage(MontageMap["Hit"], 1.5f, "Hit");
-		}	
+		}
+
 	}
 }
 
@@ -365,4 +382,26 @@ void ABaseZombie::OnCollisionHit(UPrimitiveComponent* HitComponent, AActor* Othe
 		GameDebug::ShowDisplayLog(GetWorld(), "Death");
 		FSM->ChangeState(EEnemyState::DEATH, this);
 	}
+}
+
+bool ABaseZombie::MoveNextField(APathField* Start)
+{
+	if (!Start->GetNextOnPath())
+	{
+		return false;
+	}
+	
+	FromPathField = Start;
+	ToPathField = Start->GetNextOnPath();
+	FromLocation = FromPathField->GetActorLocation();
+	ToLocation = ToPathField->GetActorLocation(); //FromPathField->ExitPoint;
+
+	// SetActorRotation(EPathDirectionExtensions::GetRotation(FromPathField->PathDirection));
+
+	return true;
+}
+
+class APathField* ABaseZombie::GetPlacedPathField()
+{
+	return PathFindingBoard->FindField(GetActorLocation());
 }

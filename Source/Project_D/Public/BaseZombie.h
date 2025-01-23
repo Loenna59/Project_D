@@ -68,7 +68,7 @@ public:
 	float AttackRadius = 200.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	bool IsAttacking = false;
+	bool IsAttacking = false; 
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class UAnimMontage* AttackMontage;
@@ -76,23 +76,39 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TMap<FName, class UAnimMontage*> MontageMap;
 
-	// UPROPERTY(EditAnywhere, blueprintReadWrite)
-	// class USkeletalMeshComponent* BodyMesh;
-	
-	// UFUNCTION()
-	// virtual void AnyDamage(int32 Damage, const FName& HitBoneName, class AActor* DamageCauser);
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 CurrentHp;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 MaxHp = 100;
+	
 	virtual bool ContainsBrokenBones(TArray<FName> BoneNames);
 
 	virtual void OnTriggerAttack(bool Start);
 
-	virtual void OnDisbale();
+	virtual void OnDead();
 
 	UFUNCTION()
 	virtual void OnTriggerEnter(AActor* OtherActor, ACollisionTriggerParam* Param) override;
 
 	UFUNCTION()
 	virtual void OnCollisionHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+
+
+	//PathFinding
+	UPROPERTY()
+	class APathFindingBoard* PathFindingBoard;
+
+	UPROPERTY()
+	class APathField* FromPathField;
+	UPROPERTY()
+	class APathField* ToPathField;
+
+	FVector FromLocation;
+	FVector ToLocation;
+
+	class APathField* GetPlacedPathField();
+	bool MoveNextField(APathField* Start);
 
 protected:
 	virtual bool IsPhysicsBone(const FName& HitBoneName);

@@ -5,6 +5,9 @@
 
 #include "BaseZombie.h"
 #include "BiterAnimInstance.h"
+#include "GameDebug.h"
+#include "PathField.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Kismet/KismetSystemLibrary.h"
 
@@ -12,7 +15,7 @@ void UWalkZombieState::OnEnter(ABaseZombie* Zombie)
 {
 	if (Zombie)
 	{
-		UKismetSystemLibrary::PrintString(GetWorld(), "Walk On Enter");
+		// UKismetSystemLibrary::PrintString(GetWorld(), "Walk On Enter");
 
 		if (UAnimInstance* const Anim = Zombie->GetMesh()->GetAnimInstance())
 		{
@@ -21,37 +24,47 @@ void UWalkZombieState::OnEnter(ABaseZombie* Zombie)
 				BiterAnimInstance->bIsWalking = true;
 			}
 		}
+
+		Zombie->MoveNextField(Zombie->GetPlacedPathField());
 	}
 }
 
 void UWalkZombieState::OnUpdate(ABaseZombie* Zombie)
 {
-	if (Zombie && Zombie->DetectedTarget)
-	{	
-		FVector Distance = Zombie->DetectedTarget->GetActorLocation() - Zombie->GetActorLocation();
+	if (Zombie)
+	{
+		Progress += GetWorld()->GetDeltaSeconds() * Zombie->GetCharacterMovement()->MaxWalkSpeed / 100.f;
+
+		if (Progress >= 1.f)
+		{
+			Zombie->MoveNextField(Zombie->ToPathField);
+			Progress -= 1.f;
+		}
+
+		FVector Lerp = FMath::Lerp(Zombie->FromLocation, Zombie->ToLocation, Progress);
+		Zombie->SetActorLocation(Lerp + FVector::UpVector * 88.0);
+		
+		FVector Distance = Zombie->ToLocation - Zombie->FromLocation;
 		FVector Direction = Distance.GetSafeNormal();
-
+		
 		FRotator LookAtRotation = FRotationMatrix::MakeFromX(Direction).Rotator();
-
-		// 현재 회전과 목표 회전을 선형 보간 (LERP)
 		FRotator SmoothedRotation = UKismetMathLibrary::RLerp(
 			Zombie->GetActorRotation(),  // 현재 회전
 			LookAtRotation,              // 목표 회전
-			GetWorld()->GetDeltaSeconds() * 5.0f, // 보간 속도
+			GetWorld()->GetDeltaSeconds(), // 보간 속도
 			true                          // 짧은 쪽 경로 선택
 		);
 		
 		Zombie->SetActorRotation(SmoothedRotation);
 		Zombie->AddMovementInput(Direction);
-		
-		// UKismetSystemLibrary::PrintString(GetWorld(), "Walk On Update");
 	}
+	
 }
 
 void UWalkZombieState::OnExit(ABaseZombie* Zombie)
 {
 	if (Zombie)
 	{
-		UKismetSystemLibrary::PrintString(GetWorld(), "Walk On Exit");
+		Progress = 0.f;
 	}
 }
