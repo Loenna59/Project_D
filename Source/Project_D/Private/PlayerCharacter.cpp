@@ -15,6 +15,7 @@
 #include "Blueprint/UserWidget.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "UI/GameOverUI.h"
 
 // Sets default values
 APlayerCharacter::APlayerCharacter()
@@ -301,7 +302,41 @@ void APlayerCharacter::OnDead()
 {
 	UE_LOG(LogTemp, Warning, TEXT("APlayerCharacter::OnDead"));
 
-	// 상태 변경
+	bIsDead = true;
+	OnBlueprintDead();
+	
+	// 흑백 화면 처리
+	APostProcessVolume* PostProcessVolume = GetWorld()->SpawnActor<APostProcessVolume>(APostProcessVolume::StaticClass());
+	if (PostProcessVolume)
+	{
+		PostProcessVolume->bUnbound = true;
+		PostProcessVolume->Settings.bOverride_ColorSaturation = true;
+		PostProcessVolume->Settings.ColorSaturation = FVector4(0.0f, 0.0f, 0.0f, 1.0f);
+
+		// GameOverUI 생성 (아직 표시 X)
+		UGameOverUI* GameOverUI = Cast<UGameOverUI>(CreateWidget(GetWorld(), GameOverUIFactory));
+
+		// 3초 뒤에...
+		FTimerHandle TimerHandle;
+		GetWorld()->GetTimerManager().SetTimer(
+			TimerHandle,
+			[PostProcessVolume, GameOverUI]()
+			{
+				// 흑백 효과 삭제
+				if (PostProcessVolume && PostProcessVolume->IsValidLowLevel())
+				{
+					PostProcessVolume->Destroy();
+				}
+
+				if (GameOverUI)
+				{
+					GameOverUI->AddToViewport();
+				}
+			},
+			3.0f,
+			false
+		);
+	}
 }
 
 void APlayerCharacter::TriggeredTurn(const FInputActionValue& InputValue)
