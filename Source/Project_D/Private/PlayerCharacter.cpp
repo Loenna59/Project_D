@@ -302,6 +302,9 @@ void APlayerCharacter::OnDead()
 {
 	UE_LOG(LogTemp, Warning, TEXT("APlayerCharacter::OnDead"));
 
+	bIsDead = true;
+	OnBlueprintDead();
+	
 	// 흑백 화면 처리
 	APostProcessVolume* PostProcessVolume = GetWorld()->SpawnActor<APostProcessVolume>(APostProcessVolume::StaticClass());
 	if (PostProcessVolume)

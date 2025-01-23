@@ -68,6 +68,7 @@ public:
 	UPlayerHUD* PlayerHUD = nullptr;
 	int Hp = 100;
 	int MaxHp = 100;
+	bool bIsDead = false;
 	
 	UPROPERTY(EditDefaultsOnly, Category = Input)
 	UInputMappingContext* ImcFPS = nullptr;
@@ -135,4 +136,6 @@ public:
 	
 	void OnDamaged(int Amount);
 	void OnDead();
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnBlueprintDead();
 };

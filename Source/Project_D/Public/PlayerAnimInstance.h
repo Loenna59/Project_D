@@ -39,6 +39,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Essential Movement Data")
 	bool bIsFalling = false;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Essential Movement Data")
+	bool bIsDead = false;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	EPlayerState PlayerState = EPlayerState::WalkingOnGround;
 
