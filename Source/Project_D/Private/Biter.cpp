@@ -108,7 +108,7 @@ void ABiter::OnTriggerAttack(bool Start)
 					AttackPoint->GetComponentLocation(),
 					FRotator::ZeroRotator,
 					ECC_Visibility,
-					50,
+					70,
 					true,
 					true,
 					[this] (bool bHit, TArray<FHitResult> HitResults)

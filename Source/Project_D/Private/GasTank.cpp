@@ -16,10 +16,6 @@ AGasTank::AGasTank()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
-	GasCylinder = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("GasCylinder"));
-	GasCylinder->SetupAttachment(GetMesh());
-	GasCylinder->SetCollisionProfileName("Enemy");
-
 	AttackPoint = CreateDefaultSubobject<UBoxComponent>(TEXT("AttackPoint"));
 	AttackPoint->SetupAttachment(GetMesh());
 	
@@ -34,6 +30,9 @@ AGasTank::AGasTank()
 	AttackPoint->SetCollisionProfileName(TEXT("EnemyAttack"));
 	AttackPoint->SetGenerateOverlapEvents(true);
 
+	GasCylinder = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("GasCylinder"));
+	GasCylinder->SetupAttachment(GetMesh());
+	GasCylinder->SetCollisionProfileName("Enemy");
 	
 	SetActiveAttackCollision(false);
 }
@@ -126,7 +125,7 @@ void AGasTank::OnTriggerAttack(bool Start)
 					AttackPoint->GetComponentLocation(),
 					FRotator::ZeroRotator,
 					ECC_Visibility,
-					50,
+					70,
 					true,
 					true,
 					[this] (bool bHit, TArray<FHitResult> HitResults)

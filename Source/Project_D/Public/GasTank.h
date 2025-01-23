@@ -41,7 +41,8 @@ public:
 	float DeadTime = 0;
 	float DelayDeadTime = 2.f;
 
-	int32 GasTankDurablity = 5;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 GasTankDurablity = 1;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class UBoxComponent* AttackPoint;
