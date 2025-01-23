@@ -8,6 +8,7 @@
 #include "ActionComponent.h"
 #include "BaseZombie.h"
 #include "BlankTriggerParam.h"
+#include "FallSafetyZone.h"
 #include "PlayerHUD.h"
 #include "ZombieTriggerParam.h"
 #include "Blueprint/UserWidget.h"
@@ -72,6 +73,60 @@ void APlayerCharacter::BeginPlay()
 	// Movement Init
 	UCharacterMovementComponent* MovementComponent = GetCharacterMovement();
 	MovementComponent->MaxWalkSpeed = 300.0f;
+}
+
+void APlayerCharacter::Landed(const FHitResult& Hit)
+{
+	Super::Landed(Hit);
+
+	UE_LOG(LogTemp, Warning, TEXT("APlayerCharacter::Landed 착지 당시 속도 : %s"), *GetVelocity().ToString());
+
+	// 착지 당시 속도를 선형 보간 하여 낙사 데미지를 구한다.
+	// 떨어질 당시의 속도(GetVelocity().Z에 부호 반전) -> 데미지
+	// >= 1000 -> 0
+	// >= 1200 -> 50
+	// >= 1400 -> 100
+	const float Damage = FMath::GetMappedRangeValueClamped(
+		FVector2D(1000.0f, 1400.0f),
+		FVector2D(0.0f, 100.0f),
+		-GetVelocity().Z
+	);
+
+	// 만약 낙사 데미지를 받아야 할 상황이라면
+	if (Damage > 0)
+	{
+		// 떨어진 위치가 Fall Safety Zone은 아닌지 확인한다.
+		TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
+		ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_WorldStatic));
+		UClass* ActorClassFilter = AFallSafetyZone::StaticClass();
+		TArray<AActor*> ActorsToIgnore;
+		ActorsToIgnore.Init(this, 1);
+		TArray<AActor*> OutActors;
+		const bool bSafe = UKismetSystemLibrary::SphereOverlapActors(
+			this,
+			Hit.ImpactPoint,
+			30.0f,
+			ObjectTypes,
+			ActorClassFilter,
+			ActorsToIgnore,
+			OutActors
+		);
+		
+		if (bSafe)
+		{
+			// 만약, Fall Safety Zone이라면, 낙사 데미지를 면제하고 안착하는 애니메이션을 재생한다.
+			UE_LOG(LogTemp, Warning, TEXT("Fall Safety Zone 진입으로 낙사 데미지 면제"));
+		}
+		else
+		{
+			// 그렇지 않다면 낙사 데미지를 온전히 받는다.
+			UE_LOG(LogTemp, Warning, TEXT("낙사 데미지 : %f"), Damage);
+			// 데미지 처리
+			// 애니메이션 처리
+		}
+	}
+	
+	
 }
 
 // Called every frame

@@ -210,7 +210,7 @@ bool UActionComponent::ScanWall(const FVector& DetectLocation, const FRotator& R
 	}
 	if (false == FacedWallTopHitResult.bBlockingHit)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("false == FacedWallTopHitResult.bBlockingHit"))
+		// UE_LOG(LogTemp, Warning, TEXT("false == FacedWallTopHitResult.bBlockingHit"))
 		return false;
 	}
 	UE_LOG(LogTemp, Warning, TEXT("FacedWallTopImpactPoint : %s"), *FacedWallTopHitResult.ImpactPoint.ToString());
