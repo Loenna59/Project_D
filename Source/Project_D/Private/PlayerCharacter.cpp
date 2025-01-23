@@ -255,7 +255,7 @@ void APlayerCharacter::OnWeaponBeginOverlap(UPrimitiveComponent* OverlappedCompo
 				HitResult,
 				true
 			);
-
+			
 			if (bHit)
 			{
 				AActor* HitActor = HitResult.GetActor();
