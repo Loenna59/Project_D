@@ -365,7 +365,18 @@ void APlayerCharacter::StartedAttack()
 void APlayerCharacter::StartedKick()
 {
 	UE_LOG(LogTemp, Warning, TEXT("APlayerCharacter::StartedKick"));
-	ActionComponent->TriggerKick();
+	
+	if (true == ActionComponent->bIsOnLand)
+	{
+		ActionComponent->TriggerStandingKick();
+		return;
+	}
+	
+	if (false == ActionComponent->bIsOnLand && GetVelocity().Z > -350.0f)
+	{
+		ActionComponent->TriggerDropkick();
+		return;
+	}
 }
 
 void APlayerCharacter::TriggeredSprint()

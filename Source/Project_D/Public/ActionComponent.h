@@ -68,6 +68,8 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Animation Montages")
 	UAnimMontage* StandingKick = nullptr;
 	UPROPERTY(EditDefaultsOnly, Category = "Animation Montages")
+    UAnimMontage* Dropkick = nullptr;
+	UPROPERTY(EditDefaultsOnly, Category = "Animation Montages")
 	UAnimMontage* LandOnFallSafetyZone = nullptr;
 
 	UPROPERTY()
@@ -157,7 +159,9 @@ public:
 
 	void TriggerMeleeAttack();
 
-	void TriggerKick();
+	void TriggerStandingKick();
+
+	void TriggerDropkick();
 	
 	void TriggerLandOnFallSafetyZone();
 };
