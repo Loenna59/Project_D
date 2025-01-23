@@ -362,6 +362,12 @@ void APlayerCharacter::StartedAttack()
 	ActionComponent->TriggerMeleeAttack();
 }
 
+void APlayerCharacter::StartedKick()
+{
+	UE_LOG(LogTemp, Warning, TEXT("APlayerCharacter::StartedKick"));
+	ActionComponent->TriggerKick();
+}
+
 void APlayerCharacter::TriggeredSprint()
 {
 	UCharacterMovementComponent* MovementComponent = GetCharacterMovement();

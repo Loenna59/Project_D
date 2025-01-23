@@ -661,6 +661,11 @@ void UActionComponent::TriggerMeleeAttack()
 	PlayerAnimInstance->Montage_Play(MeleeAttack);
 }
 
+void UActionComponent::TriggerKick()
+{
+	PlayerAnimInstance->Montage_Play(StandingKick);
+}
+
 void UActionComponent::TriggerLandOnFallSafetyZone()
 {
 	PlayerAnimInstance->Montage_Play(LandOnFallSafetyZone);

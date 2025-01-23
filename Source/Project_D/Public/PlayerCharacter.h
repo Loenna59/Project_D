@@ -81,7 +81,9 @@ public:
 	UInputAction* IaSprint = nullptr;
 	UPROPERTY(EditDefaultsOnly, Category = Input)
 	UInputAction* IaAttack = nullptr;
-
+	UPROPERTY(EditDefaultsOnly, Category = Input)
+	UInputAction* IaKick = nullptr;
+	
 	UPROPERTY()
 	EPlayerState State = EPlayerState::WalkingOnGround;
 
@@ -113,6 +115,9 @@ public:
 
 	// 공격 입력 처리
 	void StartedAttack();
+
+	// 발차기 입력 처리
+	void StartedKick();
 	
 	void TriggeredSprint();
 	void CompletedSprint();
