@@ -150,7 +150,8 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 		PlayerInput->BindAction(IaJump, ETriggerEvent::Started, this, &APlayerCharacter::StartedJump);
 		PlayerInput->BindAction(IaSprint, ETriggerEvent::Triggered, this, &APlayerCharacter::TriggeredSprint);
 		PlayerInput->BindAction(IaSprint, ETriggerEvent::Completed, this, &APlayerCharacter::CompletedSprint);
-		PlayerInput->BindAction(IaAttack, ETriggerEvent::Triggered, this, &APlayerCharacter::TriggeredAttack);
+		PlayerInput->BindAction(IaAttack, ETriggerEvent::Started, this, &APlayerCharacter::StartedAttack);
+		PlayerInput->BindAction(IaKick, ETriggerEvent::Started, this, &APlayerCharacter::StartedKick);
 	}
 }
 
@@ -359,9 +360,15 @@ void APlayerCharacter::StartedJump()
 	Jump();
 }
 
-void APlayerCharacter::TriggeredAttack()
+void APlayerCharacter::StartedAttack()
 {
 	ActionComponent->TriggerMeleeAttack();
+}
+
+void APlayerCharacter::StartedKick()
+{
+	UE_LOG(LogTemp, Warning, TEXT("APlayerCharacter::StartedKick"));
+	ActionComponent->TriggerKick();
 }
 
 void APlayerCharacter::TriggeredSprint()
