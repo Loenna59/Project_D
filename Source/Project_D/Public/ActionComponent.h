@@ -157,6 +157,8 @@ public:
 	//
 	bool TriggerRideZipline();
 
+	UFUNCTION()
+	void OnMeleeAttackMontageBlendingOut(UAnimMontage* Montage, bool bInterrupted);
 	void TriggerMeleeAttack();
 
 	void TriggerStandingKick();

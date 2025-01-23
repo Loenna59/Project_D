@@ -114,6 +114,7 @@ public:
 	int Hp = 100;
 	int MaxHp = 100;
 	bool bIsDead = false;
+	bool bIsAttacking = false;
 	void OnDamaged(int Amount);
 	void OnDead();
 	UFUNCTION(BlueprintImplementableEvent)

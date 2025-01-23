@@ -236,6 +236,11 @@ void APlayerCharacter::OnZiplineEndOverlap(const AZipline* InZipline)
 void APlayerCharacter::OnWeaponBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
+	// 공격 중이 아닐 때는 처리하지 않음
+	if (false == bIsAttacking)
+	{
+		return;
+	}
 	
 	if (ICollisionTrigger* Trigger = Cast<ICollisionTrigger>(OtherActor))
 	{
@@ -399,7 +404,11 @@ void APlayerCharacter::StartedJump()
 
 void APlayerCharacter::StartedAttack()
 {
-	ActionComponent->TriggerMeleeAttack();
+	if (false == bIsAttacking)
+	{
+		bIsAttacking = true;
+		ActionComponent->TriggerMeleeAttack();
+	}
 }
 
 void APlayerCharacter::StartedKick()

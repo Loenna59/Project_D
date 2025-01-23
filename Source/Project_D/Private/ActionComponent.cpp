@@ -656,8 +656,15 @@ bool UActionComponent::TriggerRideZipline()
 	return true;
 }
 
+void UActionComponent::OnMeleeAttackMontageBlendingOut(UAnimMontage* Montage, bool bInterrupted)
+{
+	Player->bIsAttacking = false;
+	PlayerAnimInstance->OnMontageBlendingOut.RemoveDynamic(this, &UActionComponent::OnMeleeAttackMontageBlendingOut);
+}
+
 void UActionComponent::TriggerMeleeAttack() 
 {
+	PlayerAnimInstance->OnMontageBlendingOut.AddDynamic(this, &UActionComponent::OnMeleeAttackMontageBlendingOut);
 	PlayerAnimInstance->Montage_Play(MeleeAttack);
 }
 
