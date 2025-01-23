@@ -146,7 +146,7 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 		PlayerInput->BindAction(IaLookUp, ETriggerEvent::Triggered, this, &APlayerCharacter::TriggeredLookUp);
 		PlayerInput->BindAction(IaMove, ETriggerEvent::Triggered, this, &APlayerCharacter::TriggeredMove);
 		PlayerInput->BindAction(IaMove, ETriggerEvent::Completed, this, &APlayerCharacter::CompletedMove);
-		PlayerInput->BindAction(IaJump, ETriggerEvent::Triggered, this, &APlayerCharacter::TriggeredJump);
+		PlayerInput->BindAction(IaJump, ETriggerEvent::Started, this, &APlayerCharacter::StartedJump);
 		PlayerInput->BindAction(IaSprint, ETriggerEvent::Triggered, this, &APlayerCharacter::TriggeredSprint);
 		PlayerInput->BindAction(IaSprint, ETriggerEvent::Completed, this, &APlayerCharacter::CompletedSprint);
 		PlayerInput->BindAction(IaAttack, ETriggerEvent::Triggered, this, &APlayerCharacter::TriggeredAttack);
@@ -316,7 +316,7 @@ void APlayerCharacter::CompletedMove()
 	MovementVector = FVector2D::ZeroVector;
 }
 
-void APlayerCharacter::TriggeredJump()
+void APlayerCharacter::StartedJump()
 {
 	// Zipline 탑승을 시도 해본다.
 	if (true == ActionComponent->TriggerRideZipline())

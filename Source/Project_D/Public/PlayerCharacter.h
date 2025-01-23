@@ -109,7 +109,7 @@ public:
 	void CompletedMove();
 
 	// 점프 입력 처리
-	void TriggeredJump();
+	void StartedJump();
 
 	// 공격 입력 처리
 	void TriggeredAttack();
