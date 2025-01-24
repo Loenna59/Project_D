@@ -404,16 +404,22 @@ void APlayerCharacter::StartedJump()
 
 void APlayerCharacter::StartedAttack()
 {
-	if (false == bIsAttacking)
+	if (true == bIsAttacking)
 	{
-		bIsAttacking = true;
-		ActionComponent->TriggerMeleeAttack();
+		return;
 	}
+	
+	ActionComponent->TriggerMeleeAttack();
 }
 
 void APlayerCharacter::StartedKick()
 {
 	UE_LOG(LogTemp, Warning, TEXT("APlayerCharacter::StartedKick"));
+
+	if (true == bIsKicking)
+	{
+		return;
+	}
 	
 	if (true == ActionComponent->bIsOnLand)
 	{

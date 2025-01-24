@@ -26,28 +26,24 @@ protected:
 	APlayerCharacter* Player = nullptr;
 	UPROPERTY()
 	UCharacterMovementComponent* Movement = nullptr;
+	UPROPERTY()
+	UActionComponent* ActionComponent = nullptr;
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Essential Movement Data")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Binded Data")
 	FVector Velocity = FVector::ZeroVector;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Essential Movement Data")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Binded Data")
 	float GroundSpeed = 0.0f;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Essential Movement Data")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Binded Data")
 	bool bShouldMove = false;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Essential Movement Data")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Binded Data")
 	bool bIsFalling = false;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Essential Movement Data")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Binded Data")
 	bool bIsDead = false;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Binded Data")
 	EPlayerState PlayerState = EPlayerState::WalkingOnGround;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Binded Data")
 	FVector2D MovementVector = FVector2D::ZeroVector;
-
+	
 	UFUNCTION()
 	void AnimNotify_OnDropkickImpact();
 

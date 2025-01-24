@@ -463,7 +463,7 @@ void UActionComponent::PlayAction(const EActions ActionType)
 	case EActions::OneHandVault:
 		// Set Montage
 
-		AnimMontage = OneHandVault;
+		AnimMontage = OneHandVaultMontage;
 		// Set Montage Delegate
 		PlayerAnimInstance->OnMontageStarted.AddDynamic(this, &UActionComponent::OnVaultMontageStarted);
 		PlayerAnimInstance->OnMontageEnded.AddDynamic(this, &UActionComponent::OnVaultMontageEnded);
@@ -525,7 +525,7 @@ void UActionComponent::TriggerHang()
 	
 	PlayerAnimInstance->OnMontageBlendingOut.AddDynamic(this, &UActionComponent::OnStartHangMontageBlendingOut);
 	PlayerAnimInstance->OnMontageEnded.AddDynamic(this, &UActionComponent::OnStartHangMontageEnded);
-	PlayerAnimInstance->Montage_Play(IdleToHang);
+	PlayerAnimInstance->Montage_Play(IdleToHangMontage);
 }
 
 void UActionComponent::MoveOnWall()
@@ -666,8 +666,9 @@ void UActionComponent::OnMeleeAttackMontageEnded(UAnimMontage* Montage, bool bIn
 void UActionComponent::TriggerMeleeAttack() 
 {
 	UE_LOG(LogTemp, Display, TEXT("UActionComponent::TriggerMeleeAttack"));
+	Player->bIsAttacking = true;
 	PlayerAnimInstance->OnMontageEnded.AddDynamic(this, &UActionComponent::OnMeleeAttackMontageEnded);
-	PlayerAnimInstance->Montage_Play(MeleeAttack);
+	PlayerAnimInstance->Montage_Play(MeleeAttackMontage);
 }
 
 void UActionComponent::OnStandingKickMontageEnded(UAnimMontage* Montage, bool bInterrupted)
@@ -681,14 +682,10 @@ void UActionComponent::OnStandingKickMontageEnded(UAnimMontage* Montage, bool bI
 void UActionComponent::TriggerStandingKick()
 {
 	UE_LOG(LogTemp, Display, TEXT("UActionComponent::TriggerStandingKick"));
-	if (true == Player->bIsKicking)
-	{
-		return;
-	}
 	Player->bIsKicking = true;
 	Player->DisableInput(GetWorld()->GetFirstPlayerController());
 	PlayerAnimInstance->OnMontageEnded.AddDynamic(this, &UActionComponent::OnStandingKickMontageEnded);
-	PlayerAnimInstance->Montage_Play(StandingKick);
+	PlayerAnimInstance->Montage_Play(StandingKickMontage);
 }
 
 void UActionComponent::OnDropkickMontageEnded(UAnimMontage* Montage, bool bInterrupted)
@@ -707,11 +704,11 @@ void UActionComponent::TriggerDropkick()
 	}
 	Player->bIsKicking = true;
 	PlayerAnimInstance->OnMontageEnded.AddDynamic(this, &UActionComponent::OnDropkickMontageEnded);
-	PlayerAnimInstance->Montage_Play(Dropkick);
+	PlayerAnimInstance->Montage_Play(DropkickMontage);
 }
 
 void UActionComponent::TriggerLandOnFallSafetyZone()
 {
 	UE_LOG(LogTemp, Display, TEXT("UActionComponent::TriggerLandOnFallSafetyZone"));
-	PlayerAnimInstance->Montage_Play(LandOnFallSafetyZone);
+	PlayerAnimInstance->Montage_Play(LandOnFallSafetyZoneMontage);
 }
