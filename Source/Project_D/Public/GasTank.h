@@ -39,7 +39,7 @@ public:
 	bool bIsExplosion = false;
 
 	float DeadTime = 0;
-	float DelayDeadTime = 2.f;
+	float DelayDeadTime = 3.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 GasTankDurablity = 1;

@@ -39,12 +39,12 @@ void UJetBalloonComponent::StartSimulate(USkeletalMeshComponent* Mesh)
 	Mesh->SetSimulatePhysics(true);
 
 	FVector RandomImpulse = FVector(
-					FMath::FRandRange(-1000.f, 1000.f),
-					FMath::FRandRange(-1000.f, 1000.f),
-					FMath::FRandRange(100.f, 250.f) // 위쪽 방향 힘 추가
+					FMath::FRandRange(-100.f, 100.f),
+					FMath::FRandRange(-100.f, 100.f),
+					FMath::FRandRange(500.f, 100.f) // 위쪽 방향 힘 추가
 				);
 			
-	FVector ImpulseLocation = Mesh->GetComponentLocation();
+	FVector ImpulseLocation = Mesh->GetComponentLocation().UpVector;
 				
 	// 전체 SkeletalMesh에 Impulse 적용 (튀어오르는 효과)
 	Mesh->AddImpulseAtLocation(RandomImpulse, ImpulseLocation);
