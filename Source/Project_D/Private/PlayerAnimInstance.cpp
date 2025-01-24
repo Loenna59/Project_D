@@ -53,11 +53,13 @@ void UPlayerAnimInstance::AnimNotify_OnDropkickImpact()
 	
 	const FVector ActorLocation = Player->GetActorLocation(); // Actor의 월드 위치
 	const FVector ForwardVector = Player->GetActorForwardVector(); // Actor의 전방 방향
-	
-	// 충격 설정
-	const float Radius = Player->ActionComponent->DropkickRadius; // 드롭킥 범위
-	const float ImpulseStrength = Player->ActionComponent->DropkickImpulseStrength; // 얼마나 화끈하게 멀리 날려보내고 싶은가
-	const FVector StartEnd = ActorLocation + (ForwardVector * Player->ActionComponent->DropkickForwardOffset); // 전방으로 좀 전진한 곳에 드롭킥 범위 중심점 형성
+
+	// 드롭킥 범위
+	const float Radius = Player->ActionComponent->DropkickRadius;
+	// 얼마나 화끈하게 멀리 날려보내고 싶은가
+	const float ImpulseStrength = Player->ActionComponent->DropkickImpulseStrength;
+	// 전방으로 좀 전진한 곳에 드롭킥 범위 중심점 형성
+	const FVector StartEnd = ActorLocation + (ForwardVector * Player->ActionComponent->DropkickForwardOffset);
 
 	// 드롭킥 범위 안에 충돌체가 있는지 체크
 	TArray<FHitResult> HitResults;
@@ -67,7 +69,7 @@ void UPlayerAnimInstance::AnimNotify_OnDropkickImpact()
         StartEnd,
         StartEnd,
         FQuat::Identity,
-        ECC_GameTraceChannel3, // Enemy인데 이상하게 플레이어, 바닥까지 인식함. (IsA로 해결)
+        ECC_GameTraceChannel3,
         CollisionShape
     );
     
@@ -83,8 +85,10 @@ void UPlayerAnimInstance::AnimNotify_OnDropkickImpact()
 	        	{
 	        		HitComponent->SetSimulatePhysics(true); // 해당 컴포넌트의 물리 시뮬레이션을 활성화 하고
 	        		const FVector Impulse = ForwardVector * ImpulseStrength; // 임펄스의 크기 벡터
-	        		HitComponent->AddImpulseAtLocation(Impulse, Hit.ImpactPoint); // 날려버린다
+	        		HitComponent->AddImpulseAtLocation(Impulse, Hit.ImpactPoint); // 벡터 방향으로 날려버린다
 	        		AZombieTriggerParam* Param = NewObject<AZombieTriggerParam>();
+
+	        		// 데미지 처리
 	        		Param->Damage = 99999;
 	        		Param->HitResult = Hit;
 	        		Zombie->OnTriggerEnter(Player, Param);

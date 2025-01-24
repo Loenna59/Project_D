@@ -81,22 +81,21 @@ void APlayerCharacter::Landed(const FHitResult& Hit)
 {
 	Super::Landed(Hit);
 
-	UE_LOG(LogTemp, Warning, TEXT("APlayerCharacter::Landed 착지 당시 속도 : %s"), *GetVelocity().ToString());
-
-	// 착지 당시 속도를 선형 보간 하여 낙사 데미지를 구한다.
-	// 떨어질 당시의 속도(GetVelocity().Z에 부호 반전) -> 데미지
+	// 착지 직전의 낙하 속도를 가지고 낙사 데미지를 구한다.
+	const float DownwardSpeed = -GetVelocity().Z;
 	// >= 1000 -> 0
 	// >= 1500 -> 50
 	// >= 2000 -> 100
 	const float Damage = FMath::GetMappedRangeValueClamped(
 		FVector2D(1000.0f, 2000.0f),
 		FVector2D(0.0f, 100.0f),
-		-GetVelocity().Z
+		DownwardSpeed
 	);
 
 	// 만약 낙사 데미지를 받아야 할 상황이라면
 	if (Damage > 0)
 	{
+#pragma region 떨어진 위치에 SphereOverlapActors
 		// 떨어진 위치가 Fall Safety Zone은 아닌지 확인한다.
 		TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
 		ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_WorldStatic));
@@ -113,11 +112,13 @@ void APlayerCharacter::Landed(const FHitResult& Hit)
 			ActorsToIgnore,
 			OutActors
 		);
+#pragma endregion
 		
 		if (bSafe)
 		{
-			// 만약, Fall Safety Zone이라면, 낙사 데미지를 면제하고 안착하는 애니메이션을 재생한다.
+			// 만약, Fall Safety Zone이라면, 낙사 데미지를 면제한다.
 			UE_LOG(LogTemp, Warning, TEXT("Fall Safety Zone 진입으로 낙사 데미지 면제"));
+			// 안착하는 애니메이션을 재생한다.
 			ActionComponent->TriggerLandOnFallSafetyZone();
 		}
 		else
