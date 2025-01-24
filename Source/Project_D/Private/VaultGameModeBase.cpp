@@ -4,6 +4,7 @@
 #include "VaultGameModeBase.h"
 
 #include "GameDebug.h"
+#include "UI/GameClearUI.h"
 
 void AVaultGameModeBase::IncreaseCount()
 {
@@ -14,9 +15,27 @@ void AVaultGameModeBase::IncreaseCount()
 void AVaultGameModeBase::DecreaseCount()
 {
 	ZombieCount--;
-	// GameDebug::ShowDisplayLog(GetWorld(), FString::FromInt(ZombieCount));
+
+	FString Str = FString::Printf(TEXT("Number of Zombie: %d"), ZombieCount);
+	
+	GameDebug::ShowDisplayLog(GetWorld(), Str);
 	if (ZombieCount <= 0)
 	{
-		// 1초 뒤에 클리어 UI 출력
+		UGameClearUI* GameOverUI = Cast<UGameClearUI>(CreateWidget(GetWorld(), UIFactory));
+		// 3초 뒤에...
+		FTimerHandle TimerHandle;
+		GetWorld()->GetTimerManager().SetTimer(
+			TimerHandle,
+			[GameOverUI]()
+			{
+				
+				if (GameOverUI)
+				{
+					GameOverUI->AddToViewport();
+				}
+			},
+			3.0f,
+			false
+		);
 	}
 }

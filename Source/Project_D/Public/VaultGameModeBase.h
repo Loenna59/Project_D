@@ -15,6 +15,8 @@ class PROJECT_D_API AVaultGameModeBase : public AGameModeBase
 	GENERATED_BODY()
 
 public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TSubclassOf<class UGameClearUI> UIFactory;
 	
 	int32 ZombieCount = 0;
 
