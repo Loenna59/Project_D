@@ -48,7 +48,7 @@ void AGasTank::BeginPlay()
 
 void AGasTank::Tick(float DeltaSeconds)
 {
-	if (IsExplosion)
+	if (bIsExplosion)
 	{
 		JetBalloonComponent->StartSimulate(GetMesh());
 		DeadTime += DeltaSeconds;
@@ -80,28 +80,28 @@ void AGasTank::Tick(float DeltaSeconds)
 
 void AGasTank::OnDead()
 {
-	if (GasTankDurablity <= 0)
-	{
-		IsExplosion = true;
-	}
-	
-	Super::OnDead();
+	bIsExplosion = true;
+	// if (GasTankDurablity <= 0)
+	// {
+	// }
+	//
+	// Super::OnDead();
 }
 
 void AGasTank::OnTriggerEnter(AActor* OtherActor, ACollisionTriggerParam* Param)
 {
-	if (GasTankDurablity > 0 && Param->HitResult.Component == GasCylinder)
-	{
-		GasTankDurablity -= 1;
-		if (GasTankDurablity <= 0)
-		{
-			FSM->ChangeState(EEnemyState::DEATH, this);
-		}
-	}
-	else
-	{
+	// if (GasTankDurablity > 0 && Param->HitResult.Component == GasCylinder)
+	// {
+	// 	GasTankDurablity -= 1;
+	// 	if (GasTankDurablity <= 0)
+	// 	{
+	// 		FSM->ChangeState(EEnemyState::DEATH, this);
+	// 	}
+	// }
+	// else
+	// {
 		Super::OnTriggerEnter(OtherActor, Param);
-	}
+	// }
 }
 
 void AGasTank::OnTriggerAttack(bool Start)
