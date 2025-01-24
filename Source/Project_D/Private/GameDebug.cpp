@@ -15,5 +15,5 @@ GameDebug::~GameDebug()
 
 void GameDebug::ShowDisplayLog(const UWorld* World, const FString& Message, bool WithConsole)
 {
-	UKismetSystemLibrary::PrintString(World, Message, true, WithConsole);
+	// UKismetSystemLibrary::PrintString(World, Message, true, WithConsole);
 }
