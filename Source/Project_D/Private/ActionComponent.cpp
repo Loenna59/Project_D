@@ -660,7 +660,7 @@ void UActionComponent::OnMeleeAttackMontageEnded(UAnimMontage* Montage, bool bIn
 {
 	UE_LOG(LogTemp, Display, TEXT("UActionComponent::OnMeleeAttackMontageEnded"));
 	Player->bIsAttacking = false;
-	PlayerAnimInstance->OnMontageBlendingOut.RemoveDynamic(this, &UActionComponent::OnMeleeAttackMontageEnded);
+	PlayerAnimInstance->OnMontageEnded.RemoveDynamic(this, &UActionComponent::OnMeleeAttackMontageEnded);
 }
 
 void UActionComponent::TriggerMeleeAttack() 
