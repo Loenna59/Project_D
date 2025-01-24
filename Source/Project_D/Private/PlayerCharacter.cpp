@@ -257,7 +257,7 @@ void APlayerCharacter::OnWeaponBeginOverlap(UPrimitiveComponent* OverlappedCompo
 				UEngineTypes::ConvertToTraceType(ECC_Visibility),
 				false,
 				ActorsToIgnore,
-				EDrawDebugTrace::ForDuration,
+				EDrawDebugTrace::None,
 				HitResult,
 				true
 			);

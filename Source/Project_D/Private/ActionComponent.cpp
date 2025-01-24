@@ -60,7 +60,7 @@ void UActionComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 			// 짚라인의 끝지점과 플레이어의 위치로 나아가야 할 방향을 구한다.
 			const FVector Dir = (ZippingEndPosition - PlayerLocation).GetSafeNormal();
 			const FVector P0 = PlayerLocation;
-			const FVector VT = 700.0f * DeltaTime * Dir;
+			const FVector VT = 1000.0f * DeltaTime * Dir;
 			const FVector P = P0 + VT;
 
 			// Player는 Yaw 축으로만 변화시킨다.
