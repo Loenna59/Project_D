@@ -60,16 +60,25 @@ public:
 	virtual void SetUseControllerRotationRoll(const bool& bUse) override;
 
 public:
+	// Components
+	UPROPERTY(EditDefaultsOnly)
+	UStaticMeshComponent* WeaponMesh = nullptr;
+
+	// Actor Components
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	UActionComponent* ActionComponent = nullptr;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	UMotionWarpingComponent* MotionWarpingComponent = nullptr;
+	
+	// Widget
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<UPlayerHUD> PlayerHUDFactory = nullptr;
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<UGameOverUI> GameOverUIFactory = nullptr;
 	UPROPERTY()
 	UPlayerHUD* PlayerHUD = nullptr;
-	int Hp = 100;
-	int MaxHp = 100;
-	bool bIsDead = false;
-	
+
+	// Input
 	UPROPERTY(EditDefaultsOnly, Category = Input)
 	UInputMappingContext* ImcFPS = nullptr;
 	UPROPERTY(EditDefaultsOnly, Category = Input)
@@ -86,56 +95,35 @@ public:
 	UInputAction* IaAttack = nullptr;
 	UPROPERTY(EditDefaultsOnly, Category = Input)
 	UInputAction* IaKick = nullptr;
-	
-	UPROPERTY()
-	EPlayerState State = EPlayerState::WalkingOnGround;
-
-	UPROPERTY(EditDefaultsOnly)
-	UStaticMeshComponent* WeaponMesh = nullptr;
-	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-	UActionComponent* ActionComponent = nullptr;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-	UMotionWarpingComponent* MotionWarpingComponent = nullptr;
-	
-	// 이동 방향
 	FVector Direction = FVector::ZeroVector;
 	FVector2D MovementVector = FVector2d::ZeroVector;
-
-	// 좌우 회전 입력 처리
 	void TriggeredTurn(const FInputActionValue& InputValue);
-
-	// 상하 회전 입력 처리
 	void TriggeredLookUp(const FInputActionValue& InputValue);
-
-	// 상하좌우 이동 입력 처리
 	void TriggeredMove(const FInputActionValue& InputValue);
 	void CompletedMove();
-
-	// 점프 입력 처리
 	void StartedJump();
-
-	// 공격 입력 처리
 	void StartedAttack();
-
-	// 발차기 입력 처리
 	void StartedKick();
-	
 	void TriggeredSprint();
 	void CompletedSprint();
-	
-	// 서 있는 상태에서 플레이어 이동 처리
 	void MoveOnGround();
-	
-	void OnZiplineBeginOverlap(AZipline* InZipline);
-	void OnZiplineEndOverlap(const AZipline* InZipline);
 
-	UFUNCTION()
-	void OnWeaponBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
-	
+	// States
+	UPROPERTY()
+	EPlayerState State = EPlayerState::WalkingOnGround;
+	int Hp = 100;
+	int MaxHp = 100;
+	bool bIsDead = false;
+	bool bIsAttacking = false;
+	bool bIsKicking = false;
 	void OnDamaged(int Amount);
 	void OnDead();
+
+	// Etc
+	void OnZiplineBeginOverlap(AZipline* InZipline);
+	void OnZiplineEndOverlap(const AZipline* InZipline);
+	UFUNCTION()
+	void OnWeaponBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 	UFUNCTION(BlueprintImplementableEvent)
-	void OnBlueprintDead();
+	void OnChangePerspective();
 };

@@ -47,4 +47,10 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	FVector2D MovementVector = FVector2D::ZeroVector;
+
+	UFUNCTION()
+	void AnimNotify_OnDropkickImpact();
+
+	UFUNCTION()
+	void AnimNotify_OnStandingKickImpact();
 };

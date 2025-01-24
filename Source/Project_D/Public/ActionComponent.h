@@ -157,10 +157,16 @@ public:
 	//
 	bool TriggerRideZipline();
 
+	UFUNCTION()
+	void OnMeleeAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted);
 	void TriggerMeleeAttack();
-
+	
+	UFUNCTION()
+	void OnStandingKickMontageEnded(UAnimMontage* Montage, bool bInterrupted);
 	void TriggerStandingKick();
 
+	UFUNCTION()
+	void OnDropkickMontageEnded(UAnimMontage* Montage, bool bInterrupted);
 	void TriggerDropkick();
 	
 	void TriggerLandOnFallSafetyZone();
