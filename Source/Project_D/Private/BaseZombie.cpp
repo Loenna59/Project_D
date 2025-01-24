@@ -84,8 +84,7 @@ void ABaseZombie::BeginPlay()
 	if (AActor* TmpActor = UGameplayStatics::GetActorOfClass(GetWorld(), APathFindingBoard::StaticClass()))
 	{
 		PathFindingBoard = Cast<APathFindingBoard>(TmpActor);
-
-		MoveNextField(GetPlacedPathField());
+		bIsSetupPathFinding = MoveNextField(GetPlacedPathField());
 	}
 }
 
@@ -393,8 +392,15 @@ bool ABaseZombie::MoveNextField(UPathVector* Start)
 {
 	if (!Start || !Start->Next)
 	{
+		auto Str = FString::Printf(TEXT("%s가 PathFinding 위치를 잡을 수 없음"), *GetName());
+		GameDebug::ShowDisplayLog(GetWorld(), Str, true);
+
 		return false;
 	}
+	
+	auto Str = FString::Printf(TEXT("%s %s"), *GetName(), *(Start->Location.ToString()));
+
+	GameDebug::ShowDisplayLog(GetWorld(), Str, true);
 	
 	FromPathField = Start;
 	ToPathField = Start->Next;

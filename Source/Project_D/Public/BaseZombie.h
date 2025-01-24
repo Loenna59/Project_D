@@ -94,13 +94,15 @@ public:
 	UFUNCTION()
 	virtual void OnCollisionHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
-
 	//PathFinding
+	bool bIsSetupPathFinding = false;
+	
 	UPROPERTY()
 	class APathFindingBoard* PathFindingBoard;
 
 	UPROPERTY()
 	class UPathVector* FromPathField;
+	
 	UPROPERTY()
 	class UPathVector* ToPathField;
 

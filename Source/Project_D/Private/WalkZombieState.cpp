@@ -17,22 +17,30 @@ void UWalkZombieState::OnEnter(ABaseZombie* Zombie)
 	{
 		// UKismetSystemLibrary::PrintString(GetWorld(), "Walk On Enter");
 
+		Zombie->bIsSetupPathFinding = Zombie->MoveNextField(Zombie->GetPlacedPathField());
+
 		if (UAnimInstance* const Anim = Zombie->GetMesh()->GetAnimInstance())
 		{
 			if (UBiterAnimInstance* BiterAnimInstance = Cast<UBiterAnimInstance>(Anim))
 			{
-				BiterAnimInstance->bIsWalking = true;
+				BiterAnimInstance->bIsWalking = Zombie->bIsSetupPathFinding;
 			}
 		}
-
-		Zombie->MoveNextField(Zombie->GetPlacedPathField());
 	}
 }
 
 void UWalkZombieState::OnUpdate(ABaseZombie* Zombie)
 {
-	if (Zombie)
+	if (Zombie && Zombie->bIsSetupPathFinding)
 	{
+		if (UAnimInstance* const Anim = Zombie->GetMesh()->GetAnimInstance())
+		{
+			if (UBiterAnimInstance* BiterAnimInstance = Cast<UBiterAnimInstance>(Anim))
+			{
+				BiterAnimInstance->bIsWalking |= true;
+			}
+		}
+		
 		Progress += GetWorld()->GetDeltaSeconds() * Zombie->GetCharacterMovement()->MaxWalkSpeed / 100.f;
 
 		if (Progress >= 1.f)
@@ -56,7 +64,17 @@ void UWalkZombieState::OnUpdate(ABaseZombie* Zombie)
 		);
 		
 		Zombie->SetActorRotation(SmoothedRotation);
-		Zombie->AddMovementInput(Direction);
+		// Zombie->AddMovementInput(Direction);
+	}
+	else
+	{
+		if (UAnimInstance* const Anim = Zombie->GetMesh()->GetAnimInstance())
+		{
+			if (UBiterAnimInstance* BiterAnimInstance = Cast<UBiterAnimInstance>(Anim))
+			{
+				BiterAnimInstance->bIsWalking = false;
+			}
+		}
 	}
 	
 }
