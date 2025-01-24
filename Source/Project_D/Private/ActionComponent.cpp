@@ -70,7 +70,7 @@ void UActionComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 
 		return;
 	}
-
+	
 	// 플레이어가 지면에 서 있는지 확인
 	FVector StartEnd = PlayerLocation;
 	StartEnd.Z = Player->GetBottomZ();
@@ -126,10 +126,15 @@ bool UActionComponent::TriggerInteractWall()
 
 void UActionComponent::DetectWall(bool &bOutDetect, FVector &OutHitLocation, FRotator &OutReverseNormal) const
 {
+	TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
+	ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECC_GameTraceChannel6));
+	
 	FHitResult OutHit;
 	for (int i = 0; i < 8; i++)
 	{
-		const TArray<AActor*> ActorsToIgnore;
+		TArray<AActor*> ActorsToIgnore;
+		ActorsToIgnore.Add(Player);
+		
 		const FVector TempVector = UPlayerHelper::MoveVectorUpward(
 			UPlayerHelper::MoveVectorDownward(
 				Player->GetActorLocation(),
@@ -145,12 +150,12 @@ void UActionComponent::DetectWall(bool &bOutDetect, FVector &OutHitLocation, FRo
 		);
 		const FVector End = TempVector + Player->GetActorForwardVector() * 200.0f;
 		
-		const bool bHit = UKismetSystemLibrary::SphereTraceSingle(
+		const bool bHit = UKismetSystemLibrary::SphereTraceSingleForObjects(
 			GetWorld(),
 			Start,
 			End,
 			10.0f,
-			UEngineTypes::ConvertToTraceType(ECC_Visibility),
+			ObjectTypes,
 			false,
 			ActorsToIgnore,
 			bVerboseDetect ? EDrawDebugTrace::ForDuration : EDrawDebugTrace::None,
@@ -163,6 +168,7 @@ void UActionComponent::DetectWall(bool &bOutDetect, FVector &OutHitLocation, FRo
 
 		if (true == bHit)
 		{
+			UE_LOG(LogTemp, Warning, TEXT("%s"), *OutHit.Component->GetOwner()->GetName());
 			bOutDetect = OutHit.bBlockingHit;
 			OutHitLocation = OutHit.Location;
 			OutReverseNormal = UPlayerHelper::ReverseNormal(OutHit.Normal);
@@ -173,7 +179,9 @@ void UActionComponent::DetectWall(bool &bOutDetect, FVector &OutHitLocation, FRo
 
 bool UActionComponent::ScanWall(const FVector& DetectLocation, const FRotator& ReverseNormal)
 {
-	const ETraceTypeQuery TraceChannel = UEngineTypes::ConvertToTraceType(ECC_Visibility);
+	TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
+	ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECC_GameTraceChannel6));
+	
 	FVector Start, End;
 	bool bHit;
 	
@@ -185,11 +193,11 @@ bool UActionComponent::ScanWall(const FVector& DetectLocation, const FRotator& R
 		const FVector TempVector = UPlayerHelper::MoveVectorDownward(UPlayerHelper::MoveVectorUpward(DetectLocation, 300.0f), i * 10);
 		Start = UPlayerHelper::MoveVectorBackward(TempVector, ReverseNormal, 20.0f);
 		End = UPlayerHelper::MoveVectorForward(TempVector, ReverseNormal, 80.0f);
-		bHit = UKismetSystemLibrary::LineTraceSingle(
+		bHit = UKismetSystemLibrary::LineTraceSingleForObjects(
 			GetWorld(),
 			Start,
 			End,
-			TraceChannel,
+			ObjectTypes,
 			false,
 			ActorsToIgnore,
 			bVerboseScan ? EDrawDebugTrace::ForDuration : EDrawDebugTrace::None,
@@ -223,12 +231,12 @@ bool UActionComponent::ScanWall(const FVector& DetectLocation, const FRotator& R
 		Start = UPlayerHelper::MoveVectorUpward(A, 10.0f);
 		End = UPlayerHelper::MoveVectorDownward(Start, 10.0f);
 		FHitResult OutHit;
-		bHit = UKismetSystemLibrary::SphereTraceSingle(
+		bHit = UKismetSystemLibrary::SphereTraceSingleForObjects(
 			GetWorld(),
 			Start,
 			End,
 			5.0f,
-			TraceChannel,
+			ObjectTypes,
 			false,
 			ActorsToIgnore,
 			bVerboseScan ? EDrawDebugTrace::ForDuration : EDrawDebugTrace::None,
@@ -273,12 +281,12 @@ bool UActionComponent::ScanWall(const FVector& DetectLocation, const FRotator& R
 	Start = UPlayerHelper::MoveVectorForward(LastTopHitResult.ImpactPoint, WallRotation, 20.0f);
 	End = LastTopHitResult.ImpactPoint;
 	const TArray<AActor*> ActorsToIgnore;
-	bHit = UKismetSystemLibrary::SphereTraceSingle(
+	bHit = UKismetSystemLibrary::SphereTraceSingleForObjects(
 		GetWorld(),
 		Start,
 		End,
 		10.0f,
-		TraceChannel,
+		ObjectTypes,
 		false,
 		ActorsToIgnore,
 		bVerboseScan ? EDrawDebugTrace::ForDuration : EDrawDebugTrace::None,
@@ -301,12 +309,12 @@ bool UActionComponent::ScanWall(const FVector& DetectLocation, const FRotator& R
 	{
 		Start = UPlayerHelper::MoveVectorForward(EndOfObstacleHitResult.ImpactPoint, WallRotation, 60.0f);
 		End = UPlayerHelper::MoveVectorDownward(Start, 180.0f);
-		UKismetSystemLibrary::SphereTraceSingle(
+		UKismetSystemLibrary::SphereTraceSingleForObjects(
 			GetWorld(),
 			Start,
 			End,
 			10.0f,
-			TraceChannel,
+			ObjectTypes,
 			false,
 			ActorsToIgnore,
 			bVerboseScan ? EDrawDebugTrace::ForDuration : EDrawDebugTrace::None,
@@ -548,6 +556,9 @@ void UActionComponent::TriggerHangingHorizontalMovement()
 	const FRotator WorldRotation = Capsule->GetComponentRotation();
 	
 	const TArray<AActor*> ActorsToIgnore;
+	TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
+	ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECC_GameTraceChannel6));
+	
 	for (int i = 0; i < 3; i++)
 	{
 		const FVector Start = UPlayerHelper::MoveVectorDownward(
@@ -565,12 +576,12 @@ void UActionComponent::TriggerHangingHorizontalMovement()
 			60.0f
 		);
 
-		const bool bHit = UKismetSystemLibrary::SphereTraceSingle(
+		const bool bHit = UKismetSystemLibrary::SphereTraceSingleForObjects(
 			GetWorld(),
 			Start,
 			End,
 			5.0f,
-			UEngineTypes::ConvertToTraceType(ECC_Visibility),
+			ObjectTypes,
 			false,
 			ActorsToIgnore,
 			EDrawDebugTrace::ForDuration, // TODO: Verbose
@@ -591,12 +602,12 @@ void UActionComponent::TriggerHangingHorizontalMovement()
 		20.0f
 	);
 	const FVector End = UPlayerHelper::MoveVectorDownward(Start, 100.0f);
-	const bool bHit = UKismetSystemLibrary::SphereTraceSingle(
+	const bool bHit = UKismetSystemLibrary::SphereTraceSingleForObjects(
 		GetWorld(),
 		Start,
 		End,
 		5.0f,
-		UEngineTypes::ConvertToTraceType(ECC_Visibility),
+		ObjectTypes,
 		false,
 		ActorsToIgnore,
 		EDrawDebugTrace::ForDuration, // TODO: Verbose
