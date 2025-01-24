@@ -5,6 +5,7 @@
 
 #include "BaseZombie.h"
 #include "PlayerCharacter.h"
+#include "ZombieTriggerParam.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 
@@ -78,11 +79,15 @@ void UPlayerAnimInstance::AnimNotify_OnDropkickImpact()
 	        if (UPrimitiveComponent* HitComponent = Hit.GetComponent())
         	{
 	        	// 컴포넌트 소유 액터가 좀비일 경우에만...
-	        	if (true == HitComponent->GetOwner()->IsA<ABaseZombie>())
+	        	if (ABaseZombie* Zombie = Cast<ABaseZombie>(HitComponent->GetOwner()))
 	        	{
 	        		HitComponent->SetSimulatePhysics(true); // 해당 컴포넌트의 물리 시뮬레이션을 활성화 하고
 	        		const FVector Impulse = ForwardVector * ImpulseStrength; // 임펄스의 크기 벡터
 	        		HitComponent->AddImpulseAtLocation(Impulse, Hit.ImpactPoint); // 날려버린다
+	        		AZombieTriggerParam* Param = NewObject<AZombieTriggerParam>();
+	        		Param->Damage = 99999;
+	        		Param->HitResult = Hit;
+	        		Zombie->OnTriggerEnter(Player, Param);
 	        	}
         	}
         }
@@ -140,11 +145,15 @@ void UPlayerAnimInstance::AnimNotify_OnStandingKickImpact()
 			if (UPrimitiveComponent* HitComponent = Hit.GetComponent())
 			{
 				// 컴포넌트 소유 액터가 좀비일 경우에만...
-				if (true == HitComponent->GetOwner()->IsA<ABaseZombie>())
+				if (ABaseZombie* Zombie = Cast<ABaseZombie>(HitComponent->GetOwner()))
 				{
 					HitComponent->SetSimulatePhysics(true); // 해당 컴포넌트의 물리 시뮬레이션을 활성화 하고
 					const FVector Impulse = ForwardVector * ImpulseStrength; // 임펄스의 크기 벡터
 					HitComponent->AddImpulseAtLocation(Impulse, Hit.ImpactPoint); // 날려버린다
+					AZombieTriggerParam* Param = NewObject<AZombieTriggerParam>();
+					Param->Damage = 99999;
+					Param->HitResult = Hit;
+					Zombie->OnTriggerEnter(Player, Param);
 				}
 			}
 		}
