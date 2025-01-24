@@ -7,6 +7,7 @@
 #include "GameDebug.h"
 #include "PlayerCharacter.h"
 #include "TraceChannelHelper.h"
+#include "VaultGameModeBase.h"
 #include "Components/BoxComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "PhysicsEngine/RadialForceActor.h"
@@ -81,6 +82,12 @@ void AGasTank::Tick(float DeltaSeconds)
 void AGasTank::OnDead()
 {
 	bIsExplosion = true;
+
+	if (AVaultGameModeBase* VaultGameModeBase = Cast<AVaultGameModeBase>(GetWorld()->GetAuthGameMode()))
+	{
+		VaultGameModeBase->DecreaseCount();
+	}
+	
 	// if (GasTankDurablity <= 0)
 	// {
 	// }

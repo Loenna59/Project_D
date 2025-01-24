@@ -13,5 +13,12 @@ UCLASS()
 class PROJECT_D_API AVaultGameModeBase : public AGameModeBase
 {
 	GENERATED_BODY()
+
+public:
+	
+	int32 ZombieCount = 0;
+
+	void IncreaseCount();
+	void DecreaseCount();
 	
 };

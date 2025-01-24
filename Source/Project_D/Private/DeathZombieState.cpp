@@ -10,7 +10,7 @@ void UDeathZombieState::OnEnter(ABaseZombie* Zombie)
 {
 	if (Zombie)
 	{
-		UKismetSystemLibrary::PrintString(GetWorld(), "Dead");
+		// UKismetSystemLibrary::PrintString(GetWorld(), "Dead");
 		Zombie->OnDead();
 	}
 }
