@@ -25,7 +25,9 @@ ABaseZombie::ABaseZombie()
 	PrimaryActorTick.bCanEverTick = true;
 
 	GetCharacterMovement()->Mass = 75.f;
-	GetCharacterMovement()->MaxWalkSpeed = 30.f;
+	GetCharacterMovement()->MaxWalkSpeed = 100.f;
+
+	// GetMesh()->GetAnimInstance()->
 
 	GetMesh()->SetRelativeLocation(FVector(0, 0, -90));
 	GetMesh()->SetRelativeRotation(FRotator(0, -90, 0));
@@ -392,7 +394,7 @@ void ABaseZombie::OnCollisionHit(UPrimitiveComponent* HitComponent, AActor* Othe
 	if (OtherActor->IsA<AExplosiveCollisionActor>())
 	{
 		GetMesh()->SetSimulatePhysics(true);
-		GameDebug::ShowDisplayLog(GetWorld(), "Death");
+		// GameDebug::ShowDisplayLog(GetWorld(), "Death");
 		FSM->ChangeState(EEnemyState::DEATH, this);
 	}
 }
@@ -401,15 +403,15 @@ bool ABaseZombie::MoveNextField(UPathVector* Start)
 {
 	if (!Start || !Start->Next)
 	{
-		auto Str = FString::Printf(TEXT("%s가 PathFinding 위치를 잡을 수 없음"), *GetName());
-		GameDebug::ShowDisplayLog(GetWorld(), Str, true);
+		// auto Str = FString::Printf(TEXT("%s가 PathFinding 위치를 잡을 수 없음"), *GetName());
+		// GameDebug::ShowDisplayLog(GetWorld(), Str, true);
 
 		return false;
 	}
 	
-	auto Str = FString::Printf(TEXT("%s %s"), *GetName(), *(Start->Location.ToString()));
+	// auto Str = FString::Printf(TEXT("%s %s"), *GetName(), *(Start->Location.ToString()));
 
-	GameDebug::ShowDisplayLog(GetWorld(), Str, true);
+	// GameDebug::ShowDisplayLog(GetWorld(), Str, true);
 	
 	FromPathField = Start;
 	ToPathField = Start->Next;
