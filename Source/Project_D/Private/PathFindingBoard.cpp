@@ -4,6 +4,8 @@
 #include "PathFindingBoard.h"
 
 #include "GameDebug.h"
+#include "PathVector.h"
+#include "TraceChannelHelper.h"
 
 // Sets default values
 APathFindingBoard::APathFindingBoard()
@@ -11,6 +13,18 @@ APathFindingBoard::APathFindingBoard()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+	Fields.SetNum(BoardSize.X * BoardSize.Y);
+
+	for (int32 i = 0, y = 0; y < BoardSize.Y; y++)
+	{
+		for (int32 x = 0; x < BoardSize.X; x++, i++)
+		{
+			UPathVector* Field = CreateDefaultSubobject<UPathVector>(FName(FString::Printf(TEXT("PathVector %d"), i)));
+			Field->Location = (GetActorLocation() + FVector(x * FieldSize, y * FieldSize, 0));
+			Field->ClearPath();
+			Fields[i] = Field;
+		}
+	}
 }
 
 // Called when the game starts or when spawned
@@ -20,42 +34,80 @@ void APathFindingBoard::BeginPlay()
 
 	DestinationActor = GetWorld()->GetFirstPlayerController()->GetPawn();
 
-	if (FieldFactory)
+	for (int32 i = 0, y = 0; y < BoardSize.Y; y++)
 	{
-		Fields.SetNum(BoardSize.X * BoardSize.Y);
-		
-		for (int32 i = 0, y = 0; y < BoardSize.Y; y++)
+		for (int32 x = 0; x < BoardSize.X; x++, i++)
 		{
-			for (int32 x = 0; x < BoardSize.X; x++, i++)
-			{
-				APathField* Field = GetWorld()->SpawnActor<APathField>(FieldFactory, GetActorLocation() + FVector(x * FieldSize, y * FieldSize, 0), FRotator::ZeroRotator);
-				Field->SetActorScale3D(FVector::OneVector);
-				Field->ClearPath();
-				Field->SetHeight();
+			// UPathVector* Field = NewObject<UPathVector>();
+			UPathVector* Field = Fields[i];
 
-				if (x > 0)
-				{
-					APathField::MakeEastWestNeighbors(Field, Fields[i - 1]);
-				}
+			Field->Location = (GetActorLocation() + FVector(x * FieldSize, y * FieldSize, 0));
 
-				if (y > 0)
-				{
-					int32 Index = i - FMath::RoundToInt32(BoardSize.X);
-					APathField::MakeNorthSouthNeighbors(Field, Fields[Index]);
-				}
+			FVector Start = Field->Location;
+			FVector End = Field->Location - FVector(0, 0, 2000);
 
-				Field->SetIsAlternative((x & 1) == 0);
-				if ((y & 1) == 0)
+			TraceChannelHelper::LineTraceByChannel(
+				GetWorld(),
+				this,
+				Start,
+				End,
+				ECC_Visibility,
+				true,
+				false,
+				[Field] (bool bHit, FHitResult HitResult)
 				{
-					Field->SetIsAlternative(!Field->GetIsAlternative());
+					if (bHit)
+					{
+							
+						Field->Height = HitResult.ImpactPoint.Z;
+						FVector NewLocation = FVector(Field->Location.X, Field->Location.Y, Field->Height);
+						Field->Location = NewLocation;
+
+						FVector ImpactNormal = HitResult.ImpactNormal;
+						Field->SlopeAngle = FMath::Acos(FVector::DotProduct(ImpactNormal, FVector::UpVector)) * (180.f / PI);
+
+						if (FMath::Abs(ImpactNormal.X) > FMath::Abs((ImpactNormal.Y))) // East, West
+						{
+							Field->SlopeAngle *= (ImpactNormal.X < 0)? -1 : 1;
+						}
+						else
+						{
+							Field->SlopeAngle *= (ImpactNormal.Y < 0)? -1 : 1;
+						}
+					}
+					else
+					{
+						Field->Height = Field->Location.Z;
+					}
 				}
+			);
 				
-				Fields[i] = Field;
+			Field->ClearPath();
+			// Field.SetHeight(this);
+
+			if (x > 0)
+			{
+				UPathVector::MakeEastWestNeighbors(Field, Fields[i - 1]);
 			}
+
+			if (y > 0)
+			{
+				int32 Index = i - FMath::RoundToInt32(BoardSize.X);
+				UPathVector::MakeNorthSouthNeighbors(Field, Fields[Index]);
+			}
+
+			Field->SetIsAlternative((x & 1) == 0);
+			if ((y & 1) == 0)
+			{
+				Field->SetIsAlternative(!Field->GetIsAlternative());
+			}
+
+			// Fields[i] = Field;
 		}
 	}
 
 	FindPaths(0);
+	
 }
 
 void APathFindingBoard::FindPaths(int32 DestIndex)
@@ -77,7 +129,7 @@ void APathFindingBoard::FindPaths(int32 DestIndex)
 
 	while (!SearchFrontier.IsEmpty())
 	{
-		APathField* Field;
+		UPathVector* Field;
 		if (SearchFrontier.Dequeue(Field))
 		{
 			if (Field)
@@ -145,7 +197,7 @@ int32 APathFindingBoard::GetFieldIndex(FVector WorldLocation)
 	return Row * BoardSize.X + Col;
 }
 
-class APathField* APathFindingBoard::FindField(FVector WorldLocation)
+class UPathVector* APathFindingBoard::FindField(FVector WorldLocation)
 {
 	int32 Index = GetFieldIndex(WorldLocation);
 

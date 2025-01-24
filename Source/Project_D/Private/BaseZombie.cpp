@@ -7,6 +7,7 @@
 #include "GameDebug.h"
 #include "KismetTraceUtils.h"
 #include "PathFindingBoard.h"
+#include "PathVector.h"
 #include "PlayerCharacter.h"
 #include "TraceChannelHelper.h"
 #include "ZombieTriggerParam.h"
@@ -388,24 +389,24 @@ void ABaseZombie::OnCollisionHit(UPrimitiveComponent* HitComponent, AActor* Othe
 	}
 }
 
-bool ABaseZombie::MoveNextField(APathField* Start)
+bool ABaseZombie::MoveNextField(UPathVector* Start)
 {
-	if (!Start || !Start->GetNextOnPath())
+	if (!Start || !Start->Next)
 	{
 		return false;
 	}
 	
 	FromPathField = Start;
-	ToPathField = Start->GetNextOnPath();
-	FromLocation = FromPathField->GetActorLocation();
-	ToLocation = ToPathField->GetActorLocation(); //FromPathField->ExitPoint;
+	ToPathField = Start->Next;
+	FromLocation = FromPathField->Location;
+	ToLocation = ToPathField->Location; //FromPathField->ExitPoint;
 
 	// SetActorRotation(EPathDirectionExtensions::GetRotation(FromPathField->PathDirection));
 
 	return true;
 }
 
-class APathField* ABaseZombie::GetPlacedPathField()
+class UPathVector* ABaseZombie::GetPlacedPathField()
 {
 	return PathFindingBoard->FindField(GetActorLocation());
 }

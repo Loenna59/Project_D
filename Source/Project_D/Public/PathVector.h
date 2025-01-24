@@ -24,7 +24,6 @@ private:
 	
 public:
 	UPathVector() {}
-	UPathVector(FVector Position);
 
 	UPROPERTY()
 	UPathVector* North;
@@ -46,6 +45,11 @@ public:
 
 	EPathDirection PathDirection;
 
+	void ClearPath();
+	void BecomeDestination();
+	bool HasPath();
+	void ShowPath();
+
 	bool GetIsAlternative() const
 	{
 		return bIsAlternative;
@@ -55,5 +59,16 @@ public:
 	{
 		bIsAlternative = IsAlternative;
 	}
+
+	class UPathVector* GrowPathTo(UPathVector* Neighbor, EPathDirection Direction, float Weight);
 	
+	class UPathVector* GrowPathNorth(float Weight);
+	class UPathVector* GrowPathEast(float Weight);
+	class UPathVector* GrowPathSouth(float Weight);
+	class UPathVector* GrowPathWest(float Weight);
+
+	bool CanMoveTo(UPathVector* Neighbor, float Weight, float Angle) const;
+
+	static void MakeEastWestNeighbors(UPathVector* East, UPathVector* West);
+	static void MakeNorthSouthNeighbors(UPathVector* North, UPathVector* South);
 };

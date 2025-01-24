@@ -100,15 +100,15 @@ public:
 	class APathFindingBoard* PathFindingBoard;
 
 	UPROPERTY()
-	class APathField* FromPathField;
+	class UPathVector* FromPathField;
 	UPROPERTY()
-	class APathField* ToPathField;
+	class UPathVector* ToPathField;
 
 	FVector FromLocation;
 	FVector ToLocation;
 
-	class APathField* GetPlacedPathField();
-	bool MoveNextField(APathField* Start);
+	class UPathVector* GetPlacedPathField();
+	bool MoveNextField(UPathVector* Start);
 
 protected:
 	virtual bool IsPhysicsBone(const FName& HitBoneName);
