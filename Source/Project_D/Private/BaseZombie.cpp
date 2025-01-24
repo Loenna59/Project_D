@@ -10,6 +10,7 @@
 #include "PathVector.h"
 #include "PlayerCharacter.h"
 #include "TraceChannelHelper.h"
+#include "VaultGameModeBase.h"
 #include "ZombieTriggerParam.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SphereComponent.h"
@@ -85,6 +86,11 @@ void ABaseZombie::BeginPlay()
 	{
 		PathFindingBoard = Cast<APathFindingBoard>(TmpActor);
 		bIsSetupPathFinding = MoveNextField(GetPlacedPathField());
+	}
+
+	if (AVaultGameModeBase* VaultGameModeBase = Cast<AVaultGameModeBase>(GetWorld()->GetAuthGameMode()))
+	{
+		VaultGameModeBase->IncreaseCount();
 	}
 }
 
@@ -319,6 +325,11 @@ void ABaseZombie::OnDead()
 		// MeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	}
 
+	if (AVaultGameModeBase* VaultGameModeBase = Cast<AVaultGameModeBase>(GetWorld()->GetAuthGameMode()))
+	{
+		VaultGameModeBase->DecreaseCount();
+	}
+
 	FTimerHandle TimerHandle;
 
 	GetWorld()->GetTimerManager().SetTimer(
@@ -378,8 +389,6 @@ void ABaseZombie::OnTriggerEnter(AActor* OtherActor, ACollisionTriggerParam* Par
 void ABaseZombie::OnCollisionHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp,
 	FVector NormalImpulse, const FHitResult& Hit)
 {
-	//GameDebug::ShowDisplayLog(GetWorld(), "OnCollisionHit");
-
 	if (OtherActor->IsA<AExplosiveCollisionActor>())
 	{
 		GetMesh()->SetSimulatePhysics(true);

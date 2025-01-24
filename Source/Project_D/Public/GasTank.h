@@ -36,7 +36,7 @@ public:
 	// UFUNCTION()
 	virtual void OnTriggerEnter(AActor* OtherActor, ACollisionTriggerParam* Param) override;
 
-	bool IsExplosion = false;
+	bool bIsExplosion = false;
 
 	float DeadTime = 0;
 	float DelayDeadTime = 2.f;
@@ -53,4 +53,6 @@ public:
 	
 	FTimerHandle AttackTimerHandle;
 	float AttackTiming = 1.f;
+
+	FTimerHandle JetBalloonTimerHandle;
 };

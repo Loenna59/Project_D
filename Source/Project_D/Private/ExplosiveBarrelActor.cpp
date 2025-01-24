@@ -58,7 +58,7 @@ void AExplosiveBarrelActor::OnTriggerEnter(AActor* OtherActor, ACollisionTrigger
 	if (UWorld* const World = GetWorld())
 	{
 		check(ExplosionVFX);
-		// GameDebug::ShowDisplayLog(World, "AExplosiveBarrelActor::OnCollisionHit");
+		GameDebug::ShowDisplayLog(World, "AExplosiveBarrelActor::OnCollisionHit");
 
 		FTransform SpawnTransform(FRotator::ZeroRotator, GetActorLocation(), FVector::OneVector);
 
