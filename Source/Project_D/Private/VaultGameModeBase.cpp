@@ -21,21 +21,34 @@ void AVaultGameModeBase::DecreaseCount()
 	GameDebug::ShowDisplayLog(GetWorld(), Str);
 	if (ZombieCount <= 0)
 	{
-		UGameClearUI* GameOverUI = Cast<UGameClearUI>(CreateWidget(GetWorld(), UIFactory));
+		UGameClearUI* GameClearUI = Cast<UGameClearUI>(CreateWidget(GetWorld(), UIFactory));
 		// 3초 뒤에...
 		FTimerHandle TimerHandle;
-		GetWorld()->GetTimerManager().SetTimer(
-			TimerHandle,
-			[GameOverUI]()
-			{
-				
-				if (GameOverUI)
+
+		APostProcessVolume* PostProcessVolume = GetWorld()->SpawnActor<APostProcessVolume>(APostProcessVolume::StaticClass());
+		if (PostProcessVolume)
+		{
+			PostProcessVolume->bUnbound = true;
+			PostProcessVolume->Settings.MotionBlurAmount = 10.0f;
+
+			GetWorld()->GetTimerManager().SetTimer(
+				TimerHandle,
+				[GameClearUI, PostProcessVolume]()
 				{
-					GameOverUI->AddToViewport();
-				}
-			},
-			3.0f,
-			false
-		);
+					if (PostProcessVolume && PostProcessVolume->IsValidLowLevel())
+					{
+						PostProcessVolume->Destroy();
+					}
+					
+					if (GameClearUI)
+					{
+						GameClearUI->AddToViewport();
+					}
+				},
+				3.0f,
+				false
+			);
+		}
+		
 	}
 }
