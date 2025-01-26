@@ -154,6 +154,7 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 		PlayerInput->BindAction(IaSprint, ETriggerEvent::Completed, this, &APlayerCharacter::CompletedSprint);
 		PlayerInput->BindAction(IaAttack, ETriggerEvent::Started, this, &APlayerCharacter::StartedAttack);
 		PlayerInput->BindAction(IaKick, ETriggerEvent::Started, this, &APlayerCharacter::StartedKick);
+		PlayerInput->BindAction(IaEquipment, ETriggerEvent::Started, this, &APlayerCharacter::StartedEquipment);
 	}
 }
 
@@ -445,4 +446,9 @@ void APlayerCharacter::CompletedSprint()
 {
 	UCharacterMovementComponent* MovementComponent = GetCharacterMovement();
 	MovementComponent->MaxWalkSpeed = 300.0f;
+}
+
+void APlayerCharacter::StartedEquipment()
+{
+	UE_LOG(LogTemp, Warning, TEXT("APlayerCharacter::StartedEquipment"));
 }

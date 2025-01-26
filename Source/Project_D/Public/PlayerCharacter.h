@@ -95,6 +95,8 @@ public:
 	UInputAction* IaAttack = nullptr;
 	UPROPERTY(EditDefaultsOnly, Category = Input)
 	UInputAction* IaKick = nullptr;
+	UPROPERTY(EditDefaultsOnly, Category = Input)
+	UInputAction* IaEquipment = nullptr;
 	FVector Direction = FVector::ZeroVector;
 	FVector2D MovementVector = FVector2d::ZeroVector;
 	void TriggeredTurn(const FInputActionValue& InputValue);
@@ -106,6 +108,7 @@ public:
 	void StartedKick();
 	void TriggeredSprint();
 	void CompletedSprint();
+	void StartedEquipment();
 	void MoveOnGround();
 
 	// States
