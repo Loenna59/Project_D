@@ -32,6 +32,7 @@ APlayerCharacter::APlayerCharacter()
 		Super::GetMesh()->SetSkeletalMeshAsset(SkeletalMeshAsset.Object);
 	}
 	
+	
 	WeaponMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("WeaponMesh"));
 	
 	ActionComponent = CreateDefaultSubobject<UActionComponent>(TEXT("ActionComponent"));
@@ -82,9 +83,9 @@ void APlayerCharacter::Landed(const FHitResult& Hit)
 
 	// 착지 직전의 낙하 속도를 가지고 낙사 데미지를 구한다.
 	const float DownwardSpeed = -GetVelocity().Z;
-	// >= 1000 -> 0
-	// >= 1500 -> 50
 	// >= 2000 -> 100
+	// >= 1500 -> 50
+	// >= 1000 -> 0
 	const float Damage = FMath::GetMappedRangeValueClamped(
 		FVector2D(1000.0f, 2000.0f),
 		FVector2D(0.0f, 100.0f),
@@ -128,8 +129,6 @@ void APlayerCharacter::Landed(const FHitResult& Hit)
 			OnDamaged(Damage);
 		}
 	}
-	
-	
 }
 
 // Called every frame
@@ -306,7 +305,6 @@ void APlayerCharacter::OnDead()
 	UE_LOG(LogTemp, Warning, TEXT("APlayerCharacter::OnDead"));
 
 	bIsDead = true;
-	OnChangePerspective();
 	
 	// 흑백 화면 처리
 	APostProcessVolume* PostProcessVolume = GetWorld()->SpawnActor<APostProcessVolume>(APostProcessVolume::StaticClass());
