@@ -14,6 +14,8 @@
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetMathLibrary.h"
+#include "Pathfinding/PathfindingComponent.h"
 #include "Project_D/Project_DCharacter.h"
 
 // Sets default values
@@ -80,17 +82,13 @@ void ABaseZombie::BeginPlay()
 
 	FSM->ChangeState(EEnemyState::IDLE, this);
 
-	GetCapsuleComponent()->OnComponentHit.AddDynamic(this, &ABaseZombie::OnCollisionHit);
+	Pathfinding = NewObject<UPathfindingComponent>(this);
+	AddOwnedComponent(Pathfinding);
+	Pathfinding->RegisterComponent();
 
-	if (AActor* TmpActor = UGameplayStatics::GetActorOfClass(GetWorld(), APathFindingBoard::StaticClass()))
-	{
-		PathFindingBoard = Cast<APathFindingBoard>(TmpActor);
-		bIsSetupPathFinding = MoveNextField(GetPlacedPathField());
-		if (bIsSetupPathFinding)
-		{
-			InitializePathFinding();
-		}
-	}
+	Pathfinding->Initialize();
+
+	GetCapsuleComponent()->OnComponentHit.AddDynamic(this, &ABaseZombie::OnCollisionHit);
 
 	if (AVaultGameModeBase* VaultGameModeBase = Cast<AVaultGameModeBase>(GetWorld()->GetAuthGameMode()))
 	{
@@ -401,90 +399,60 @@ void ABaseZombie::OnCollisionHit(UPrimitiveComponent* HitComponent, AActor* Othe
 	}
 }
 
-bool ABaseZombie::MoveNextField(UPathVector* Start)
+bool ABaseZombie::StartPathfinding()
 {
-	if (!Start || !Start->Next)
+	if (Pathfinding->bIsSetupPathFinding)
 	{
-		return false;
+		Pathfinding->bIsSetupPathFinding = Pathfinding->MoveNextField(Pathfinding->GetPlacedPathField());
+		Pathfinding->InitializePathFinding();
 	}
-	
-	FromPathField = Start;
-	ToPathField = Start->Next;
-
-	// auto Str = FString::Printf(TEXT("%s %s"), *GetName(), *(FromLocation.ToString()));
-	// GameDebug::ShowDisplayLog(GetWorld(), *Str, FColor::Yellow, true);
-	//
-	// auto Str2 = FString::Printf(TEXT("%s %s"), *GetName(), *(ToLocation.ToString()));
-	// GameDebug::ShowDisplayLog(GetWorld(), *Str2, FColor::Red, true);
-	
-	return true;
-}
-
-void ABaseZombie::InitializePathFinding()
-{
-	FromLocation = GetActorLocation();
-	ToLocation = FromPathField->ExitPoint;
-	PathDirection = FromPathField->PathDirection;
-	PathDirectionChange = EPathDirectionChange::None;
-	DirectionAngleFrom = EPathDirectionExtensions::GetAngle(PathDirection);
-	DirectionAngleTo = EPathDirectionExtensions::GetAngle(PathDirection);
-	
-	FQuat Quat = EPathDirectionExtensions::GetRotation(PathDirection);
-	SetActorRelativeRotation(Quat);
-}
-
-void ABaseZombie::PrepareNextPathFinding()
-{
-	FromLocation = ToLocation;
-	ToLocation = FromPathField->ExitPoint;
-	PathDirectionChange = EPathDirectionChangeExtensions::GetDirectionChangeTo(PathDirection, FromPathField->PathDirection);
-	PathDirection = FromPathField->PathDirection;
-	DirectionAngleFrom = DirectionAngleTo;
-
-	
-	// GameDebug::ShowDisplayLog(GetWorld(), EPathDirectionExtensions::EnumToString(PathDirection));
-	GameDebug::ShowDisplayLog(GetWorld(), EPathDirectionChangeExtensions::EnumToString(PathDirectionChange));
-
-	switch (PathDirectionChange)
+	else
 	{
-		case EPathDirectionChange::None:
-			PrepareForward();
-			break;
-		case EPathDirectionChange::TurnRight:
-			PrepareTurnRight();
-			break;
-		case EPathDirectionChange::TurnLeft:
-			PrepareTurnLeft();
-			break;
-		default:
-			PrepareTurnAround();
-			break;
+		Pathfinding->FromLocation = GetActorLocation();
 	}
+
+	return Pathfinding->bIsSetupPathFinding;
 }
 
-void ABaseZombie::PrepareForward()
+float ABaseZombie::PlayPathfinding(float Progress)
 {
-	FQuat Quat = EPathDirectionExtensions::GetRotation(PathDirection);
-	SetActorRelativeRotation(Quat);
-	DirectionAngleTo = EPathDirectionExtensions::GetAngle(PathDirection);
+	if (Progress >= 1.f)
+	{
+		Pathfinding->MoveNextField(Pathfinding->ToPathField);
+		Progress -= 1.f;
+		Pathfinding->PrepareNextPathFinding();
+	}
+
+	FVector Lerp = FMath::Lerp(Pathfinding->FromLocation, Pathfinding->ToLocation, Progress);
+	SetActorLocation(Lerp);
+
+	if (Pathfinding->PathDirectionChange != EPathDirectionChange::None)
+	{
+		float Angle = FMath::Lerp(Pathfinding->DirectionAngleFrom, Pathfinding->DirectionAngleTo, Progress);
+		SetActorRelativeRotation(FRotator(0, Angle, 0));
+	}
+
+	return Progress;
 }
 
-void ABaseZombie::PrepareTurnRight()
+void ABaseZombie::Rotate()
 {
-	DirectionAngleTo = DirectionAngleFrom + 90;
-}
+	if (DetectedTarget)
+	{
+		FVector Distance = DetectedTarget->GetActorLocation() - GetActorLocation();
+		FVector Direction = Distance.GetSafeNormal();
 
-void ABaseZombie::PrepareTurnLeft()
-{
-	DirectionAngleTo = DirectionAngleFrom - 90;
-}
+		FRotator LookAtRotation = FRotationMatrix::MakeFromX(Direction).Rotator();
 
-void ABaseZombie::PrepareTurnAround()
-{
-	DirectionAngleTo = DirectionAngleFrom + 180;
-}
-
-class UPathVector* ABaseZombie::GetPlacedPathField()
-{
-	return PathFindingBoard->FindField(GetActorLocation());
+		// 현재 회전과 목표 회전을 선형 보간 (LERP)
+		FRotator SmoothedRotation = UKismetMathLibrary::RLerp(
+			GetActorRotation(),  // 현재 회전
+			LookAtRotation,              // 목표 회전
+			GetWorld()->GetDeltaSeconds(), // 보간 속도
+			true                          // 짧은 쪽 경로 선택
+		);
+		
+		SetActorRelativeRotation(SmoothedRotation);
+		Pathfinding->DirectionAngleFrom = LookAtRotation.Yaw;
+	}
 }

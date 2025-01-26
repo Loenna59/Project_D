@@ -12,24 +12,14 @@ void UWalkZombieState::OnEnter(ABaseZombie* Zombie)
 	if (Zombie)
 	{
 		// UKismetSystemLibrary::PrintString(GetWorld(), "Walk On Enter");
-
-		if (!Zombie->bIsSetupPathFinding)
-		{
-			Zombie->bIsSetupPathFinding = Zombie->MoveNextField(Zombie->GetPlacedPathField());
-			Zombie->InitializePathFinding();
-		}
-		else
-		{
-			Zombie->FromLocation = Zombie->GetActorLocation();
-		}
-
+		bool bIsSetupPathFinding = Zombie->StartPathfinding();
 		Progress = 0.f;
 
 		if (UAnimInstance* const Anim = Zombie->GetMesh()->GetAnimInstance())
 		{
 			if (UBiterAnimInstance* BiterAnimInstance = Cast<UBiterAnimInstance>(Anim))
 			{
-				BiterAnimInstance->bIsWalking = Zombie->bIsSetupPathFinding;
+				BiterAnimInstance->bIsWalking = bIsSetupPathFinding;
 			}
 		}
 	}
@@ -37,7 +27,7 @@ void UWalkZombieState::OnEnter(ABaseZombie* Zombie)
 
 void UWalkZombieState::OnUpdate(ABaseZombie* Zombie)
 {
-	if (Zombie && Zombie->bIsSetupPathFinding)
+	if (Zombie)
 	{
 		if (UAnimInstance* const Anim = Zombie->GetMesh()->GetAnimInstance())
 		{
@@ -48,22 +38,7 @@ void UWalkZombieState::OnUpdate(ABaseZombie* Zombie)
 		}
 		
 		Progress += GetWorld()->GetDeltaSeconds() * Zombie->GetCharacterMovement()->MaxWalkSpeed / 100.f;
-
-		if (Progress >= 1.f)
-		{
-			Zombie->MoveNextField(Zombie->ToPathField);
-			Progress -= 1.f;
-			Zombie->PrepareNextPathFinding();
-		}
-
-		FVector Lerp = FMath::Lerp(Zombie->FromLocation, Zombie->ToLocation, Progress);
-		Zombie->SetActorLocation(Lerp);
-
-		if (Zombie->PathDirectionChange != EPathDirectionChange::None)
-		{
-			float Angle = FMath::Lerp(Zombie->DirectionAngleFrom, Zombie->DirectionAngleTo, Progress);
-			Zombie->SetActorRelativeRotation(FRotator(0, Angle, 0));
-		}
+		Progress = Zombie->PlayPathfinding(Progress);
 	}
 	else
 	{

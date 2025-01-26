@@ -61,6 +61,9 @@ public:
 	UPROPERTY(EditAnywhere)
 	class UZombieFSMComponent* FSM;
 
+	UPROPERTY(EditAnywhere)
+	class UPathfindingComponent* Pathfinding;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float DetectRadius = 1000.f;
 
@@ -94,35 +97,11 @@ public:
 	UFUNCTION()
 	virtual void OnCollisionHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
-	//PathFinding
-	bool bIsSetupPathFinding = false;
-	
-	EPathDirection PathDirection = EPathDirection::North;
-	EPathDirectionChange PathDirectionChange = EPathDirectionChange::None;
-	float DirectionAngleFrom;
-	float DirectionAngleTo;
-	
-	UPROPERTY()
-	class APathFindingBoard* PathFindingBoard;
+	virtual bool StartPathfinding();
 
-	UPROPERTY()
-	class UPathVector* FromPathField;
-	
-	UPROPERTY()
-	class UPathVector* ToPathField;
+	virtual float PlayPathfinding(float Progress);
 
-	FVector FromLocation;
-	FVector ToLocation;
-	
-	class UPathVector* GetPlacedPathField();
-	bool MoveNextField(UPathVector* Start);
-
-	void InitializePathFinding();
-	void PrepareNextPathFinding();
-	void PrepareForward();
-	void PrepareTurnRight();
-	void PrepareTurnLeft();
-	void PrepareTurnAround();
+	virtual void Rotate();
 
 protected:
 	virtual bool IsPhysicsBone(const FName& HitBoneName);
@@ -140,5 +119,4 @@ protected:
 	virtual FVector CalculateImpulse();
 
 	virtual bool InstantKilled(const FName& HitBoneName);
-
 };
