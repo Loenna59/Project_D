@@ -113,6 +113,7 @@ public:
 	EPlayerState State = EPlayerState::WalkingOnGround;
 	int Hp = 100;
 	int MaxHp = 100;
+	bool bIsHardLanding = false;
 	bool bIsDead = false;
 	bool bIsAttacking = false;
 	bool bIsKicking = false;
@@ -120,6 +121,11 @@ public:
 	void OnDead();
 
 	// Etc
+	UPROPERTY(EditDefaultsOnly)
+	float MinHardFallVelocity = 1000.0f;
+	UPROPERTY(EditDefaultsOnly)
+	float MaxSurviveFallVelocity = 2000.0f;
+	
 	void OnZiplineBeginOverlap(AZipline* InZipline);
 	void OnZiplineEndOverlap(const AZipline* InZipline);
 	UFUNCTION()

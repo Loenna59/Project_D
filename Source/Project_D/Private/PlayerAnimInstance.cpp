@@ -18,6 +18,8 @@ void UPlayerAnimInstance::NativeInitializeAnimation()
 	{
 		Movement = Player->GetCharacterMovement();
 		ActionComponent = Player->ActionComponent;
+		MinHardFallVelocity = Player->MinHardFallVelocity;
+		MaxSurviveFallVelocity = Player->MaxSurviveFallVelocity;
 	}
 }
 
@@ -42,7 +44,7 @@ void UPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	PlayerState = Player->State;
 }
 
-void UPlayerAnimInstance::AnimNotify_OnDropkickImpact()
+void UPlayerAnimInstance::AnimNotify_OnDropkickImpact() const
 {
 	UE_LOG(LogTemp, Display, TEXT("UPlayerAnimInstance::AnimNotify_OnDropkickImpact"));
 	if (nullptr == Player || nullptr == Movement || nullptr == ActionComponent)
@@ -112,7 +114,7 @@ void UPlayerAnimInstance::AnimNotify_OnDropkickImpact()
 	}
 }
 
-void UPlayerAnimInstance::AnimNotify_OnStandingKickImpact()
+void UPlayerAnimInstance::AnimNotify_OnStandingKickImpact() const
 {
 	UE_LOG(LogTemp, Display, TEXT("UPlayerAnimInstance::AnimNotify_OnStandingKickImpact"));
 	if (nullptr == Player || nullptr == Movement || nullptr == ActionComponent)
@@ -176,4 +178,16 @@ void UPlayerAnimInstance::AnimNotify_OnStandingKickImpact()
 			2.0f
 		);
 	}
+}
+
+void UPlayerAnimInstance::AnimNotify_OnStartedHardLanding() const
+{
+	UE_LOG(LogTemp, Display, TEXT("UPlayerAnimInstance::AnimNotify_OnStartedHardLanding"));
+	Player->bIsHardLanding = true;
+}
+
+void UPlayerAnimInstance::AnimNotify_OnEndedHardLanding() const
+{
+	UE_LOG(LogTemp, Display, TEXT("UPlayerAnimInstance::AnimNotify_OnEndedHardLanding"));
+	Player->bIsHardLanding = false;
 }

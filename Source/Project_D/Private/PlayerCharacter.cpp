@@ -83,11 +83,12 @@ void APlayerCharacter::Landed(const FHitResult& Hit)
 
 	// 착지 직전의 낙하 속도를 가지고 낙사 데미지를 구한다.
 	const float DownwardSpeed = -GetVelocity().Z;
+	// 만약, MinHardFallVelocity = 1000 & MaxSurviveFallVelocity = 2000 라면,
 	// >= 2000 -> 100
 	// >= 1500 -> 50
 	// >= 1000 -> 0
 	const float Damage = FMath::GetMappedRangeValueClamped(
-		FVector2D(1000.0f, 2000.0f),
+		FVector2D(MinHardFallVelocity, MaxSurviveFallVelocity),
 		FVector2D(0.0f, 100.0f),
 		DownwardSpeed
 	);
@@ -355,6 +356,10 @@ void APlayerCharacter::TriggeredLookUp(const FInputActionValue& InputValue)
 void APlayerCharacter::TriggeredMove(const FInputActionValue& InputValue)
 {
 	MovementVector = InputValue.Get<FVector2D>();
+	if (true == bIsHardLanding || true == bIsDead)
+	{
+		return;
+	}
 	
 	if (Controller)
 	{
