@@ -2,14 +2,6 @@
 
 #include "PathVector.h"
 
-#include "PathFindingBoard.h"
-#include "TraceChannelHelper.h"
-
-FQuat UPathVector::NorthRotation = FQuat(FRotator(0.f, 180.f, 0.f));
-FQuat UPathVector::EastRotation = FQuat(FRotator(0.f, 90.f, 0.f));
-FQuat UPathVector::SouthRotation = FQuat(FRotator(0.f, 0.f, 0.f));
-FQuat UPathVector::WestRotation = FQuat(FRotator(0.f, 270.f, 0.f));
-
 void UPathVector::ClearPath()
 {
 	Cost = TNumericLimits<int32>::Max();
@@ -20,6 +12,7 @@ void UPathVector::BecomeDestination()
 {
 	Cost = 0;
 	Next = nullptr;
+	ExitPoint = Location;
 }
 
 bool UPathVector::HasPath()
@@ -29,6 +22,7 @@ bool UPathVector::HasPath()
 
 void UPathVector::ShowPath()
 {
+	
 }
 
 class UPathVector* UPathVector::GrowPathTo(UPathVector* Neighbor, EPathDirection Direction, float Weight)
@@ -54,6 +48,7 @@ class UPathVector* UPathVector::GrowPathTo(UPathVector* Neighbor, EPathDirection
 
 	Neighbor->Cost = CalculateDistance;
 	Neighbor->Next = this;
+	Neighbor->ExitPoint = (Neighbor->Location + Location) * 0.5f;
 	Neighbor->PathDirection = Direction;
 	
 	return Neighbor;
@@ -61,25 +56,25 @@ class UPathVector* UPathVector::GrowPathTo(UPathVector* Neighbor, EPathDirection
 
 class UPathVector* UPathVector::GrowPathNorth(float Weight)
 {
-	return GrowPathTo(North, EPathDirection::North, Weight);
+	return GrowPathTo(North, EPathDirection::South, Weight);
 }
 
 class UPathVector* UPathVector::GrowPathEast(float Weight)
 {
-	return GrowPathTo(East, EPathDirection::East, Weight);
+	return GrowPathTo(East, EPathDirection::West, Weight);
 }
 
 class UPathVector* UPathVector::GrowPathSouth(float Weight)
 {
-	return GrowPathTo(South, EPathDirection::South, Weight);
+	return GrowPathTo(South, EPathDirection::North, Weight);
 }
 
 class UPathVector* UPathVector::GrowPathWest(float Weight)
 {
-	return GrowPathTo(West, EPathDirection::West, Weight);
+	return GrowPathTo(West, EPathDirection::East, Weight);
 }
 
-bool UPathVector::CanMoveTo(UPathVector* Neighbor, float Weight, float Angle) const
+bool UPathVector::CanMoveTo(const UPathVector* Neighbor, float Weight, float Angle) const
 {
 	if (!Neighbor)
 	{
@@ -108,13 +103,13 @@ void UPathVector::MakeEastWestNeighbors(UPathVector* East, UPathVector* West)
 
 void UPathVector::MakeNorthSouthNeighbors(UPathVector* North, UPathVector* South)
 {
-	if (North)
-	{
-		North->South = South;
-	}
-
 	if (South)
 	{
 		South->North = North;
+	}
+	
+	if (North)
+	{
+		North->South = South;
 	}
 }

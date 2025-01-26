@@ -44,14 +44,12 @@ void UAttackZombieState::OnUpdate(ABaseZombie* Zombie)
 		FRotator SmoothedRotation = UKismetMathLibrary::RLerp(
 			Zombie->GetActorRotation(),  // 현재 회전
 			LookAtRotation,              // 목표 회전
-			GetWorld()->GetDeltaSeconds(), // 보간 속도
+			GetWorld()->DeltaTimeSeconds, // 보간 속도
 			true                          // 짧은 쪽 경로 선택
 		);
 	
-		// Zombie->SetActorRotation(SmoothedRotation);
-		// Zombie->AddMovementInput(Direction);
-	
-		// UKismetSystemLibrary::PrintString(GetWorld(), "Walk On Update");
+		Zombie->SetActorRelativeRotation(SmoothedRotation);
+		Zombie->DirectionAngleFrom = LookAtRotation.Yaw;
 	}
 }
 

@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "CollisionTrigger.h"
-#include "EEnemyState.h"
+#include "EPathDirectionChange.h"
 #include "ZombieFSMComponent.h"
 #include "GameFramework/Character.h"
 #include "BaseZombie.generated.h"
@@ -97,6 +97,11 @@ public:
 	//PathFinding
 	bool bIsSetupPathFinding = false;
 	
+	EPathDirection PathDirection = EPathDirection::North;
+	EPathDirectionChange PathDirectionChange = EPathDirectionChange::None;
+	float DirectionAngleFrom;
+	float DirectionAngleTo;
+	
 	UPROPERTY()
 	class APathFindingBoard* PathFindingBoard;
 
@@ -108,9 +113,16 @@ public:
 
 	FVector FromLocation;
 	FVector ToLocation;
-
+	
 	class UPathVector* GetPlacedPathField();
 	bool MoveNextField(UPathVector* Start);
+
+	void InitializePathFinding();
+	void PrepareNextPathFinding();
+	void PrepareForward();
+	void PrepareTurnRight();
+	void PrepareTurnLeft();
+	void PrepareTurnAround();
 
 protected:
 	virtual bool IsPhysicsBone(const FName& HitBoneName);

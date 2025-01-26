@@ -5,7 +5,6 @@
 
 #include "ExplosiveCollisionActor.h"
 #include "GameDebug.h"
-#include "KismetTraceUtils.h"
 #include "PathFindingBoard.h"
 #include "PathVector.h"
 #include "PlayerCharacter.h"
@@ -13,7 +12,6 @@
 #include "VaultGameModeBase.h"
 #include "ZombieTriggerParam.h"
 #include "Components/CapsuleComponent.h"
-#include "Components/SphereComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Project_D/Project_DCharacter.h"
@@ -88,6 +86,10 @@ void ABaseZombie::BeginPlay()
 	{
 		PathFindingBoard = Cast<APathFindingBoard>(TmpActor);
 		bIsSetupPathFinding = MoveNextField(GetPlacedPathField());
+		if (bIsSetupPathFinding)
+		{
+			InitializePathFinding();
+		}
 	}
 
 	if (AVaultGameModeBase* VaultGameModeBase = Cast<AVaultGameModeBase>(GetWorld()->GetAuthGameMode()))
@@ -403,24 +405,83 @@ bool ABaseZombie::MoveNextField(UPathVector* Start)
 {
 	if (!Start || !Start->Next)
 	{
-		// auto Str = FString::Printf(TEXT("%s가 PathFinding 위치를 잡을 수 없음"), *GetName());
-		// GameDebug::ShowDisplayLog(GetWorld(), Str, true);
-
 		return false;
 	}
 	
-	// auto Str = FString::Printf(TEXT("%s %s"), *GetName(), *(Start->Location.ToString()));
-
-	// GameDebug::ShowDisplayLog(GetWorld(), Str, true);
-	
 	FromPathField = Start;
 	ToPathField = Start->Next;
-	FromLocation = FromPathField->Location;
-	ToLocation = ToPathField->Location; //FromPathField->ExitPoint;
 
-	// SetActorRotation(EPathDirectionExtensions::GetRotation(FromPathField->PathDirection));
-
+	// auto Str = FString::Printf(TEXT("%s %s"), *GetName(), *(FromLocation.ToString()));
+	// GameDebug::ShowDisplayLog(GetWorld(), *Str, FColor::Yellow, true);
+	//
+	// auto Str2 = FString::Printf(TEXT("%s %s"), *GetName(), *(ToLocation.ToString()));
+	// GameDebug::ShowDisplayLog(GetWorld(), *Str2, FColor::Red, true);
+	
 	return true;
+}
+
+void ABaseZombie::InitializePathFinding()
+{
+	FromLocation = GetActorLocation();
+	ToLocation = FromPathField->ExitPoint;
+	PathDirection = FromPathField->PathDirection;
+	PathDirectionChange = EPathDirectionChange::None;
+	DirectionAngleFrom = EPathDirectionExtensions::GetAngle(PathDirection);
+	DirectionAngleTo = EPathDirectionExtensions::GetAngle(PathDirection);
+	
+	FQuat Quat = EPathDirectionExtensions::GetRotation(PathDirection);
+	SetActorRelativeRotation(Quat);
+}
+
+void ABaseZombie::PrepareNextPathFinding()
+{
+	FromLocation = ToLocation;
+	ToLocation = FromPathField->ExitPoint;
+	PathDirectionChange = EPathDirectionChangeExtensions::GetDirectionChangeTo(PathDirection, FromPathField->PathDirection);
+	PathDirection = FromPathField->PathDirection;
+	DirectionAngleFrom = DirectionAngleTo;
+
+	
+	// GameDebug::ShowDisplayLog(GetWorld(), EPathDirectionExtensions::EnumToString(PathDirection));
+	GameDebug::ShowDisplayLog(GetWorld(), EPathDirectionChangeExtensions::EnumToString(PathDirectionChange));
+
+	switch (PathDirectionChange)
+	{
+		case EPathDirectionChange::None:
+			PrepareForward();
+			break;
+		case EPathDirectionChange::TurnRight:
+			PrepareTurnRight();
+			break;
+		case EPathDirectionChange::TurnLeft:
+			PrepareTurnLeft();
+			break;
+		default:
+			PrepareTurnAround();
+			break;
+	}
+}
+
+void ABaseZombie::PrepareForward()
+{
+	FQuat Quat = EPathDirectionExtensions::GetRotation(PathDirection);
+	SetActorRelativeRotation(Quat);
+	DirectionAngleTo = EPathDirectionExtensions::GetAngle(PathDirection);
+}
+
+void ABaseZombie::PrepareTurnRight()
+{
+	DirectionAngleTo = DirectionAngleFrom + 90;
+}
+
+void ABaseZombie::PrepareTurnLeft()
+{
+	DirectionAngleTo = DirectionAngleFrom - 90;
+}
+
+void ABaseZombie::PrepareTurnAround()
+{
+	DirectionAngleTo = DirectionAngleFrom + 180;
 }
 
 class UPathVector* ABaseZombie::GetPlacedPathField()

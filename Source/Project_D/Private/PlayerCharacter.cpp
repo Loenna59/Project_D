@@ -9,7 +9,6 @@
 #include "BaseZombie.h"
 #include "BlankTriggerParam.h"
 #include "FallSafetyZone.h"
-#include "GameDebug.h"
 #include "PlayerHUD.h"
 #include "ZombieTriggerParam.h"
 #include "Blueprint/UserWidget.h"
@@ -292,8 +291,6 @@ void APlayerCharacter::OnWeaponBeginOverlap(UPrimitiveComponent* OverlappedCompo
 void APlayerCharacter::OnDamaged(const int Amount)
 {
 	//UE_LOG(LogTemp, Warning, TEXT("APlayerCharacter::OnDamaged(%d)"), Amount);
-
-	GameDebug::ShowDisplayLog(GetWorld(), FString::Printf(TEXT("APlayerCharacter::OnDamaged(%d)"), Amount), true);
 	Hp -= Amount;
 	PlayerHUD->OnChangeHp(Hp, MaxHp);
 	if (Hp <= 0)

@@ -3,8 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PathField.h"
 #include "UObject/Object.h"
+#include "EPathDirection.h"
 #include "PathVector.generated.h"
 
 /**
@@ -16,11 +16,6 @@ class PROJECT_D_API UPathVector : public UObject
 	GENERATED_BODY()
 private:
 	bool bIsAlternative;
-
-	static FQuat NorthRotation;
-	static FQuat EastRotation;
-	static FQuat SouthRotation;
-	static FQuat WestRotation;
 	
 public:
 	UPathVector() {}
@@ -38,12 +33,13 @@ public:
 	UPathVector* Next;
 
 	FVector Location;
+	FVector ExitPoint;
 	
 	int32 Cost;
 	float Height;
 	float SlopeAngle;
 
-	EPathDirection PathDirection;
+	EPathDirection PathDirection = EPathDirection::North;
 
 	void ClearPath();
 	void BecomeDestination();
@@ -67,7 +63,7 @@ public:
 	class UPathVector* GrowPathSouth(float Weight);
 	class UPathVector* GrowPathWest(float Weight);
 
-	bool CanMoveTo(UPathVector* Neighbor, float Weight, float Angle) const;
+	bool CanMoveTo(const UPathVector* Neighbor, float Weight, float Angle) const;
 
 	static void MakeEastWestNeighbors(UPathVector* East, UPathVector* West);
 	static void MakeNorthSouthNeighbors(UPathVector* North, UPathVector* South);

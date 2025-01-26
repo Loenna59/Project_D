@@ -3,7 +3,6 @@
 
 #include "PathFindingBoard.h"
 
-#include "GameDebug.h"
 #include "PathVector.h"
 #include "TraceChannelHelper.h"
 
@@ -20,7 +19,7 @@ APathFindingBoard::APathFindingBoard()
 		for (int32 x = 0; x < BoardSize.X; x++, i++)
 		{
 			UPathVector* Field = CreateDefaultSubobject<UPathVector>(FName(FString::Printf(TEXT("PathVector %d"), i)));
-			Field->Location = (GetActorLocation() + FVector(x * FieldSize, y * FieldSize, 0));
+			Field->Location = (GetActorLocation() + FVector(x * FieldSize, y * FieldSize, 88.f));
 			Field->ClearPath();
 			Fields[i] = Field;
 		}
@@ -44,7 +43,7 @@ void APathFindingBoard::BeginPlay()
 			Field->Location = (GetActorLocation() + FVector(x * FieldSize, y * FieldSize, 0));
 
 			FVector Start = Field->Location;
-			FVector End = Field->Location - FVector(0, 0, 2000);
+			FVector End = Field->Location - FVector(0, 0, 10000);
 
 			TraceChannelHelper::LineTraceByChannel(
 				GetWorld(),
@@ -60,7 +59,7 @@ void APathFindingBoard::BeginPlay()
 					{
 							
 						Field->Height = HitResult.ImpactPoint.Z;
-						FVector NewLocation = FVector(Field->Location.X, Field->Location.Y, Field->Height);
+						FVector NewLocation = FVector(Field->Location.X, Field->Location.Y, Field->Height + 88.f);
 						Field->Location = NewLocation;
 
 						FVector ImpactNormal = HitResult.ImpactNormal;
@@ -140,7 +139,7 @@ void APathFindingBoard::FindPaths(int32 DestIndex)
 					{
 						SearchFrontier.Enqueue(Field->GrowPathNorth(MovableCost));
 					}
-
+					
 					if (Field->CanMoveTo(Field->South, MovableCost, MovableSlopeAngle))
 					{
 						SearchFrontier.Enqueue(Field->GrowPathSouth(MovableCost));
@@ -177,7 +176,7 @@ void APathFindingBoard::FindPaths(int32 DestIndex)
 					{
 						SearchFrontier.Enqueue(Field->GrowPathNorth(MovableCost));
 					}
-
+					
 				}
 			}
 		}

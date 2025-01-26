@@ -4,7 +4,6 @@
 #include "ExplosiveBarrelActor.h"
 
 #include "ExplosiveCollisionActor.h"
-#include "GameDebug.h"
 #include "Components/CapsuleComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "PhysicsEngine/RadialForceActor.h"
@@ -58,7 +57,7 @@ void AExplosiveBarrelActor::OnTriggerEnter(AActor* OtherActor, ACollisionTrigger
 	if (UWorld* const World = GetWorld())
 	{
 		check(ExplosionVFX);
-		GameDebug::ShowDisplayLog(World, "AExplosiveBarrelActor::OnCollisionHit");
+		// GameDebug::ShowDisplayLog(World, *FString("AExplosiveBarrelActor::OnCollisionHit"));
 
 		FTransform SpawnTransform(FRotator::ZeroRotator, GetActorLocation(), FVector::OneVector);
 

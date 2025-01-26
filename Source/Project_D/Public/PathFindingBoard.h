@@ -3,7 +3,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PathField.h"
 #include "GameFramework/Actor.h"
 #include "PathFindingBoard.generated.h"
 
@@ -35,9 +34,6 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 FieldSize = 100;
-
-	// UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	// TSubclassOf<class APathField> FieldFactory;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float MovableCost = 25.f;

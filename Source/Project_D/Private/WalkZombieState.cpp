@@ -5,11 +5,7 @@
 
 #include "BaseZombie.h"
 #include "BiterAnimInstance.h"
-#include "GameDebug.h"
-#include "PathField.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "Kismet/KismetMathLibrary.h"
-#include "Kismet/KismetSystemLibrary.h"
 
 void UWalkZombieState::OnEnter(ABaseZombie* Zombie)
 {
@@ -17,7 +13,17 @@ void UWalkZombieState::OnEnter(ABaseZombie* Zombie)
 	{
 		// UKismetSystemLibrary::PrintString(GetWorld(), "Walk On Enter");
 
-		Zombie->bIsSetupPathFinding = Zombie->MoveNextField(Zombie->GetPlacedPathField());
+		if (!Zombie->bIsSetupPathFinding)
+		{
+			Zombie->bIsSetupPathFinding = Zombie->MoveNextField(Zombie->GetPlacedPathField());
+			Zombie->InitializePathFinding();
+		}
+		else
+		{
+			Zombie->FromLocation = Zombie->GetActorLocation();
+		}
+
+		Progress = 0.f;
 
 		if (UAnimInstance* const Anim = Zombie->GetMesh()->GetAnimInstance())
 		{
@@ -47,24 +53,17 @@ void UWalkZombieState::OnUpdate(ABaseZombie* Zombie)
 		{
 			Zombie->MoveNextField(Zombie->ToPathField);
 			Progress -= 1.f;
+			Zombie->PrepareNextPathFinding();
 		}
 
 		FVector Lerp = FMath::Lerp(Zombie->FromLocation, Zombie->ToLocation, Progress);
-		Zombie->SetActorLocation(Lerp + FVector::UpVector * 88.0);
-		
-		FVector Distance = Zombie->ToLocation - Zombie->FromLocation;
-		FVector Direction = Distance.GetSafeNormal();
-		
-		FRotator LookAtRotation = FRotationMatrix::MakeFromX(Direction).Rotator();
-		FRotator SmoothedRotation = UKismetMathLibrary::RLerp(
-			Zombie->GetActorRotation(),  // 현재 회전
-			LookAtRotation,              // 목표 회전
-			GetWorld()->GetDeltaSeconds(), // 보간 속도
-			true                          // 짧은 쪽 경로 선택
-		);
-		
-		Zombie->SetActorRotation(SmoothedRotation);
-		// Zombie->AddMovementInput(Direction);
+		Zombie->SetActorLocation(Lerp);
+
+		if (Zombie->PathDirectionChange != EPathDirectionChange::None)
+		{
+			float Angle = FMath::Lerp(Zombie->DirectionAngleFrom, Zombie->DirectionAngleTo, Progress);
+			Zombie->SetActorRelativeRotation(FRotator(0, Angle, 0));
+		}
 	}
 	else
 	{
