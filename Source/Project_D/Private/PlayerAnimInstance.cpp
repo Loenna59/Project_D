@@ -179,15 +179,3 @@ void UPlayerAnimInstance::AnimNotify_OnStandingKickImpact() const
 		);
 	}
 }
-
-void UPlayerAnimInstance::AnimNotify_OnStartedHardLanding() const
-{
-	UE_LOG(LogTemp, Display, TEXT("UPlayerAnimInstance::AnimNotify_OnStartedHardLanding"));
-	Player->bIsHardLanding = true;
-}
-
-void UPlayerAnimInstance::AnimNotify_OnEndedHardLanding() const
-{
-	UE_LOG(LogTemp, Display, TEXT("UPlayerAnimInstance::AnimNotify_OnEndedHardLanding"));
-	Player->bIsHardLanding = false;
-}

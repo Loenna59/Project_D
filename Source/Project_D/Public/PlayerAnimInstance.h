@@ -56,8 +56,4 @@ protected:
 	void AnimNotify_OnDropkickImpact() const;
 	UFUNCTION()
 	void AnimNotify_OnStandingKickImpact() const;
-	UFUNCTION()
-	void AnimNotify_OnStartedHardLanding() const;
-	UFUNCTION()
-	void AnimNotify_OnEndedHardLanding() const;
 };
