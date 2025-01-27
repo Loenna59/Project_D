@@ -8,6 +8,7 @@
 #include "Animation/ZombieAnimInstance.h"
 #include "Components/BoxComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Pathfinding/ZombieAIController.h"
 
 // void ABiter::SetupInternal()
 // {
@@ -102,7 +103,6 @@ void ABiter::BeginPlay()
 	Super::BeginPlay();
 
 	GetCharacterMovement()->MaxWalkSpeed = 100.f;
-	AnimationInstance = Cast<UZombieAnimInstance>(GetMesh()->GetAnimInstance());
 }
 
 void ABiter::OnTriggerAttack(bool Start)
@@ -149,12 +149,8 @@ void ABiter::OnTriggerAttack(bool Start)
 			AttackTiming,
 			false
 		);
-		
-		if (MontageMap.Contains("Attack"))
-		{
-			PlayAnimMontage(MontageMap["Attack"], 1.f, "Attack");
-		}
-		
+
+		AnimationInstance->PlayMontage(AI, AnimState::Attack);
 		return;
 	}
 	// SetActiveAttackCollision(false);

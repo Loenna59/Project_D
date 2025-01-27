@@ -22,6 +22,8 @@ public:
 	void SetTarget(AActor* Target);
 	void MoveToTarget();
 
+	bool bIsPaused = false;
+
 private:
 	UPROPERTY()
 	class AActor* TargetActor;

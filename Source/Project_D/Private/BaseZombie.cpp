@@ -11,6 +11,7 @@
 #include "TraceChannelHelper.h"
 #include "VaultGameModeBase.h"
 #include "ZombieTriggerParam.h"
+#include "Animation/ZombieAnimInstance.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -26,8 +27,6 @@ ABaseZombie::ABaseZombie()
 
 	GetCharacterMovement()->Mass = 75.f;
 	GetCharacterMovement()->MaxWalkSpeed = 100.f;
-
-	// GetMesh()->GetAnimInstance()->
 
 	GetMesh()->SetRelativeLocation(FVector(0, 0, -90));
 	GetMesh()->SetRelativeRotation(FRotator(0, -90, 0));
@@ -77,6 +76,7 @@ void ABaseZombie::BeginPlay()
 {
 	Super::BeginPlay();
 
+	AnimationInstance = Cast<UZombieAnimInstance>(GetMesh()->GetAnimInstance());
 	AI = Cast<AZombieAIController>(GetController());
 
 	SetupInternal();
@@ -86,12 +86,6 @@ void ABaseZombie::BeginPlay()
 	FSM->RegisterComponent();
 
 	FSM->ChangeState(EEnemyState::IDLE, this);
-
-	// Pathfinding = NewObject<UPathfindingComponent>(this);
-	// AddOwnedComponent(Pathfinding);
-	// Pathfinding->RegisterComponent();
-	//
-	// Pathfinding->Initialize();
 
 	GetCapsuleComponent()->OnComponentHit.AddDynamic(this, &ABaseZombie::OnCollisionHit);
 
@@ -135,8 +129,18 @@ void ABaseZombie::Tick(float DeltaTime)
 						   {
 						   		if (HitActor->IsA<AProject_DCharacter>() || HitActor->IsA<APlayerCharacter>())
 						   		{
-						   			//DetectedTarget = HitActor;
-						   			AI->SetTarget(HitActor);
+						   			double Distance = FVector::Distance(HitActor->GetActorLocation(), GetActorLocation());
+						   			
+									AI->SetTarget(HitActor);
+									if (Distance > AttackRadius)
+									{
+										FSM->ChangeState(EEnemyState::WALK, this);
+									}
+									else
+									{
+										// GameDebug::ShowDisplayLog(GetWorld(), FString::SanitizeFloat(Distance));
+										FSM->ChangeState(EEnemyState::ATTACK, this);
+									}
 						   			HitPlayer = true;
 						   			break;
 						   		}
@@ -144,21 +148,9 @@ void ABaseZombie::Tick(float DeltaTime)
 					}
 				}
 
-				if (HitPlayer)
+				if (!HitPlayer)
 				{
-					// double Distance = FVector::Distance(DetectedTarget->GetActorLocation(), GetActorLocation());
-					// if (Distance > AttackRadius)
-					// {
-					// 	FSM->ChangeState(EEnemyState::WALK, this);
-					// }
-					// else
-					// {
-					// 	// GameDebug::ShowDisplayLog(GetWorld(), FString::SanitizeFloat(Distance));
-					// 	FSM->ChangeState(EEnemyState::ATTACK, this);
-					// }
-				}
-				else
-				{
+					AI->SetTarget(nullptr);
 					FSM->ChangeState(EEnemyState::IDLE, this);
 				}
 			}
@@ -171,10 +163,7 @@ void ABaseZombie::OnTriggerAttack(bool Start)
 	IsAttacking = Start;
 	if (IsAttacking)
 	{
-		if (MontageMap.Contains("Attack"))
-		{
-			PlayAnimMontage(MontageMap["Attack"], 1.f, "Attack");
-		}
+		AnimationInstance->PlayMontage(AI, AnimState::Attack);
 		return;
 	}
 	FSM->ChangeState(EEnemyState::IDLE, this);
@@ -385,12 +374,8 @@ void ABaseZombie::OnTriggerEnter(AActor* OtherActor, ACollisionTriggerParam* Par
 			FSM->ChangeState(EEnemyState::DEATH, this);
 			return;
 		}
-		
-		if (MontageMap.Contains("Hit"))
-		{
-			PlayAnimMontage(MontageMap["Hit"], 1.5f, "Hit");
-		}
 
+		AnimationInstance->PlayMontage(AI, AnimState::Hit);
 	}
 }
 
@@ -404,42 +389,6 @@ void ABaseZombie::OnCollisionHit(UPrimitiveComponent* HitComponent, AActor* Othe
 		FSM->ChangeState(EEnemyState::DEATH, this);
 	}
 }
-
-// bool ABaseZombie::StartPathfinding()
-// {
-// 	if (Pathfinding->bIsSetupPathFinding)
-// 	{
-// 		Pathfinding->bIsSetupPathFinding = Pathfinding->MoveNextField(Pathfinding->GetPlacedPathField());
-// 		Pathfinding->InitializePathFinding();
-// 	}
-// 	else
-// 	{
-// 		Pathfinding->FromLocation = GetActorLocation();
-// 	}
-//
-// 	return Pathfinding->bIsSetupPathFinding;
-// }
-//
-// float ABaseZombie::PlayPathfinding(float Progress)
-// {
-// 	if (Progress >= 1.f)
-// 	{
-// 		Pathfinding->MoveNextField(Pathfinding->ToPathField);
-// 		Progress -= 1.f;
-// 		Pathfinding->PrepareNextPathFinding();
-// 	}
-//
-// 	FVector Lerp = FMath::Lerp(Pathfinding->FromLocation, Pathfinding->ToLocation, Progress);
-// 	SetActorLocation(Lerp);
-//
-// 	if (Pathfinding->PathDirectionChange != EPathDirectionChange::None)
-// 	{
-// 		float Angle = FMath::Lerp(Pathfinding->DirectionAngleFrom, Pathfinding->DirectionAngleTo, Progress);
-// 		SetActorRelativeRotation(FRotator(0, Angle, 0));
-// 	}
-//
-// 	return Progress;
-// }
 
 void ABaseZombie::Rotate()
 {

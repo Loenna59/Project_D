@@ -11,13 +11,20 @@ void AZombieAIController::BeginPlay()
 void AZombieAIController::SetTarget(AActor* Target)
 {
 	TargetActor = Target;
-	MoveToTarget();
+	if (TargetActor)
+	{
+		MoveToTarget();
+	}
+	else
+	{
+		StopMovement();
+	}
 }
 
 void AZombieAIController::MoveToTarget()
 {
 	if (TargetActor)
 	{
-		MoveToActor(TargetActor, 5.f);
+		MoveToActor(TargetActor, 100.f);
 	}
 }

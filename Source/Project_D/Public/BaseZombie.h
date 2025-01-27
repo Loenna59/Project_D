@@ -55,14 +55,8 @@ public:
 	UPROPERTY(EditAnywhere)
 	AActor* Attacker;
 
-	// UPROPERTY(EditAnywhere)
-	// AActor* DetectedTarget;
-
 	UPROPERTY(EditAnywhere)
 	class UZombieFSMComponent* FSM;
-
-	// UPROPERTY(EditAnywhere)
-	// class UPathfindingComponent* Pathfinding;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float DetectRadius = 1000.f;
@@ -74,9 +68,6 @@ public:
 	bool IsAttacking = false; 
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TMap<FName, class UAnimMontage*> MontageMap;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 CurrentHp;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -85,7 +76,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float WalkSpeed = 100.f;
 
-	UPROPERTY()
+	UPROPERTY(EditAnywhere)
 	class UZombieAnimInstance* AnimationInstance;
 
 	UPROPERTY()
@@ -102,10 +93,6 @@ public:
 
 	UFUNCTION()
 	virtual void OnCollisionHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
-
-	// virtual bool StartPathfinding();
-	//
-	// virtual float PlayPathfinding(float Progress);
 
 	virtual void Rotate();
 

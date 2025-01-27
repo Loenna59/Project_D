@@ -33,10 +33,7 @@ void UAttackZombieState::OnEnter(ABaseZombie* Zombie)
 
 void UAttackZombieState::OnUpdate(ABaseZombie* Zombie)
 {
-	if (Zombie)
-	{	
-		Zombie->Rotate();
-	}
+	
 }
 
 void UAttackZombieState::OnExit(ABaseZombie* Zombie)

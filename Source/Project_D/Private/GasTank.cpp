@@ -8,8 +8,10 @@
 #include "PlayerCharacter.h"
 #include "TraceChannelHelper.h"
 #include "VaultGameModeBase.h"
+#include "Animation/ZombieAnimInstance.h"
 #include "Components/BoxComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "Pathfinding/ZombieAIController.h"
 #include "PhysicsEngine/RadialForceActor.h"
 
 
@@ -166,10 +168,7 @@ void AGasTank::OnTriggerAttack(bool Start)
 			false
 		);
 		
-		if (MontageMap.Contains("Attack"))
-		{
-			PlayAnimMontage(MontageMap["Attack"], 1.f, "Attack");
-		}
+		AnimationInstance->PlayMontage(AI, AnimState::Attack);
 		
 		return;
 	}
