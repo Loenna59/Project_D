@@ -27,6 +27,21 @@ public:
 	ABiter();
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	class USkeletalMeshComponent* Head;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	class USkeletalMeshComponent* LeftArm;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	class USkeletalMeshComponent* RightArm;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	class USkeletalMeshComponent* LeftLeg;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	class USkeletalMeshComponent* RightLeg;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class UBoxComponent* AttackPoint;
 
 	virtual void OnTriggerAttack(bool Start) override;

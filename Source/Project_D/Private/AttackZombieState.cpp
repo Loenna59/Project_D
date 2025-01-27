@@ -15,7 +15,7 @@ void UAttackZombieState::OnEnter(ABaseZombie* Zombie)
 		TimerHandle.Invalidate();
 	}
 	
-	if (Zombie && Zombie->DetectedTarget)
+	if (Zombie)
 	{
 		// UKismetSystemLibrary::PrintString(GetWorld(),TEXT("ATTACK"));
 		GetWorld()->GetTimerManager().SetTimer(

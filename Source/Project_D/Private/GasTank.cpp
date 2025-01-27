@@ -20,7 +20,7 @@ AGasTank::AGasTank()
 	AttackPoint = CreateDefaultSubobject<UBoxComponent>(TEXT("AttackPoint"));
 	AttackPoint->SetupAttachment(GetMesh());
 	
-	if (AttackPoint && GetMesh()->DoesSocketExist(TEXT("AttackSocket")))
+	if (GetMesh()->DoesSocketExist(TEXT("AttackSocket")))
 	{
 		AttackPoint->SetupAttachment(
 			GetMesh(),
@@ -33,7 +33,17 @@ AGasTank::AGasTank()
 
 	GasCylinder = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("GasCylinder"));
 	GasCylinder->SetupAttachment(GetMesh());
+
+	if (GetMesh()->DoesSocketExist(TEXT("Attachment")))
+	{
+		GasCylinder->SetupAttachment(
+			GetMesh(),
+			TEXT("Attachment")
+		);		
+	}
+	
 	GasCylinder->SetCollisionProfileName("Enemy");
+	GasCylinder->SetGenerateOverlapEvents(true);
 	
 	SetActiveAttackCollision(false);
 }

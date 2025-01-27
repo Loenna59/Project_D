@@ -11,19 +11,6 @@ APathFindingBoard::APathFindingBoard()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-
-	Fields.SetNum(BoardSize.X * BoardSize.Y);
-
-	for (int32 i = 0, y = 0; y < BoardSize.Y; y++)
-	{
-		for (int32 x = 0; x < BoardSize.X; x++, i++)
-		{
-			UPathVector* Field = CreateDefaultSubobject<UPathVector>(FName(FString::Printf(TEXT("PathVector %d"), i)));
-			Field->Location = (GetActorLocation() + FVector(x * FieldSize, y * FieldSize, 88.f));
-			Field->ClearPath();
-			Fields[i] = Field;
-		}
-	}
 }
 
 // Called when the game starts or when spawned
@@ -33,14 +20,15 @@ void APathFindingBoard::BeginPlay()
 
 	DestinationActor = GetWorld()->GetFirstPlayerController()->GetPawn();
 
+	Fields.SetNum(BoardSize.X * BoardSize.Y);
+
 	for (int32 i = 0, y = 0; y < BoardSize.Y; y++)
 	{
 		for (int32 x = 0; x < BoardSize.X; x++, i++)
 		{
-			// UPathVector* Field = NewObject<UPathVector>();
-			UPathVector* Field = Fields[i];
+			UPathVector* Field = NewObject<UPathVector>();
 
-			Field->Location = (GetActorLocation() + FVector(x * FieldSize, y * FieldSize, 0));
+			Field->Location = (GetActorLocation() + FVector(x * FieldSize, y * FieldSize, 88.f));
 
 			FVector Start = Field->Location;
 			FVector End = Field->Location - FVector(0, 0, 10000);
@@ -101,7 +89,7 @@ void APathFindingBoard::BeginPlay()
 				Field->SetIsAlternative(!Field->GetIsAlternative());
 			}
 
-			// Fields[i] = Field;
+			Fields[i] = Field;
 		}
 	}
 

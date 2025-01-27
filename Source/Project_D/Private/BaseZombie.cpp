@@ -15,7 +15,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
-#include "Pathfinding/PathfindingComponent.h"
+#include "Pathfinding/ZombieAIController.h"
 #include "Project_D/Project_DCharacter.h"
 
 // Sets default values
@@ -37,6 +37,9 @@ ABaseZombie::ABaseZombie()
 	GetMesh()->SetCollisionObjectType(ECC_PhysicsBody);
 	GetMesh()->SetCollisionResponseToAllChannels(ECR_Block);
 	GetMesh()->SetCollisionResponseToChannel(ECC_GameTraceChannel2, ECR_Ignore);
+
+	AIControllerClass = AZombieAIController::StaticClass();
+	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 }
 
 void ABaseZombie::SetupInternal()
@@ -74,6 +77,8 @@ void ABaseZombie::BeginPlay()
 {
 	Super::BeginPlay();
 
+	AI = Cast<AZombieAIController>(GetController());
+
 	SetupInternal();
 
 	FSM = NewObject<UZombieFSMComponent>(this);
@@ -82,11 +87,11 @@ void ABaseZombie::BeginPlay()
 
 	FSM->ChangeState(EEnemyState::IDLE, this);
 
-	Pathfinding = NewObject<UPathfindingComponent>(this);
-	AddOwnedComponent(Pathfinding);
-	Pathfinding->RegisterComponent();
-
-	Pathfinding->Initialize();
+	// Pathfinding = NewObject<UPathfindingComponent>(this);
+	// AddOwnedComponent(Pathfinding);
+	// Pathfinding->RegisterComponent();
+	//
+	// Pathfinding->Initialize();
 
 	GetCapsuleComponent()->OnComponentHit.AddDynamic(this, &ABaseZombie::OnCollisionHit);
 
@@ -130,9 +135,10 @@ void ABaseZombie::Tick(float DeltaTime)
 						   {
 						   		if (HitActor->IsA<AProject_DCharacter>() || HitActor->IsA<APlayerCharacter>())
 						   		{
-						   			DetectedTarget = HitActor;
-									   HitPlayer = true;
-									   break;
+						   			//DetectedTarget = HitActor;
+						   			AI->SetTarget(HitActor);
+						   			HitPlayer = true;
+						   			break;
 						   		}
 						   }
 					}
@@ -140,16 +146,16 @@ void ABaseZombie::Tick(float DeltaTime)
 
 				if (HitPlayer)
 				{
-					double Distance = FVector::Distance(DetectedTarget->GetActorLocation(), GetActorLocation());
-					if (Distance > AttackRadius)
-					{
-						FSM->ChangeState(EEnemyState::WALK, this);
-					}
-					else
-					{
-						// GameDebug::ShowDisplayLog(GetWorld(), FString::SanitizeFloat(Distance));
-						FSM->ChangeState(EEnemyState::ATTACK, this);
-					}
+					// double Distance = FVector::Distance(DetectedTarget->GetActorLocation(), GetActorLocation());
+					// if (Distance > AttackRadius)
+					// {
+					// 	FSM->ChangeState(EEnemyState::WALK, this);
+					// }
+					// else
+					// {
+					// 	// GameDebug::ShowDisplayLog(GetWorld(), FString::SanitizeFloat(Distance));
+					// 	FSM->ChangeState(EEnemyState::ATTACK, this);
+					// }
 				}
 				else
 				{
@@ -399,60 +405,60 @@ void ABaseZombie::OnCollisionHit(UPrimitiveComponent* HitComponent, AActor* Othe
 	}
 }
 
-bool ABaseZombie::StartPathfinding()
-{
-	if (Pathfinding->bIsSetupPathFinding)
-	{
-		Pathfinding->bIsSetupPathFinding = Pathfinding->MoveNextField(Pathfinding->GetPlacedPathField());
-		Pathfinding->InitializePathFinding();
-	}
-	else
-	{
-		Pathfinding->FromLocation = GetActorLocation();
-	}
-
-	return Pathfinding->bIsSetupPathFinding;
-}
-
-float ABaseZombie::PlayPathfinding(float Progress)
-{
-	if (Progress >= 1.f)
-	{
-		Pathfinding->MoveNextField(Pathfinding->ToPathField);
-		Progress -= 1.f;
-		Pathfinding->PrepareNextPathFinding();
-	}
-
-	FVector Lerp = FMath::Lerp(Pathfinding->FromLocation, Pathfinding->ToLocation, Progress);
-	SetActorLocation(Lerp);
-
-	if (Pathfinding->PathDirectionChange != EPathDirectionChange::None)
-	{
-		float Angle = FMath::Lerp(Pathfinding->DirectionAngleFrom, Pathfinding->DirectionAngleTo, Progress);
-		SetActorRelativeRotation(FRotator(0, Angle, 0));
-	}
-
-	return Progress;
-}
+// bool ABaseZombie::StartPathfinding()
+// {
+// 	if (Pathfinding->bIsSetupPathFinding)
+// 	{
+// 		Pathfinding->bIsSetupPathFinding = Pathfinding->MoveNextField(Pathfinding->GetPlacedPathField());
+// 		Pathfinding->InitializePathFinding();
+// 	}
+// 	else
+// 	{
+// 		Pathfinding->FromLocation = GetActorLocation();
+// 	}
+//
+// 	return Pathfinding->bIsSetupPathFinding;
+// }
+//
+// float ABaseZombie::PlayPathfinding(float Progress)
+// {
+// 	if (Progress >= 1.f)
+// 	{
+// 		Pathfinding->MoveNextField(Pathfinding->ToPathField);
+// 		Progress -= 1.f;
+// 		Pathfinding->PrepareNextPathFinding();
+// 	}
+//
+// 	FVector Lerp = FMath::Lerp(Pathfinding->FromLocation, Pathfinding->ToLocation, Progress);
+// 	SetActorLocation(Lerp);
+//
+// 	if (Pathfinding->PathDirectionChange != EPathDirectionChange::None)
+// 	{
+// 		float Angle = FMath::Lerp(Pathfinding->DirectionAngleFrom, Pathfinding->DirectionAngleTo, Progress);
+// 		SetActorRelativeRotation(FRotator(0, Angle, 0));
+// 	}
+//
+// 	return Progress;
+// }
 
 void ABaseZombie::Rotate()
 {
-	if (DetectedTarget)
-	{
-		FVector Distance = DetectedTarget->GetActorLocation() - GetActorLocation();
-		FVector Direction = Distance.GetSafeNormal();
-
-		FRotator LookAtRotation = FRotationMatrix::MakeFromX(Direction).Rotator();
-
-		// 현재 회전과 목표 회전을 선형 보간 (LERP)
-		FRotator SmoothedRotation = UKismetMathLibrary::RLerp(
-			GetActorRotation(),  // 현재 회전
-			LookAtRotation,              // 목표 회전
-			GetWorld()->GetDeltaSeconds(), // 보간 속도
-			true                          // 짧은 쪽 경로 선택
-		);
-		
-		SetActorRelativeRotation(SmoothedRotation);
-		Pathfinding->DirectionAngleFrom = LookAtRotation.Yaw;
-	}
+	// if (DetectedTarget)
+	// {
+	// 	FVector Distance = DetectedTarget->GetActorLocation() - GetActorLocation();
+	// 	FVector Direction = Distance.GetSafeNormal();
+	//
+	// 	FRotator LookAtRotation = FRotationMatrix::MakeFromX(Direction).Rotator();
+	//
+	// 	// 현재 회전과 목표 회전을 선형 보간 (LERP)
+	// 	FRotator SmoothedRotation = UKismetMathLibrary::RLerp(
+	// 		GetActorRotation(),  // 현재 회전
+	// 		LookAtRotation,              // 목표 회전
+	// 		GetWorld()->GetDeltaSeconds(), // 보간 속도
+	// 		true                          // 짧은 쪽 경로 선택
+	// 	);
+	// 	
+	// 	SetActorRelativeRotation(SmoothedRotation);
+	// 	// Pathfinding->DirectionAngleFrom = LookAtRotation.Yaw;
+	// }
 }

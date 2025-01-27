@@ -3,10 +3,11 @@
 
 #include "Biter.h"
 
-#include "GameDebug.h"
 #include "PlayerCharacter.h"
 #include "TraceChannelHelper.h"
+#include "Animation/ZombieAnimInstance.h"
 #include "Components/BoxComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 // void ABiter::SetupInternal()
 // {
@@ -60,6 +61,24 @@ ABiter::ABiter()
 {
 	PrimaryActorTick.bStartWithTickEnabled = true;
 
+	Head = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Head"));
+	LeftArm = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("LeftArm"));
+	RightArm = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("RightArm"));
+	LeftLeg = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("LeftLeg"));
+	RightLeg = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("RightLeg"));
+	
+	Head->SetupAttachment(GetMesh());
+	LeftArm->SetupAttachment(GetMesh());
+	RightArm->SetupAttachment(GetMesh());
+	LeftLeg->SetupAttachment(GetMesh());
+	RightLeg->SetupAttachment(GetMesh());
+
+	Head->SetLeaderPoseComponent(GetMesh());
+	LeftArm->SetLeaderPoseComponent(GetMesh());
+	RightArm->SetLeaderPoseComponent(GetMesh());
+	LeftLeg->SetLeaderPoseComponent(GetMesh());
+	RightLeg->SetLeaderPoseComponent(GetMesh());
+
 	AttackPoint = CreateDefaultSubobject<UBoxComponent>(TEXT("AttackPoint"));
 	AttackPoint->SetupAttachment(GetMesh());
 	
@@ -74,17 +93,16 @@ ABiter::ABiter()
 	AttackPoint->SetBoxExtent(FVector(50, 50, 50));
 	AttackPoint->SetCollisionProfileName(TEXT("EnemyAttack"));
 	AttackPoint->SetGenerateOverlapEvents(true);
-
 	
 	SetActiveAttackCollision(false);
-
 }
 
 void ABiter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// AttackPoint->OnComponentBeginOverlap.AddDynamic(this, &ABiter::OnOverlappedAttackPoint);
+	GetCharacterMovement()->MaxWalkSpeed = 100.f;
+	AnimationInstance = Cast<UZombieAnimInstance>(GetMesh()->GetAnimInstance());
 }
 
 void ABiter::OnTriggerAttack(bool Start)
