@@ -17,12 +17,25 @@ class PROJECT_D_API AGasTank : public ABaseZombie
 
 public:
 	AGasTank();
-
 	virtual void BeginPlay() override;
+
+	static void SetCollisionPartMesh(USkeletalMeshComponent* Part);
 	
 	virtual void Tick(float DeltaSeconds) override;
 
 	virtual void OnDead() override;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	class USkeletalMeshComponent* LeftArm;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	class USkeletalMeshComponent* RightArm;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	class USkeletalMeshComponent* LeftLeg;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	class USkeletalMeshComponent* RightLeg;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class UStaticMeshComponent* GasCylinder;

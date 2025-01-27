@@ -19,6 +19,26 @@ AGasTank::AGasTank()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
+	LeftArm = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("LeftArm"));
+	RightArm = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("RightArm"));
+	LeftLeg = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("LeftLeg"));
+	RightLeg = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("RightLeg"));
+	
+	LeftArm->SetupAttachment(GetMesh());
+	RightArm->SetupAttachment(GetMesh());
+	LeftLeg->SetupAttachment(GetMesh());
+	RightLeg->SetupAttachment(GetMesh());
+
+	LeftArm->SetLeaderPoseComponent(GetMesh());
+	RightArm->SetLeaderPoseComponent(GetMesh());
+	LeftLeg->SetLeaderPoseComponent(GetMesh());
+	RightLeg->SetLeaderPoseComponent(GetMesh());
+
+	SetCollisionPartMesh(LeftArm);
+	SetCollisionPartMesh(RightArm);
+	SetCollisionPartMesh(LeftLeg);
+	SetCollisionPartMesh(RightLeg);
+
 	AttackPoint = CreateDefaultSubobject<UBoxComponent>(TEXT("AttackPoint"));
 	AttackPoint->SetupAttachment(GetMesh());
 	
@@ -36,11 +56,11 @@ AGasTank::AGasTank()
 	GasCylinder = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("GasCylinder"));
 	GasCylinder->SetupAttachment(GetMesh());
 
-	if (GetMesh()->DoesSocketExist(TEXT("Attachment")))
+	if (GetMesh()->DoesSocketExist(TEXT("CylinderSocket")))
 	{
 		GasCylinder->SetupAttachment(
 			GetMesh(),
-			TEXT("Attachment")
+			TEXT("CylinderSocket")
 		);		
 	}
 	
@@ -48,6 +68,14 @@ AGasTank::AGasTank()
 	GasCylinder->SetGenerateOverlapEvents(true);
 	
 	SetActiveAttackCollision(false);
+}
+
+void AGasTank::SetCollisionPartMesh(USkeletalMeshComponent* Part)
+{
+	Part->SetCollisionEnabled(ECollisionEnabled::Type::QueryAndPhysics);
+	Part->SetCollisionObjectType(ECC_PhysicsBody);
+	Part->SetCollisionResponseToAllChannels(ECR_Block);
+	Part->SetCollisionResponseToChannel(ECC_GameTraceChannel2, ECR_Ignore);
 }
 
 void AGasTank::BeginPlay()

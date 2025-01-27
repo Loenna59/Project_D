@@ -23,6 +23,8 @@ class PROJECT_D_API ABiter : public ABaseZombie
 
 	virtual void BeginPlay() override;
 
+	static void SetCollisionPartMesh(USkeletalMeshComponent* Part);
+
 public:
 	ABiter();
 

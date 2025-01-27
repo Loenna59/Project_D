@@ -37,8 +37,8 @@ void UZombieAnimInstance::PlayMontage(AAIController* AIController, AnimState Mon
 
 void UZombieAnimInstance::OnMontageEnded(UAnimMontage* Montage, bool bInterrupted)
 {
-	// FString Str = FString::Printf(TEXT("%s [%d]"), *Montage->GetName(), bInterrupted);
-	// GameDebug::ShowDisplayLog(GetWorld(), Str, FColor::Cyan, true);
+	FString Str = FString::Printf(TEXT("%s [%d]"), *Montage->GetName(), bInterrupted);
+	GameDebug::ShowDisplayLog(GetWorld(), Str, FColor::Cyan, true);
 	bMontagePlaying = false;
 	CurrentMontage = nullptr;
 	CurrentState = AnimState::None;

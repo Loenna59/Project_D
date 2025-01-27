@@ -80,6 +80,12 @@ ABiter::ABiter()
 	LeftLeg->SetLeaderPoseComponent(GetMesh());
 	RightLeg->SetLeaderPoseComponent(GetMesh());
 
+	SetCollisionPartMesh(Head);
+	SetCollisionPartMesh(LeftArm);
+	SetCollisionPartMesh(RightArm);
+	SetCollisionPartMesh(LeftLeg);
+	SetCollisionPartMesh(RightLeg);
+
 	AttackPoint = CreateDefaultSubobject<UBoxComponent>(TEXT("AttackPoint"));
 	AttackPoint->SetupAttachment(GetMesh());
 	
@@ -96,6 +102,14 @@ ABiter::ABiter()
 	AttackPoint->SetGenerateOverlapEvents(true);
 	
 	SetActiveAttackCollision(false);
+}
+
+void ABiter::SetCollisionPartMesh(USkeletalMeshComponent* Part)
+{
+	Part->SetCollisionEnabled(ECollisionEnabled::Type::QueryAndPhysics);
+	Part->SetCollisionObjectType(ECC_PhysicsBody);
+	Part->SetCollisionResponseToAllChannels(ECR_Block);
+	Part->SetCollisionResponseToChannel(ECC_GameTraceChannel2, ECR_Ignore);
 }
 
 void ABiter::BeginPlay()
