@@ -12,6 +12,7 @@
 #include "VaultGameModeBase.h"
 #include "ZombieTriggerParam.h"
 #include "Animation/ZombieAnimInstance.h"
+#include "Components/BoxComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -67,12 +68,11 @@ void ABaseZombie::BeginPlay()
 
 void ABaseZombie::SetCollisionPartMesh(USkeletalMeshComponent* Part)
 {
-	Part->SetCollisionProfileName("Ragdoll");
-	// Part->SetCollisionEnabled(ECollisionEnabled::Type::QueryAndPhysics);
-	// Part->SetCollisionObjectType(ECC_PhysicsBody);
-	// Part->SetCollisionResponseToAllChannels(ECR_Block);
-	// Part->SetCollisionResponseToChannel(ECC_GameTraceChannel2, ECR_Ignore);
-	// Part->SetCollisionResponseToChannel(ECC_PhysicsBody, ECR_Ignore);
+	Part->SetCollisionEnabled(ECollisionEnabled::Type::QueryAndPhysics);
+	Part->SetCollisionObjectType(ECC_PhysicsBody);
+	Part->SetCollisionResponseToAllChannels(ECR_Block);
+	Part->SetCollisionResponseToChannel(ECC_GameTraceChannel2, ECR_Ignore);
+	Part->SetCollisionResponseToChannel(ECC_PhysicsBody, ECR_Ignore);
 }
 
 // Called every frame
@@ -82,7 +82,7 @@ void ABaseZombie::Tick(float DeltaTime)
 	
 	if (UWorld* const World = GetWorld())
 	{
-		if (IsAttacking)
+		if (bIsAttacking)
 		{
 			return;
 		}
@@ -140,12 +140,53 @@ void ABaseZombie::Tick(float DeltaTime)
 
 void ABaseZombie::OnTriggerAttack(bool Start)
 {
-	IsAttacking = Start;
-	if (IsAttacking)
+	bIsAttacking = Start;
+	if (bIsAttacking && AttackPoint)
 	{
+		if (AttackTimerHandle.IsValid())
+		{
+			GetWorld()->GetTimerManager().ClearTimer(AttackTimerHandle);
+		}
+		
+		GetWorld()->GetTimerManager().SetTimer(
+			AttackTimerHandle,
+			[this]
+			{
+				TraceChannelHelper::SphereTraceByChannel(
+					GetWorld(),
+					this,
+					AttackPoint->GetComponentLocation(),
+					AttackPoint->GetComponentLocation(),
+					FRotator::ZeroRotator,
+					ECC_Visibility,
+					70,
+					true,
+					true,
+					[this] (bool bHit, TArray<FHitResult> HitResults)
+					{
+						for (FHitResult HitResult : HitResults)
+						{
+							if (AActor* Actor = HitResult.GetActor())
+							{
+								if (APlayerCharacter* P = Cast<APlayerCharacter>(Actor))
+								{
+									// GameDebug::ShowDisplayLog(GetWorld(), "ATTACK");
+									P->OnDamaged(10);
+								}
+							}
+						}
+					}
+				);
+				//SetActiveAttackCollision(true);
+			},
+			AttackTiming,
+			false
+		);
+
 		AnimationInstance->PlayMontage(AI, AnimState::Attack);
 		return;
 	}
+	
 	FSM->ChangeState(EEnemyState::IDLE, this);
 }
 
@@ -272,11 +313,6 @@ void ABaseZombie::OnDead()
 	{
 		MeshComponent->SetSimulatePhysics(true);
 		// MeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	}
-
-	for (auto Pair : PartMeshes)
-	{
-		Pair.Value->SetSimulatePhysics(true);
 	}
 
 	if (AVaultGameModeBase* VaultGameModeBase = Cast<AVaultGameModeBase>(GetWorld()->GetAuthGameMode()))

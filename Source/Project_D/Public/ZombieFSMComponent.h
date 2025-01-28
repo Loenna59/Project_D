@@ -5,9 +5,9 @@
 #include "CoreMinimal.h"
 #include "EEnemyState.h"
 #include "AttackZombieState.h"
-#include "ClawingZombieState.h"
 #include "IdleZombieState.h"
 #include "WalkZombieState.h"
+#include "DeathZombieState.h"
 #include "Components/ActorComponent.h"
 #include "ZombieFSMComponent.generated.h"
 
@@ -29,12 +29,11 @@ protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
-	void SetupState(ABaseZombie* Zombie);
+	virtual void SetupState(ABaseZombie* Zombie);
 
 	UPROPERTY()
 	EEnemyState CurrentState = EEnemyState::NONE;
-
-protected:
+	
 	UPROPERTY()
 	TMap<EEnemyState, TScriptInterface<IZombieState>> StateMap;
 

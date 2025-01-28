@@ -66,58 +66,6 @@ void ABiter::BeginPlay()
 	}
 }
 
-void ABiter::OnTriggerAttack(bool Start)
-{
-	IsAttacking = Start;
-	if (IsAttacking)
-	{
-		if (AttackTimerHandle.IsValid())
-		{
-			GetWorld()->GetTimerManager().ClearTimer(AttackTimerHandle);
-		}
-		
-		GetWorld()->GetTimerManager().SetTimer(
-			AttackTimerHandle,
-			[this]
-			{
-				TraceChannelHelper::SphereTraceByChannel(
-					GetWorld(),
-					this,
-					AttackPoint->GetComponentLocation(),
-					AttackPoint->GetComponentLocation(),
-					FRotator::ZeroRotator,
-					ECC_Visibility,
-					70,
-					true,
-					true,
-					[this] (bool bHit, TArray<FHitResult> HitResults)
-					{
-						for (FHitResult HitResult : HitResults)
-						{
-							if (AActor* Actor = HitResult.GetActor())
-							{
-								if (APlayerCharacter* P = Cast<APlayerCharacter>(Actor))
-								{
-									// GameDebug::ShowDisplayLog(GetWorld(), "ATTACK");
-									P->OnDamaged(10);
-								}
-							}
-						}
-					}
-				);
-				//SetActiveAttackCollision(true);
-			},
-			AttackTiming,
-			false
-		);
-
-		AnimationInstance->PlayMontage(AI, AnimState::Attack);
-		return;
-	}
-	// SetActiveAttackCollision(false);
-	FSM->ChangeState(EEnemyState::IDLE, this);
-}
-
 void ABiter::SetActiveAttackCollision(bool Active) const
 {
 	AttackPoint->SetVisibility(Active);

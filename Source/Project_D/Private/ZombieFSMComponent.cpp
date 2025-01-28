@@ -3,10 +3,6 @@
 
 #include "ZombieFSMComponent.h"
 
-#include "DeathZombieState.h"
-#include "Kismet/KismetSystemLibrary.h"
-
-
 // Sets default values for this component's properties
 UZombieFSMComponent::UZombieFSMComponent()
 {
@@ -32,7 +28,6 @@ void UZombieFSMComponent::SetupState(ABaseZombie* Zombie)
 	StateMap.Add(EEnemyState::IDLE, NewObject<UIdleZombieState>(this));
 	StateMap.Add(EEnemyState::WALK, NewObject<UWalkZombieState>(this));
 	StateMap.Add(EEnemyState::ATTACK, NewObject<UAttackZombieState>(this));
-	StateMap.Add(EEnemyState::CLAWING, NewObject<UClawingZombieState>(this));
 	StateMap.Add(EEnemyState::DEATH, NewObject<UDeathZombieState>(this));
 }
 

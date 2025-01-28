@@ -18,6 +18,8 @@ void UAttackZombieState::OnEnter(ABaseZombie* Zombie)
 	if (Zombie)
 	{
 		// UKismetSystemLibrary::PrintString(GetWorld(),TEXT("ATTACK"));
+		Zombie->OnTriggerAttack(true);
+		
 		GetWorld()->GetTimerManager().SetTimer(
 			TimerHandle,
 			[Zombie] ()
@@ -27,7 +29,6 @@ void UAttackZombieState::OnEnter(ABaseZombie* Zombie)
 			Interval,
 			false
 		);
-		Zombie->OnTriggerAttack(true);
 	}
 }
 

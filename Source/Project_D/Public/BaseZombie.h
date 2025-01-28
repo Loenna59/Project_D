@@ -5,7 +5,6 @@
 #include "CoreMinimal.h"
 #include "CollisionTrigger.h"
 #include "EBodyPart.h"
-#include "EPathDirectionChange.h"
 #include "ZombieFSMComponent.h"
 #include "GameFramework/Character.h"
 #include "BaseZombie.generated.h"
@@ -56,10 +55,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float AttackRadius = 200.f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	bool IsAttacking = false; 
+	UPROPERTY(EditAnywhere)
+	bool bIsAttacking = false; 
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere)
 	int32 CurrentHp;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -78,7 +77,14 @@ public:
 	class AZombieAIController* AI;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	class UBoxComponent* AttackPoint;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TMap<EBodyPart, TObjectPtr<USkeletalMeshComponent>> PartMeshes;
+
+	FTimerHandle AttackTimerHandle;
+	
+	float AttackTiming = 0.75f;
 	
 	virtual bool ContainsBrokenBones(TArray<FName> BoneNames);
 
