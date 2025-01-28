@@ -18,8 +18,6 @@ class PROJECT_D_API AGasTank : public ABaseZombie
 public:
 	AGasTank();
 	virtual void BeginPlay() override;
-
-	static void SetCollisionPartMesh(USkeletalMeshComponent* Part);
 	
 	virtual void Tick(float DeltaSeconds) override;
 

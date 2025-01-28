@@ -10,54 +10,6 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Pathfinding/ZombieAIController.h"
 
-// void ABiter::SetupInternal()
-// {
-// 	HeadBone = "Head";
-//
-// 	RightHandBone = "RightHand";
-// 	LeftHandBone = "LeftHand";
-//
-// 	BoneDurability.Add(HeadBone, 15);
-// 	BoneDurability.Add(FName("Spine1"), 20);
-// 	BoneDurability.Add(FName("LeftForeArm"), 15);
-// 	BoneDurability.Add(FName("LeftArm"), 15);
-// 	BoneDurability.Add(FName("RightArm"), 10);
-// 	BoneDurability.Add(FName("RightForeArm"), 10);
-// 	BoneDurability.Add(RightHandBone, 5);
-// 	BoneDurability.Add(LeftHandBone, 5);
-// 	BoneDurability.Add(FName("LeftUpLeg"), 15);
-// 	BoneDurability.Add(FName("LeftLeg"), 15);
-// 	BoneDurability.Add(FName("LeftFoot"), 10);
-// 	BoneDurability.Add(FName("RightUpLeg"), 10);
-// 	BoneDurability.Add(FName("RightLeg"), 5);
-// 	BoneDurability.Add(FName("RightFoot"), 5);
-//
-// 	BoneArray_R = {"LeftForeArm", "LeftArm", LeftHandBone};
-// 	BoneArray_L = {"RightForeArm", "RightArm", RightHandBone};
-// }
-//
-// FName ABiter::RenameBoneName(const FName& HitBoneName)
-// {
-// 	if (HitBoneName == FName("Spine") || HitBoneName == FName("Spine2"))
-// 	{
-// 		return FName("Spine1");
-// 	}
-//
-// 	return HitBoneName;
-// }
-//
-// bool ABiter::IsPhysicsBone(const FName& HitBoneName)
-// {
-// 	return HitBoneName == HeadBone ||
-// 		HitBoneName == FName("Spine1") ||
-// 		HitBoneName == FName("LeftUpLeg") ||
-// 		HitBoneName == FName("LeftLeg") ||
-// 		HitBoneName == FName("LeftFoot") ||
-// 		HitBoneName == FName("RightUpLeg") ||
-// 		HitBoneName == FName("RightLeg") ||
-// 		HitBoneName == FName("RightFoot");
-// }
-
 ABiter::ABiter()
 {
 	PrimaryActorTick.bStartWithTickEnabled = true;
@@ -80,22 +32,14 @@ ABiter::ABiter()
 	LeftLeg->SetLeaderPoseComponent(GetMesh());
 	RightLeg->SetLeaderPoseComponent(GetMesh());
 
-	SetCollisionPartMesh(Head);
-	SetCollisionPartMesh(LeftArm);
-	SetCollisionPartMesh(RightArm);
-	SetCollisionPartMesh(LeftLeg);
-	SetCollisionPartMesh(RightLeg);
+	ABaseZombie::SetCollisionPartMesh(Head);
+	ABaseZombie::SetCollisionPartMesh(LeftArm);
+	ABaseZombie::SetCollisionPartMesh(RightArm);
+	ABaseZombie::SetCollisionPartMesh(LeftLeg);
+	ABaseZombie::SetCollisionPartMesh(RightLeg);
 
 	AttackPoint = CreateDefaultSubobject<UBoxComponent>(TEXT("AttackPoint"));
 	AttackPoint->SetupAttachment(GetMesh());
-	
-	if (AttackPoint && GetMesh()->DoesSocketExist(TEXT("AttackSocket")))
-    {
-    	AttackPoint->SetupAttachment(
-    		GetMesh(),
-    		TEXT("AttackSocket")
-    	);
-    }
 	
 	AttackPoint->SetBoxExtent(FVector(50, 50, 50));
 	AttackPoint->SetCollisionProfileName(TEXT("EnemyAttack"));
@@ -104,19 +48,22 @@ ABiter::ABiter()
 	SetActiveAttackCollision(false);
 }
 
-void ABiter::SetCollisionPartMesh(USkeletalMeshComponent* Part)
-{
-	Part->SetCollisionEnabled(ECollisionEnabled::Type::QueryAndPhysics);
-	Part->SetCollisionObjectType(ECC_PhysicsBody);
-	Part->SetCollisionResponseToAllChannels(ECR_Block);
-	Part->SetCollisionResponseToChannel(ECC_GameTraceChannel2, ECR_Ignore);
-}
-
 void ABiter::BeginPlay()
 {
 	Super::BeginPlay();
 
+	PartMeshes.Add(EBodyPart::Head, Head);
+	PartMeshes.Add(EBodyPart::LeftLeg, LeftLeg);
+	PartMeshes.Add(EBodyPart::RightLeg, RightLeg);
+	PartMeshes.Add(EBodyPart::LeftArm, LeftArm);
+	PartMeshes.Add(EBodyPart::RightArm, RightArm);
+
 	GetCharacterMovement()->MaxWalkSpeed = 100.f;
+
+	if (GetMesh()->DoesSocketExist(TEXT("AttackSocket")))
+	{
+		AttackPoint->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, TEXT("AttackSocket"));
+	}
 }
 
 void ABiter::OnTriggerAttack(bool Start)

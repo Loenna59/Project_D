@@ -34,35 +34,19 @@ AGasTank::AGasTank()
 	LeftLeg->SetLeaderPoseComponent(GetMesh());
 	RightLeg->SetLeaderPoseComponent(GetMesh());
 
-	SetCollisionPartMesh(LeftArm);
-	SetCollisionPartMesh(RightArm);
-	SetCollisionPartMesh(LeftLeg);
-	SetCollisionPartMesh(RightLeg);
+	ABaseZombie::SetCollisionPartMesh(LeftArm);
+	ABaseZombie::SetCollisionPartMesh(RightArm);
+	ABaseZombie::SetCollisionPartMesh(LeftLeg);
+	ABaseZombie::SetCollisionPartMesh(RightLeg);
 
 	AttackPoint = CreateDefaultSubobject<UBoxComponent>(TEXT("AttackPoint"));
 	AttackPoint->SetupAttachment(GetMesh());
-	
-	if (GetMesh()->DoesSocketExist(TEXT("AttackSocket")))
-	{
-		AttackPoint->SetupAttachment(
-			GetMesh(),
-			TEXT("AttackSocket")
-		);
-	}
 	
 	AttackPoint->SetCollisionProfileName(TEXT("EnemyAttack"));
 	AttackPoint->SetGenerateOverlapEvents(true);
 
 	GasCylinder = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("GasCylinder"));
 	GasCylinder->SetupAttachment(GetMesh());
-
-	if (GetMesh()->DoesSocketExist(TEXT("CylinderSocket")))
-	{
-		GasCylinder->SetupAttachment(
-			GetMesh(),
-			TEXT("CylinderSocket")
-		);		
-	}
 	
 	GasCylinder->SetCollisionProfileName("Enemy");
 	GasCylinder->SetGenerateOverlapEvents(true);
@@ -70,26 +54,33 @@ AGasTank::AGasTank()
 	SetActiveAttackCollision(false);
 }
 
-void AGasTank::SetCollisionPartMesh(USkeletalMeshComponent* Part)
-{
-	Part->SetCollisionEnabled(ECollisionEnabled::Type::QueryAndPhysics);
-	Part->SetCollisionObjectType(ECC_PhysicsBody);
-	Part->SetCollisionResponseToAllChannels(ECR_Block);
-	Part->SetCollisionResponseToChannel(ECC_GameTraceChannel2, ECR_Ignore);
-}
-
 void AGasTank::BeginPlay()
 {
 	Super::BeginPlay();
 
+	PartMeshes.Add(EBodyPart::LeftLeg, LeftLeg);
+	PartMeshes.Add(EBodyPart::RightLeg, RightLeg);
+	PartMeshes.Add(EBodyPart::LeftArm, LeftArm);
+	PartMeshes.Add(EBodyPart::RightArm, RightArm);
+
 	JetBalloonComponent = NewObject<UJetBalloonComponent>(this);
 	AddOwnedComponent(JetBalloonComponent);
 	JetBalloonComponent->RegisterComponent();
+	
+	if (GetMesh()->DoesSocketExist(TEXT("AttackSocket")))
+	{
+		AttackPoint->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, TEXT("AttackSocket"));
+	}
+
+	if (GetMesh()->DoesSocketExist(TEXT("CylinderSocket")))
+	{
+		GasCylinder->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, TEXT("CylinderSocket"));
+	}
 }
 
 void AGasTank::Tick(float DeltaSeconds)
 {
-	if (bIsExplosion)
+	if (FSM->GetCurrentState() == EEnemyState::DEATH && bIsExplosion)
 	{
 		JetBalloonComponent->StartSimulate(GetMesh());
 		DeadTime += DeltaSeconds;
@@ -121,34 +112,34 @@ void AGasTank::Tick(float DeltaSeconds)
 
 void AGasTank::OnDead()
 {
-	bIsExplosion = true;
-
 	if (AVaultGameModeBase* VaultGameModeBase = Cast<AVaultGameModeBase>(GetWorld()->GetAuthGameMode()))
 	{
 		VaultGameModeBase->DecreaseCount();
 	}
 	
-	// if (GasTankDurablity <= 0)
-	// {
-	// }
-	//
-	// Super::OnDead();
+	if (GasTankDurablity <= 0)
+	{
+		bIsExplosion = true;
+		return;
+	}
+	
+	Super::OnDead();
 }
 
 void AGasTank::OnTriggerEnter(AActor* OtherActor, ACollisionTriggerParam* Param)
 {
-	// if (GasTankDurablity > 0 && Param->HitResult.Component == GasCylinder)
-	// {
-	// 	GasTankDurablity -= 1;
-	// 	if (GasTankDurablity <= 0)
-	// 	{
-	// 		FSM->ChangeState(EEnemyState::DEATH, this);
-	// 	}
-	// }
-	// else
-	// {
+	if (GasTankDurablity > 0 && Param->HitResult.Component == GasCylinder)
+	{
+		GasTankDurablity -= 1;
+		if (GasTankDurablity <= 0)
+		{
+			FSM->ChangeState(EEnemyState::DEATH, this);
+		}
+	}
+	else
+	{
 		Super::OnTriggerEnter(OtherActor, Param);
-	// }
+	}
 }
 
 void AGasTank::OnTriggerAttack(bool Start)

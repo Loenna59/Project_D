@@ -22,8 +22,8 @@ void UClawingZombieState::OnEnter(ABaseZombie* Zombie)
 				{
 					if (UCapsuleComponent* const Collision = Zombie->GetCapsuleComponent())
 					{
-						FVector HeadLocation = MeshComponent->GetSocketLocation(Zombie->HeadBone);
-						Collision->SetWorldLocation(HeadLocation);
+						// FVector HeadLocation = MeshComponent->GetSocketLocation(Zombie->HeadBone);
+						// Collision->SetWorldLocation(HeadLocation);
 					}
 				}
 				
@@ -88,42 +88,42 @@ void UClawingZombieState::OnExit(ABaseZombie* Zombie)
 
 void UClawingZombieState::AddForceToBones(ABaseZombie* const Zombie)
 {
-	if (USkeletalMeshComponent* const MeshComponent = Zombie->GetMesh())
-	{
-		if (UCapsuleComponent* const Collision = Zombie->GetCapsuleComponent())
-		{
-			MeshComponent->SetSimulatePhysics(true);
-			
-			if (Zombie->Attacker)
-			{
-				MeshComponent->AddForce(
-					CalculateCrawlForce(Collision, Zombie->Attacker, 500.f, 3000.f),
-					Zombie->HeadBone,
-					true
-				);
-
-				if (Zombie->ContainsBrokenBones(Zombie->BoneArray_R))
-				{
-					if (!Zombie->ContainsBrokenBones(Zombie->BoneArray_L))
-					{
-						MeshComponent->AddForce(
-							CalculateCrawlForce(Collision, Zombie->Attacker, 1000.f, 1000.f),
-							Zombie->LeftHandBone,
-							true
-						);
-					}
-				}
-				else
-				{
-					MeshComponent->AddForce(
-						CalculateCrawlForce(Collision, Zombie-> Attacker, 1000.f, 1000.f),
-						Zombie->RightHandBone,
-						true
-					);
-				}
-			}
-		}
-	}
+	// if (USkeletalMeshComponent* const MeshComponent = Zombie->GetMesh())
+	// {
+	// 	if (UCapsuleComponent* const Collision = Zombie->GetCapsuleComponent())
+	// 	{
+	// 		MeshComponent->SetSimulatePhysics(true);
+	// 		
+	// 		if (Zombie->Attacker)
+	// 		{
+	// 			MeshComponent->AddForce(
+	// 				CalculateCrawlForce(Collision, Zombie->Attacker, 500.f, 3000.f),
+	// 				Zombie->HeadBone,
+	// 				true
+	// 			);
+	//
+	// 			if (Zombie->ContainsBrokenBones(Zombie->BoneArray_R))
+	// 			{
+	// 				if (!Zombie->ContainsBrokenBones(Zombie->BoneArray_L))
+	// 				{
+	// 					MeshComponent->AddForce(
+	// 						CalculateCrawlForce(Collision, Zombie->Attacker, 1000.f, 1000.f),
+	// 						Zombie->LeftHandBone,
+	// 						true
+	// 					);
+	// 				}
+	// 			}
+	// 			else
+	// 			{
+	// 				MeshComponent->AddForce(
+	// 					CalculateCrawlForce(Collision, Zombie-> Attacker, 1000.f, 1000.f),
+	// 					Zombie->RightHandBone,
+	// 					true
+	// 				);
+	// 			}
+	// 		}
+	// 	}
+	// }
 }
 
 FVector UClawingZombieState::CalculateCrawlForce(UCapsuleComponent* Collision, AActor* Attacker, float ForwardForce,

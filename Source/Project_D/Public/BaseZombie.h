@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "CollisionTrigger.h"
+#include "EBodyPart.h"
 #include "EPathDirectionChange.h"
 #include "ZombieFSMComponent.h"
 #include "GameFramework/Character.h"
@@ -22,6 +23,8 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	virtual void SetCollisionPartMesh(USkeletalMeshComponent* Part);
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -30,27 +33,16 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TMap<FName, int32> BoneDurability;
+	TMap<FName, EBodyPart> BoneRangeMap;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TMap<EBodyPart, int32> BoneDurability;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TArray<FName> BrokenBones;
+	TArray<EBodyPart> BrokenParts;
 
-	TArray<FName> WeaknessBones;
-
-	UPROPERTY(EditAnywhere)
-	FName HeadBone;
-
-	UPROPERTY(EditAnywhere)
-	FName RightHandBone;
-
-	UPROPERTY(EditAnywhere)
-	FName LeftHandBone;
-
-	UPROPERTY(EditAnywhere)
-	TArray<FName> BoneArray_L;
-	
-	UPROPERTY(EditAnywhere)
-	TArray<FName> BoneArray_R;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TArray<EBodyPart> WeaknessParts;
 	
 	UPROPERTY(EditAnywhere)
 	AActor* Attacker;
@@ -76,11 +68,17 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float WalkSpeed = 100.f;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float Mass = 75.f;
+
 	UPROPERTY(EditAnywhere)
 	class UZombieAnimInstance* AnimationInstance;
 
 	UPROPERTY()
 	class AZombieAIController* AI;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TMap<EBodyPart, TObjectPtr<USkeletalMeshComponent>> PartMeshes;
 	
 	virtual bool ContainsBrokenBones(TArray<FName> BoneNames);
 
@@ -97,19 +95,13 @@ public:
 	virtual void Rotate();
 
 protected:
-	virtual bool IsPhysicsBone(const FName& HitBoneName);
+	virtual bool IsPhysicsBone(EBodyPart Part);
 	
-	virtual void SetupInternal();
-	
-	virtual FName RenameBoneName(const FName& HitBoneName);
-	
-	virtual bool ApplyDamageToBone(const FName& HitBoneName, int32 Damage);
+	virtual bool ApplyDamageToBone(EBodyPart Part, int32 Damage);
 
-	virtual void Dismemberment(const FName& HitBoneName);
-
-	virtual void ApplyPhysics(const FName& HitBoneName);
+	virtual void Dismemberment(EBodyPart Part);
 
 	virtual FVector CalculateImpulse();
 
-	virtual bool InstantKilled(const FName& HitBoneName);
+	virtual bool InstantKilled(EBodyPart Part);
 };
