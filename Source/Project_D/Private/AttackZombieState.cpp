@@ -4,8 +4,6 @@
 #include "AttackZombieState.h"
 
 #include "BaseZombie.h"
-#include "Kismet/GameplayStatics.h"
-#include "Kismet/KismetMathLibrary.h"
 
 void UAttackZombieState::OnEnter(ABaseZombie* Zombie)
 {
@@ -24,7 +22,7 @@ void UAttackZombieState::OnEnter(ABaseZombie* Zombie)
 			TimerHandle,
 			[Zombie] ()
 			{
-				Zombie->OnTriggerAttack(false);
+				Zombie->FinishAttack();		
 			},
 			Interval,
 			false

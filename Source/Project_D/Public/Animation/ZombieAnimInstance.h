@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "AIController.h"
 #include "Animation/AnimInstance.h"
+#include "Animation/AnimMontage.h"
 #include "ZombieAnimInstance.generated.h"
 
 /**
@@ -21,7 +22,6 @@ enum class AnimState :uint8
 	Crawl,
 	Dead
 };
-
 
 UCLASS()
 class PROJECT_D_API UZombieAnimInstance : public UAnimInstance
@@ -45,14 +45,14 @@ public:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class UAnimMontage* CurrentMontage;
-
-	UFUNCTION()
-	void PlayMontage(AAIController* AIController, AnimState MontageState);
+	
+	void PlayMontage(
+		AAIController* AIController,
+		AnimState MontageState,
+		TFunction<void(float PlayLength)> Callback
+	);
 
 	UFUNCTION()
 	void OnMontageEnded(UAnimMontage* Montage, bool bInterrupted);
-
-	UFUNCTION()
-	void OnMontageFinished();
 	
 };

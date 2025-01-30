@@ -3,8 +3,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "AIController.h"
 #include "CollisionTrigger.h"
 #include "EBodyPart.h"
+#include "PathVector.h"
 #include "ZombieFSMComponent.h"
 #include "GameFramework/Character.h"
 #include "BaseZombie.generated.h"
@@ -31,6 +33,8 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	void SetIdle();
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TMap<FName, EBodyPart> BoneRangeMap;
 
@@ -54,9 +58,10 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float AttackRadius = 200.f;
+	
+	bool bIsAttacking = false;
 
-	UPROPERTY(EditAnywhere)
-	bool bIsAttacking = false; 
+	bool bIsHitting = false;
 
 	UPROPERTY(EditAnywhere)
 	int32 CurrentHp;
@@ -73,6 +78,9 @@ public:
 	UPROPERTY(EditAnywhere)
 	class UZombieAnimInstance* AnimationInstance;
 
+	UPROPERTY(EditAnywhere)
+	class UPathfindingComponent* Pathfinding;
+
 	UPROPERTY()
 	class AZombieAIController* AI;
 
@@ -83,8 +91,11 @@ public:
 	TMap<EBodyPart, TObjectPtr<USkeletalMeshComponent>> PartMeshes;
 
 	FTimerHandle AttackTimerHandle;
+	FTimerHandle HitTimerHandle;
 	
 	float AttackTiming = 0.75f;
+
+	int32 CurrentPathIndex = 0;
 	
 	virtual bool ContainsBrokenBones(TArray<FName> BoneNames);
 
@@ -98,7 +109,11 @@ public:
 	UFUNCTION()
 	virtual void OnCollisionHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
-	virtual void Rotate();
+	float CalculateDistanceToTarget() const;
+
+	void FinishAttack();
+
+	AAIController* GetAIController() const;
 
 protected:
 	virtual bool IsPhysicsBone(EBodyPart Part);

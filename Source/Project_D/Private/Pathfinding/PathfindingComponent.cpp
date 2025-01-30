@@ -3,9 +3,10 @@
 
 #include "Pathfinding/PathfindingComponent.h"
 
-#include "GameDebug.h"
+#include "BaseZombie.h"
 #include "PathFindingBoard.h"
 #include "PathVector.h"
+#include "Components/SplineComponent.h"
 #include "Kismet/GameplayStatics.h"
 
 // Sets default values for this component's properties
@@ -25,6 +26,15 @@ void UPathfindingComponent::BeginPlay()
 	Super::BeginPlay();
 
 	SetComponentTickEnabled(true);
+
+	if (AActor* TmpActor = UGameplayStatics::GetActorOfClass(GetWorld(), APathFindingBoard::StaticClass()))
+	{
+		PathFindingBoard = Cast<APathFindingBoard>(TmpActor);
+	}
+
+	SplineComponent = NewObject<USplineComponent>(this);
+	GetOwner()->AddOwnedComponent(SplineComponent);
+	SplineComponent->RegisterComponent();
 }
 
 
@@ -34,117 +44,78 @@ void UPathfindingComponent::TickComponent(float DeltaTime, ELevelTick TickType, 
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 }
 
-void UPathfindingComponent::Initialize()
+void UPathfindingComponent::Initialize(AActor* Tracer)
 {
-	if (AActor* TmpActor = UGameplayStatics::GetActorOfClass(GetWorld(), APathFindingBoard::StaticClass()))
+	SplineComponent->SetRelativeLocation(Tracer->GetActorLocation());
+	CurrentPathIndex = PathFindingBoard->GetFieldIndex(Tracer->GetActorLocation());	
+}
+
+void UPathfindingComponent::TraceSpline(const TArray<UPathVector*>& Paths) const
+{
+	if (!SplineComponent || Paths.Num() == 0)
 	{
-		PathFindingBoard = Cast<APathFindingBoard>(TmpActor);
-		bIsSetupPathFinding = MoveNextField(GetPlacedPathField());
-		if (bIsSetupPathFinding)
+		return;
+	}
+
+	SplineComponent->ClearSplinePoints();
+
+	// 경로의 각 포인트를 스플라인에 추가
+	for (const UPathVector* Point : Paths)
+	{
+		SplineComponent->AddSplinePoint(Point->Location, ESplineCoordinateSpace::World);
+	}
+	
+	// 탄젠트 조정
+	for (int32 i = 0; i < SplineComponent->GetNumberOfSplinePoints(); i++)
+	{
+		FVector ArriveTangent = SplineComponent->GetArriveTangentAtSplinePoint(i, ESplineCoordinateSpace::World);
+		FVector LeaveTangent = SplineComponent->GetLeaveTangentAtSplinePoint(i, ESplineCoordinateSpace::World);
+
+		// 탄젠트를 직선에 가깝게 설정
+		if (i > 0 && i < SplineComponent->GetNumberOfSplinePoints() - 1)
 		{
-			InitializePathFinding();
+			FVector PrevPoint = SplineComponent->GetLocationAtSplinePoint(i - 1, ESplineCoordinateSpace::World);
+			FVector NextPoint = SplineComponent->GetLocationAtSplinePoint(i + 1, ESplineCoordinateSpace::World);
+			FVector Direction = (NextPoint - PrevPoint).GetSafeNormal();
+
+			ArriveTangent = Direction * 100.0f; // 탄젠트 길이 조정
+			LeaveTangent = Direction * 100.0f;
 		}
-	}
-}
 
-bool UPathfindingComponent::MoveNextField(UPathVector* Start)
-{
-	if (!Start || !Start->Next)
-	{
-		return false;
+		SplineComponent->SetTangentsAtSplinePoint(i, ArriveTangent, LeaveTangent, ESplineCoordinateSpace::World);
 	}
 	
-	FromPathField = Start;
-	ToPathField = Start->Next;
+	SplineComponent->UpdateSpline();
+}
 
-	// auto Str = FString::Printf(TEXT("%s %s"), *GetName(), *(FromLocation.ToString()));
-	// GameDebug::ShowDisplayLog(GetWorld(), *Str, FColor::Yellow, true);
-	//
-	// auto Str2 = FString::Printf(TEXT("%s %s"), *GetName(), *(ToLocation.ToString()));
-	// GameDebug::ShowDisplayLog(GetWorld(), *Str2, FColor::Red, true);
+bool UPathfindingComponent::UpdatePath()
+{
+	if (LastDestIndex != PathFindingBoard->LastDestIndex)
+	{
+		LastDestIndex = PathFindingBoard->LastDestIndex;
+		return true;
+	}
+
+	return false;
+}
+
+TArray<class UPathVector*> UPathfindingComponent::GetPaths(ABaseZombie* Mover)
+{
+	TArray<UPathVector*> Paths;
+	if (!PathFindingBoard)
+	{
+		return Paths;
+	}
+
+	if (!Mover)
+	{
+		return Paths;
+	}
+
+	CurrentPathIndex = PathFindingBoard->GetFieldIndex(Mover->GetActorLocation());
+	Paths = PathFindingBoard->FindPaths(CurrentPathIndex);
 	
-	return true;
-}
-
-void UPathfindingComponent::InitializePathFinding()
-{
-	if (AActor* const Owner = GetOwner())
-	{
-		FromLocation = Owner->GetActorLocation();
-		ToLocation = FromPathField? FromPathField->ExitPoint : FromLocation;
-		PathDirection = FromPathField? FromPathField->PathDirection : EPathDirection::North;
-		PathDirectionChange = EPathDirectionChange::None;
-		DirectionAngleFrom = EPathDirectionExtensions::GetAngle(PathDirection);
-		DirectionAngleTo = EPathDirectionExtensions::GetAngle(PathDirection);
+	TraceSpline(Paths);
 	
-		FQuat Quat = EPathDirectionExtensions::GetRotation(PathDirection);
-		Owner->SetActorRelativeRotation(Quat);
-	}
+	return Paths;
 }
-
-void UPathfindingComponent::PrepareNextPathFinding()
-{
-	FromLocation = ToLocation;
-	ToLocation = FromPathField? FromPathField->ExitPoint : ToLocation;
-	if (FromPathField)
-	{
-		PathDirectionChange = EPathDirectionChangeExtensions::GetDirectionChangeTo(PathDirection, FromPathField->PathDirection);
-	}
-	PathDirection = FromPathField? FromPathField->PathDirection : PathDirection;
-	DirectionAngleFrom = DirectionAngleTo;
-	
-	// GameDebug::ShowDisplayLog(GetWorld(), EPathDirectionExtensions::EnumToString(PathDirection));
-	GameDebug::ShowDisplayLog(GetWorld(), EPathDirectionChangeExtensions::EnumToString(PathDirectionChange));
-
-	switch (PathDirectionChange)
-	{
-		case EPathDirectionChange::None:
-			PrepareForward();
-			break;
-		case EPathDirectionChange::TurnRight:
-			PrepareTurnRight();
-			break;
-		case EPathDirectionChange::TurnLeft:
-			PrepareTurnLeft();
-			break;
-		default:
-			PrepareTurnAround();
-			break;
-	}
-}
-
-void UPathfindingComponent::PrepareForward()
-{
-	if (AActor* const Owner = GetOwner())
-	{
-		FQuat Quat = EPathDirectionExtensions::GetRotation(PathDirection);
-		Owner->SetActorRelativeRotation(Quat);
-		DirectionAngleTo = EPathDirectionExtensions::GetAngle(PathDirection);
-	}
-}
-
-void UPathfindingComponent::PrepareTurnRight()
-{
-	DirectionAngleTo = DirectionAngleFrom + 90;
-}
-
-void UPathfindingComponent::PrepareTurnLeft()
-{
-	DirectionAngleTo = DirectionAngleFrom - 90;
-}
-
-void UPathfindingComponent::PrepareTurnAround()
-{
-	DirectionAngleTo = DirectionAngleFrom + 180;
-}
-
-class UPathVector* UPathfindingComponent::GetPlacedPathField() const
-{
-	if (AActor* const Owner = GetOwner())
-	{
-		return PathFindingBoard->FindField(Owner->GetActorLocation());
-	}
-
-	return nullptr;
-}
-

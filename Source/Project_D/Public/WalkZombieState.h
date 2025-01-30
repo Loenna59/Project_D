@@ -20,5 +20,10 @@ public:
 	virtual void OnUpdate(ABaseZombie* Zombie) override;
 	virtual void OnExit(ABaseZombie* Zombie) override;
 
-	float Progress = 0;
+	UPROPERTY(EditDefaultsOnly, Category = "Movement")
+	float MovementSpeed = 100.f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Movement")
+	float RotationSpeed = 10.f;
+	float AcceptanceRadius = 100.f;
 };

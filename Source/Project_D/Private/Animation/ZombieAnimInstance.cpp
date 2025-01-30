@@ -3,15 +3,12 @@
 
 #include "Animation/ZombieAnimInstance.h"
 
-#include "GameDebug.h"
-#include "Animation/AnimMontage.h"
-
 void UZombieAnimInstance::NativeBeginPlay()
 {
 	Super::NativeBeginPlay();
 }
 
-void UZombieAnimInstance::PlayMontage(AAIController* AIController, AnimState MontageState)
+void UZombieAnimInstance::PlayMontage(AAIController* AIController, AnimState MontageState, TFunction<void(float PlayLength)> Callback)
 {
 	if (bMontagePlaying && CurrentMontage)
 	{
@@ -23,15 +20,20 @@ void UZombieAnimInstance::PlayMontage(AAIController* AIController, AnimState Mon
 	
 	if (MontageMap.Contains(MontageState))
 	{
-		AIController->StopMovement();
 		bMontagePlaying = true;
 		CurrentMontage = MontageMap[MontageState];
 		CurrentState = MontageState;
 		Montage_Play(CurrentMontage, 1.5f);
 
+		if (Callback)
+		{
+			Callback(CurrentMontage->GetPlayLength() / 1.5f);
+		}
+
 		FOnMontageEnded EndDelegate;
 		EndDelegate.BindUObject(this, &UZombieAnimInstance::OnMontageEnded);
-		Montage_SetEndDelegate(EndDelegate, CurrentMontage);	
+	
+		Montage_SetEndDelegate(EndDelegate, CurrentMontage);
 	}
 }
 
@@ -40,8 +42,4 @@ void UZombieAnimInstance::OnMontageEnded(UAnimMontage* Montage, bool bInterrupte
 	bMontagePlaying = false;
 	CurrentMontage = nullptr;
 	CurrentState = AnimState::None;
-}
-
-void UZombieAnimInstance::OnMontageFinished()
-{
 }

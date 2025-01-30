@@ -3,11 +3,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "EEnemyState.h"
 #include "AttackZombieState.h"
+#include "DeathZombieState.h"
+#include "EEnemyState.h"
 #include "IdleZombieState.h"
 #include "WalkZombieState.h"
-#include "DeathZombieState.h"
 #include "Components/ActorComponent.h"
 #include "ZombieFSMComponent.generated.h"
 
@@ -22,6 +22,8 @@ public:
 	UZombieFSMComponent();
 
 	void ChangeState(EEnemyState NewState, ABaseZombie* Zombie);
+	
+	void EvaluateState(ABaseZombie* Zombie);
 
 protected:
 	bool bSetupCompleted = false;

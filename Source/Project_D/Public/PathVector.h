@@ -21,21 +21,32 @@ public:
 	UPathVector() {}
 
 	UPROPERTY()
-	UPathVector* North;
+	class UPathVector* North;
 	UPROPERTY()
-	UPathVector* East;
+	class UPathVector* East;
 	UPROPERTY()
-	UPathVector* South;
+	class UPathVector* South;
 	UPROPERTY()
-	UPathVector* West;
+	class UPathVector* West;
+
+	// 대각선 방향 이웃 노드
+	UPROPERTY()
+	class UPathVector* NorthEast;
+	UPROPERTY()
+	class UPathVector* NorthWest;
+	UPROPERTY()
+	class UPathVector* SouthEast;
+	UPROPERTY()
+	class UPathVector* SouthWest;
 
 	UPROPERTY()
-	UPathVector* Next;
+	class UPathVector* Next;
 
 	FVector Location;
 	FVector ExitPoint;
 	
 	int32 Cost;
+	int32 HeuristicCost;
 	float Height;
 	float SlopeAngle;
 
@@ -44,7 +55,7 @@ public:
 	void ClearPath();
 	void BecomeDestination();
 	bool HasPath();
-	void ShowPath();
+	float GetTotalCost() const;
 
 	bool GetIsAlternative() const
 	{
@@ -67,4 +78,6 @@ public:
 
 	static void MakeEastWestNeighbors(UPathVector* East, UPathVector* West);
 	static void MakeNorthSouthNeighbors(UPathVector* North, UPathVector* South);
+	static void MakeNorthWestSouthEastNeighbors(UPathVector* NorthWest, UPathVector* SouthEast);
+	static void MakeNorthEastSouthWestNeighbors(UPathVector* NorthEast, UPathVector* SouthWest);
 };

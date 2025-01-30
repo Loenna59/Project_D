@@ -3,8 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "EPathDirection.h"
-#include "EPathDirectionChange.h"
+#include "BaseZombie.h"
 #include "Components/ActorComponent.h"
 #include "PathfindingComponent.generated.h"
 
@@ -25,36 +24,23 @@ protected:
 public:	
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-
-	void Initialize();
-	
-	bool bIsSetupPathFinding = false;
-	
-	EPathDirection PathDirection = EPathDirection::North;
-	EPathDirectionChange PathDirectionChange = EPathDirectionChange::None;
-	float DirectionAngleFrom;
-	float DirectionAngleTo;
 	
 	UPROPERTY()
 	class APathFindingBoard* PathFindingBoard;
 
-	UPROPERTY()
-	class UPathVector* FromPathField;
-	
-	UPROPERTY()
-	class UPathVector* ToPathField;
+	UPROPERTY(VisibleAnywhere)
+	class USplineComponent* SplineComponent;
 
-	FVector FromLocation;
-	FVector ToLocation;
+	int32 CurrentPathIndex;
+	int32 LastDestIndex;
 	
-	class UPathVector* GetPlacedPathField() const;
-	bool MoveNextField(UPathVector* Start);
+	void Initialize(AActor* Tracer);
 
-	void InitializePathFinding();
-	void PrepareNextPathFinding();
-	void PrepareForward();
-	void PrepareTurnRight();
-	void PrepareTurnLeft();
-	void PrepareTurnAround();
-		
+	TArray<class UPathVector*> GetPaths(ABaseZombie* Mover);
+
+	void TraceSpline(const TArray<UPathVector*>& Paths) const;
+
+	bool UpdatePath();
+
+	bool MoveAlongSpline(ABaseZombie* Mover, float Speed, float DeltaTime);
 };

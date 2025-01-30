@@ -17,6 +17,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Pathfinding/PathfindingComponent.h"
 #include "Pathfinding/ZombieAIController.h"
 #include "Project_D/Project_DCharacter.h"
 
@@ -46,7 +47,7 @@ void ABaseZombie::BeginPlay()
 
 	CurrentHp = MaxHp;
 
-	GetMesh()->SetMassOverrideInKg(NAME_None, Mass);
+	// GetMesh()->SetMassOverrideInKg(NAME_None, Mass);
 	GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
 
 	AnimationInstance = Cast<UZombieAnimInstance>(GetMesh()->GetAnimInstance());
@@ -64,6 +65,12 @@ void ABaseZombie::BeginPlay()
 	{
 		VaultGameModeBase->IncreaseCount();
 	}
+
+	Pathfinding = NewObject<UPathfindingComponent>(this);
+	AddOwnedComponent(Pathfinding);
+	Pathfinding->RegisterComponent();
+
+	Pathfinding->Initialize(this);
 }
 
 void ABaseZombie::SetCollisionPartMesh(USkeletalMeshComponent* Part)
@@ -75,14 +82,27 @@ void ABaseZombie::SetCollisionPartMesh(USkeletalMeshComponent* Part)
 	Part->SetCollisionResponseToChannel(ECC_PhysicsBody, ECR_Ignore);
 }
 
+void ABaseZombie::SetIdle()
+{
+	FSM->ChangeState(EEnemyState::IDLE, this);
+	
+	AI->SetTarget(nullptr);
+	Pathfinding->GetPaths(this);
+}
+
 // Called every frame
 void ABaseZombie::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	if (CurrentHp <= 0)
+	{
+		return;
+	}
 	
 	if (UWorld* const World = GetWorld())
 	{
-		if (bIsAttacking)
+		if (bIsAttacking || bIsHitting)
 		{
 			return;
 		}
@@ -130,8 +150,7 @@ void ABaseZombie::Tick(float DeltaTime)
 
 				if (!HitPlayer)
 				{
-					AI->SetTarget(nullptr);
-					FSM->ChangeState(EEnemyState::IDLE, this);
+					SetIdle();
 				}
 			}
 		);
@@ -183,11 +202,8 @@ void ABaseZombie::OnTriggerAttack(bool Start)
 			false
 		);
 
-		AnimationInstance->PlayMontage(AI, AnimState::Attack);
-		return;
+		AnimationInstance->PlayMontage(AI, AnimState::Attack, [](float _) {});
 	}
-	
-	FSM->ChangeState(EEnemyState::IDLE, this);
 }
 
 // Called to bind functionality to input
@@ -320,17 +336,17 @@ void ABaseZombie::OnDead()
 		VaultGameModeBase->DecreaseCount();
 	}
 
-	// FTimerHandle TimerHandle;
-	//
-	// GetWorld()->GetTimerManager().SetTimer(
-	// 	TimerHandle,
-	// 	[this] ()
-	// 	{
-	// 		this->Destroy();
-	// 	},
-	// 	5.f,
-	// 	false
-	// );
+	FTimerHandle TimerHandle;
+	
+	GetWorld()->GetTimerManager().SetTimer(
+		TimerHandle,
+		[this] ()
+		{
+			this->Destroy();
+		},
+		5.f,
+		false
+	);
 }
 
 void ABaseZombie::OnTriggerEnter(AActor* OtherActor, ACollisionTriggerParam* Param)
@@ -367,7 +383,34 @@ void ABaseZombie::OnTriggerEnter(AActor* OtherActor, ACollisionTriggerParam* Par
 			return;
 		}
 
-		AnimationInstance->PlayMontage(AI, AnimState::Hit);
+		if (!bIsAttacking)
+		{
+			bIsHitting = true;
+			SetIdle();
+
+			if (HitTimerHandle.IsValid())
+			{
+				GetWorld()->GetTimerManager().ClearTimer(HitTimerHandle);
+				HitTimerHandle.Invalidate();
+			}
+
+			AnimationInstance->PlayMontage(
+				AI,
+				AnimState::Hit,
+				[this] (float PlayLength)
+				{
+					GetWorld()->GetTimerManager().SetTimer(
+						HitTimerHandle,
+						[this] ()
+						{
+							bIsHitting = false;
+						},
+						PlayLength,
+						false
+					);
+				}
+			);
+		}
 	}
 }
 
@@ -382,24 +425,30 @@ void ABaseZombie::OnCollisionHit(UPrimitiveComponent* HitComponent, AActor* Othe
 	}
 }
 
-void ABaseZombie::Rotate()
+float ABaseZombie::CalculateDistanceToTarget() const
 {
-	// if (DetectedTarget)
-	// {
-	// 	FVector Distance = DetectedTarget->GetActorLocation() - GetActorLocation();
-	// 	FVector Direction = Distance.GetSafeNormal();
-	//
-	// 	FRotator LookAtRotation = FRotationMatrix::MakeFromX(Direction).Rotator();
-	//
-	// 	// 현재 회전과 목표 회전을 선형 보간 (LERP)
-	// 	FRotator SmoothedRotation = UKismetMathLibrary::RLerp(
-	// 		GetActorRotation(),  // 현재 회전
-	// 		LookAtRotation,              // 목표 회전
-	// 		GetWorld()->GetDeltaSeconds(), // 보간 속도
-	// 		true                          // 짧은 쪽 경로 선택
-	// 	);
-	// 	
-	// 	SetActorRelativeRotation(SmoothedRotation);
-	// 	// Pathfinding->DirectionAngleFrom = LookAtRotation.Yaw;
-	// }
+	if (AI && AI->TargetActor)
+	{
+		FVector TargetLocation = AI->TargetActor->GetActorLocation();
+		FVector Location = GetActorLocation();
+
+		return FVector::Dist(TargetLocation, Location);
+	}
+
+	return -1.f;
+}
+
+void ABaseZombie::FinishAttack()
+{
+	if (FSM)
+	{
+		FSM->EvaluateState(this);
+	}
+
+	bIsAttacking = false;
+}
+
+AAIController* ABaseZombie::GetAIController() const
+{
+	return AI;
 }
