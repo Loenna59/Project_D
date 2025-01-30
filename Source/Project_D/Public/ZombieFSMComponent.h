@@ -22,6 +22,8 @@ public:
 	UZombieFSMComponent();
 
 	void ChangeState(EEnemyState NewState, ABaseZombie* Zombie);
+	
+	void EvaluateState(ABaseZombie* Zombie);
 
 protected:
 	bool bSetupCompleted = false;

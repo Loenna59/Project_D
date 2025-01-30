@@ -92,88 +92,86 @@ void APathFindingBoard::BeginPlay()
 			Fields[i] = Field;
 		}
 	}
-
-	FindPaths(0);
-	
 }
 
-void APathFindingBoard::FindPaths(int32 DestIndex)
+void APathFindingBoard::Tick(float DeltaTime)
 {
-	int32 Length = BoardSize.X * BoardSize.Y; //sizeof(Fields) / sizeof(Fields[0]);
+	Super::Tick(DeltaTime);
+
+	int32 DestIndex = GetFieldIndex(DestinationActor->GetActorLocation());
+	if (LastDestIndex != DestIndex)
+	{
+		LastDestIndex = DestIndex;
+	}
+}
+
+TArray<UPathVector*> APathFindingBoard::FindPaths(int32 StartIndex)
+{
+	TArray<UPathVector*> Path; // 반환할 경로를 저장할 배열
+
+	if (!DestinationActor)
+	{
+		return Path;
+	}
 	
+	int32 Length = BoardSize.X * BoardSize.Y;
+
+	// 모든 필드 초기화
 	for (int32 i = 0; i < Length; i++)
 	{
 		Fields[i]->ClearPath();
 	}
-	
-	if (DestIndex < 0 || DestIndex >= Length)
+
+	int32 DestIndex = GetFieldIndex(DestinationActor->GetActorLocation());
+
+	// 유효하지 않은 인덱스 처리
+	if (StartIndex < 0 || StartIndex >= Length || DestIndex < 0 || DestIndex >= Length)
 	{
-		return;
+		return Path; // 빈 경로 반환
 	}
-	
+
+	// 목적지 설정
 	Fields[DestIndex]->BecomeDestination();
-	SearchFrontier.Enqueue(Fields[DestIndex]);
 
-	while (!SearchFrontier.IsEmpty())
+	TArray<UPathVector*> OpenSet;
+	OpenSet.Add(Fields[DestIndex]);
+
+	// A* 알고리즘 실행
+	while (OpenSet.Num() > 0)
 	{
-		UPathVector* Field;
-		if (SearchFrontier.Dequeue(Field))
+		OpenSet.Sort([](const UPathVector& A, const UPathVector& B) {
+			return A.GetTotalCost() < B.GetTotalCost();
+		});
+
+		UPathVector* Current = OpenSet[0];
+		OpenSet.RemoveAt(0);
+
+		// 시작점에 도달하면 경로 구성
+		if (Current == Fields[StartIndex])
 		{
-			if (Field)
-			{
-				if (Field->GetIsAlternative())
-				{
-					if (Field->CanMoveTo(Field->North, MovableCost, MovableSlopeAngle))
-					{
-						SearchFrontier.Enqueue(Field->GrowPathNorth(MovableCost));
-					}
-					
-					if (Field->CanMoveTo(Field->South, MovableCost, MovableSlopeAngle))
-					{
-						SearchFrontier.Enqueue(Field->GrowPathSouth(MovableCost));
-					}
+			Path = RetracePath(Fields[StartIndex], Fields[DestIndex]);
+			break;
+		}
 
-					if (Field->CanMoveTo(Field->East, MovableCost, MovableSlopeAngle))
-					{
-						SearchFrontier.Enqueue(Field->GrowPathEast(MovableCost));
-					}
-
-					if (Field->CanMoveTo(Field->West, MovableCost, MovableSlopeAngle))
-					{
-						SearchFrontier.Enqueue(Field->GrowPathWest(MovableCost));
-					}
-				}
-				else
-				{
-					if (Field->CanMoveTo(Field->West, MovableCost, MovableSlopeAngle))
-					{
-						SearchFrontier.Enqueue(Field->GrowPathWest(MovableCost));
-					}
-					
-					if (Field->CanMoveTo(Field->East, MovableCost, MovableSlopeAngle))
-					{
-						SearchFrontier.Enqueue(Field->GrowPathEast(MovableCost));
-					}
-					
-					if (Field->CanMoveTo(Field->South, MovableCost, MovableSlopeAngle))
-					{
-						SearchFrontier.Enqueue(Field->GrowPathSouth(MovableCost));
-					}
-					
-					if (Field->CanMoveTo(Field->North, MovableCost, MovableSlopeAngle))
-					{
-						SearchFrontier.Enqueue(Field->GrowPathNorth(MovableCost));
-					}
-					
-				}
-			}
+		// 이웃 노드 탐색
+		if (Current->GetIsAlternative())
+		{
+			TryAddToOpenSet(Current, Current->North, EPathDirection::South, OpenSet);
+			TryAddToOpenSet(Current, Current->South, EPathDirection::North, OpenSet);
+			TryAddToOpenSet(Current, Current->East, EPathDirection::West, OpenSet);
+			TryAddToOpenSet(Current, Current->West, EPathDirection::East, OpenSet);
+		}
+		else
+		{
+			TryAddToOpenSet(Current, Current->West, EPathDirection::East, OpenSet);
+			TryAddToOpenSet(Current, Current->East, EPathDirection::West, OpenSet);
+			TryAddToOpenSet(Current, Current->South, EPathDirection::North, OpenSet);
+			TryAddToOpenSet(Current, Current->North, EPathDirection::South, OpenSet);
 		}
 	}
 
-	for (int32 i = 0; i < Length; i++)
-	{
-		Fields[i]->ShowPath();
-	}
+	return Path; // 경로 반환
+
 }
 
 int32 APathFindingBoard::GetFieldIndex(FVector WorldLocation)
@@ -196,21 +194,42 @@ class UPathVector* APathFindingBoard::FindField(FVector WorldLocation)
 	return Fields[Index];
 }
 
-// Called every frame
-void APathFindingBoard::Tick(float DeltaTime)
+void APathFindingBoard::TryAddToOpenSet(UPathVector* Current, UPathVector* Neighbor, EPathDirection Direction, TArray<UPathVector*>& OpenSet)
 {
-	Super::Tick(DeltaTime);
-
-	if (DestinationActor)
+	if (Neighbor && Current->CanMoveTo(Neighbor, MovableCost, MovableSlopeAngle))
 	{
-		FVector NewDestination = DestinationActor->GetActorLocation();
-		int32 NewFieldIndex = GetFieldIndex(NewDestination);
-
-		if (NewFieldIndex != LastDestIndex)
+		UPathVector* NewNeighbor = Current->GrowPathTo(Neighbor, Direction, MovableCost);
+		if (NewNeighbor && !OpenSet.Contains(NewNeighbor))
 		{
-			LastDestIndex = NewFieldIndex;
-			FindPaths(NewFieldIndex);
+			NewNeighbor->HeuristicCost = CalculateHeuristic(NewNeighbor, Current);
+			OpenSet.Add(NewNeighbor);
 		}
 	}
+}
+
+float APathFindingBoard::CalculateHeuristic(UPathVector* Start, UPathVector* Goal)
+{
+	return FVector::Dist(Start->Location, Goal->Location);
+}
+
+TArray<UPathVector*> APathFindingBoard::RetracePath(UPathVector* StartNode, UPathVector* EndNode)
+{
+	TArray<UPathVector*> Path;
+	UPathVector* CurrentNode = StartNode;
+
+	// 시작점에서 목적지까지 역추적
+	while (CurrentNode != EndNode)
+	{
+		Path.Add(CurrentNode);
+		CurrentNode = CurrentNode->Next;
+	}
+
+	// 목적지 추가
+	Path.Add(EndNode);
+
+	// 경로를 뒤집어 시작점 -> 목적지 순서로 만듦
+	Algo::Reverse(Path);
+
+	return Path;
 }
 

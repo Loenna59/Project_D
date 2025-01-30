@@ -17,6 +17,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Pathfinding/PathfindingComponent.h"
 #include "Pathfinding/ZombieAIController.h"
 #include "Project_D/Project_DCharacter.h"
 
@@ -46,7 +47,7 @@ void ABaseZombie::BeginPlay()
 
 	CurrentHp = MaxHp;
 
-	GetMesh()->SetMassOverrideInKg(NAME_None, Mass);
+	// GetMesh()->SetMassOverrideInKg(NAME_None, Mass);
 	GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
 
 	AnimationInstance = Cast<UZombieAnimInstance>(GetMesh()->GetAnimInstance());
@@ -64,6 +65,12 @@ void ABaseZombie::BeginPlay()
 	{
 		VaultGameModeBase->IncreaseCount();
 	}
+
+	Pathfinding = NewObject<UPathfindingComponent>(this);
+	AddOwnedComponent(Pathfinding);
+	Pathfinding->RegisterComponent();
+
+	Pathfinding->Initialize(this);
 }
 
 void ABaseZombie::SetCollisionPartMesh(USkeletalMeshComponent* Part)
@@ -86,6 +93,8 @@ void ABaseZombie::Tick(float DeltaTime)
 		{
 			return;
 		}
+
+		
 		
 		TraceChannelHelper::SphereTraceByChannel(
 			World,
@@ -184,10 +193,7 @@ void ABaseZombie::OnTriggerAttack(bool Start)
 		);
 
 		AnimationInstance->PlayMontage(AI, AnimState::Attack);
-		return;
 	}
-	
-	FSM->ChangeState(EEnemyState::IDLE, this);
 }
 
 // Called to bind functionality to input
@@ -402,4 +408,27 @@ void ABaseZombie::Rotate()
 	// 	SetActorRelativeRotation(SmoothedRotation);
 	// 	// Pathfinding->DirectionAngleFrom = LookAtRotation.Yaw;
 	// }
+}
+
+float ABaseZombie::CalculateDistanceToTarget() const
+{
+	if (AI && AI->TargetActor)
+	{
+		FVector TargetLocation = AI->TargetActor->GetActorLocation();
+		FVector Location = GetActorLocation();
+
+		return FVector::Dist(TargetLocation, Location);
+	}
+
+	return -1.f;
+}
+
+void ABaseZombie::FinishAttack()
+{
+	if (FSM)
+	{
+		FSM->EvaluateState(this);
+	}
+
+	bIsAttacking = false;
 }

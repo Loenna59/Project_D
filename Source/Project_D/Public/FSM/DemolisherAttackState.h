@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "ZombieState.h"
-#include "UObject/NoExportTypes.h"
 #include "DemolisherAttackState.generated.h"
 
 /**
@@ -20,6 +19,15 @@ public:
 	virtual void OnUpdate(ABaseZombie* Zombie) override;
 	virtual void OnExit(ABaseZombie* Zombie) override;
 
+private:
+	float ThrowDuration = 2.f;
+	float SwingDuration = 2.f;
+	float ChargeDuration = 3.f;
+	
+	float LongRangeThreshold = 1000.f;
+	float ShortRangeThreshold = 200.f;
+
 	FTimerHandle TimerHandle;
-	const float Interval = 1.75f;
+	
+	void UpdateAttackPattern(ABaseZombie* Zombie);
 };

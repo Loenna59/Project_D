@@ -24,7 +24,6 @@ public:
 
 	bool bIsPaused = false;
 
-private:
 	UPROPERTY()
 	class AActor* TargetActor;
 };

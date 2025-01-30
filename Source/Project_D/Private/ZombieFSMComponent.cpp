@@ -3,6 +3,8 @@
 
 #include "ZombieFSMComponent.h"
 
+#include "BaseZombie.h"
+
 // Sets default values for this component's properties
 UZombieFSMComponent::UZombieFSMComponent()
 {
@@ -63,6 +65,21 @@ void UZombieFSMComponent::ChangeState(EEnemyState NewState, ABaseZombie* Zombie)
 	}
 }
 
+void UZombieFSMComponent::EvaluateState(ABaseZombie* Zombie)
+{
+	if (!Zombie || !bSetupCompleted)
+	{
+		return;
+	}
+
+	if (Zombie->CurrentHp <= 0)
+	{
+		ChangeState(EEnemyState::DEATH, Zombie);
+		return;
+	}
+
+	ChangeState(EEnemyState::IDLE, Zombie);
+}
 
 // Called every frame
 void UZombieFSMComponent::TickComponent(float DeltaTime, ELevelTick TickType,

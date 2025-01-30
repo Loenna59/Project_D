@@ -4,25 +4,27 @@
 
 void UPathVector::ClearPath()
 {
-	Cost = TNumericLimits<int32>::Max();
+	Cost = MAX_int32;
+	HeuristicCost = MAX_int32;
 	Next = nullptr;
 }
 
 void UPathVector::BecomeDestination()
 {
 	Cost = 0;
+	HeuristicCost = 0;
 	Next = nullptr;
 	ExitPoint = Location;
 }
 
 bool UPathVector::HasPath()
 {
-	return Cost != TNumericLimits<int32>::Max();
+	return Cost != MAX_int32;
 }
 
-void UPathVector::ShowPath()
+float UPathVector::GetTotalCost() const
 {
-	
+	return Cost + HeuristicCost;
 }
 
 class UPathVector* UPathVector::GrowPathTo(UPathVector* Neighbor, EPathDirection Direction, float Weight)

@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "PathVector.h"
 #include "PathFindingBoard.generated.h"
 
 UCLASS()
@@ -18,20 +19,25 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-	
-	void FindPaths(int32 DestIndex);
 
-public:	
-	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	TArray<class UPathVector*> RetracePath(UPathVector* StartNode, UPathVector* EndNode);
+
+public:	
 	int32 GetFieldIndex(FVector WorldLocation);
 
 	class UPathVector* FindField(FVector WorldLocation);
 
+	TArray<class UPathVector*> FindPaths(int32 StartIndex);
+	
+	void TryAddToOpenSet(UPathVector* Current, UPathVector* Neighbor, EPathDirection Direction, TArray<UPathVector*>& OpenSet);
+
+	float CalculateHeuristic(UPathVector* Start, UPathVector* Dest);
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FVector2D BoardSize = FVector2D(80, 80);
-
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 FieldSize = 100;
 

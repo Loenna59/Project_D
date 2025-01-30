@@ -6,6 +6,7 @@
 #include "GameDebug.h"
 #include "PathFindingBoard.h"
 #include "PathVector.h"
+#include "Components/SplineComponent.h"
 #include "Kismet/GameplayStatics.h"
 
 // Sets default values for this component's properties
@@ -25,6 +26,15 @@ void UPathfindingComponent::BeginPlay()
 	Super::BeginPlay();
 
 	SetComponentTickEnabled(true);
+
+	if (AActor* TmpActor = UGameplayStatics::GetActorOfClass(GetWorld(), APathFindingBoard::StaticClass()))
+	{
+		PathFindingBoard = Cast<APathFindingBoard>(TmpActor);
+	}
+
+	SplineComponent = NewObject<USplineComponent>(this);
+	GetOwner()->AddOwnedComponent(SplineComponent);
+	SplineComponent->RegisterComponent();
 }
 
 
@@ -34,117 +44,57 @@ void UPathfindingComponent::TickComponent(float DeltaTime, ELevelTick TickType, 
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 }
 
-void UPathfindingComponent::Initialize()
+void UPathfindingComponent::Initialize(AActor* Tracer)
 {
-	if (AActor* TmpActor = UGameplayStatics::GetActorOfClass(GetWorld(), APathFindingBoard::StaticClass()))
-	{
-		PathFindingBoard = Cast<APathFindingBoard>(TmpActor);
-		bIsSetupPathFinding = MoveNextField(GetPlacedPathField());
-		if (bIsSetupPathFinding)
-		{
-			InitializePathFinding();
-		}
-	}
+	SplineComponent->SetRelativeLocation(Tracer->GetActorLocation());
+	CurrentPathIndex = PathFindingBoard->GetFieldIndex(Tracer->GetActorLocation());	
 }
 
-bool UPathfindingComponent::MoveNextField(UPathVector* Start)
+void UPathfindingComponent::TraceSpline(const TArray<UPathVector*>& Paths)
 {
-	if (!Start || !Start->Next)
+	if (!SplineComponent)
 	{
-		return false;
+		return;
 	}
+
+	if (Paths.Num() == 0)
+	{
+		return;
+	}
+
+	SplineComponent->ClearSplinePoints();
+
+	// 경로의 각 포인트를 스플라인에 추가
+	for (const UPathVector* Point : Paths)
+	{
+		SplineComponent->AddSplinePoint(Point->Location, ESplineCoordinateSpace::World);
+	}
+
+	SplineComponent->UpdateSpline();
+}
+
+bool UPathfindingComponent::UpdatePath()
+{
+	if (LastDestIndex != PathFindingBoard->LastDestIndex)
+	{
+		LastDestIndex = PathFindingBoard->LastDestIndex;
+		return true;
+	}
+
+	return false;
+}
+
+TArray<class UPathVector*> UPathfindingComponent::GetPaths()
+{
+	TArray<UPathVector*> Paths;
+	if (!PathFindingBoard)
+	{
+		return Paths;
+	}
+
+	Paths = PathFindingBoard->FindPaths(CurrentPathIndex);
 	
-	FromPathField = Start;
-	ToPathField = Start->Next;
-
-	// auto Str = FString::Printf(TEXT("%s %s"), *GetName(), *(FromLocation.ToString()));
-	// GameDebug::ShowDisplayLog(GetWorld(), *Str, FColor::Yellow, true);
-	//
-	// auto Str2 = FString::Printf(TEXT("%s %s"), *GetName(), *(ToLocation.ToString()));
-	// GameDebug::ShowDisplayLog(GetWorld(), *Str2, FColor::Red, true);
+	TraceSpline(Paths);
 	
-	return true;
+	return Paths;
 }
-
-void UPathfindingComponent::InitializePathFinding()
-{
-	if (AActor* const Owner = GetOwner())
-	{
-		FromLocation = Owner->GetActorLocation();
-		ToLocation = FromPathField? FromPathField->ExitPoint : FromLocation;
-		PathDirection = FromPathField? FromPathField->PathDirection : EPathDirection::North;
-		PathDirectionChange = EPathDirectionChange::None;
-		DirectionAngleFrom = EPathDirectionExtensions::GetAngle(PathDirection);
-		DirectionAngleTo = EPathDirectionExtensions::GetAngle(PathDirection);
-	
-		FQuat Quat = EPathDirectionExtensions::GetRotation(PathDirection);
-		Owner->SetActorRelativeRotation(Quat);
-	}
-}
-
-void UPathfindingComponent::PrepareNextPathFinding()
-{
-	FromLocation = ToLocation;
-	ToLocation = FromPathField? FromPathField->ExitPoint : ToLocation;
-	if (FromPathField)
-	{
-		PathDirectionChange = EPathDirectionChangeExtensions::GetDirectionChangeTo(PathDirection, FromPathField->PathDirection);
-	}
-	PathDirection = FromPathField? FromPathField->PathDirection : PathDirection;
-	DirectionAngleFrom = DirectionAngleTo;
-	
-	// GameDebug::ShowDisplayLog(GetWorld(), EPathDirectionExtensions::EnumToString(PathDirection));
-	GameDebug::ShowDisplayLog(GetWorld(), EPathDirectionChangeExtensions::EnumToString(PathDirectionChange));
-
-	switch (PathDirectionChange)
-	{
-		case EPathDirectionChange::None:
-			PrepareForward();
-			break;
-		case EPathDirectionChange::TurnRight:
-			PrepareTurnRight();
-			break;
-		case EPathDirectionChange::TurnLeft:
-			PrepareTurnLeft();
-			break;
-		default:
-			PrepareTurnAround();
-			break;
-	}
-}
-
-void UPathfindingComponent::PrepareForward()
-{
-	if (AActor* const Owner = GetOwner())
-	{
-		FQuat Quat = EPathDirectionExtensions::GetRotation(PathDirection);
-		Owner->SetActorRelativeRotation(Quat);
-		DirectionAngleTo = EPathDirectionExtensions::GetAngle(PathDirection);
-	}
-}
-
-void UPathfindingComponent::PrepareTurnRight()
-{
-	DirectionAngleTo = DirectionAngleFrom + 90;
-}
-
-void UPathfindingComponent::PrepareTurnLeft()
-{
-	DirectionAngleTo = DirectionAngleFrom - 90;
-}
-
-void UPathfindingComponent::PrepareTurnAround()
-{
-	DirectionAngleTo = DirectionAngleFrom + 180;
-}
-
-class UPathVector* UPathfindingComponent::GetPlacedPathField() const
-{
-	if (AActor* const Owner = GetOwner())
-	{
-		return PathFindingBoard->FindField(Owner->GetActorLocation());
-	}
-
-	return nullptr;
-}
-

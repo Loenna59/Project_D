@@ -36,6 +36,7 @@ public:
 	FVector ExitPoint;
 	
 	int32 Cost;
+	int32 HeuristicCost;
 	float Height;
 	float SlopeAngle;
 
@@ -44,7 +45,7 @@ public:
 	void ClearPath();
 	void BecomeDestination();
 	bool HasPath();
-	void ShowPath();
+	float GetTotalCost() const;
 
 	bool GetIsAlternative() const
 	{

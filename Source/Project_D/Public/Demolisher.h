@@ -16,5 +16,10 @@ class PROJECT_D_API ADemolisher : public ABaseZombie
 
 public:
 	ADemolisher();
+
+	virtual void OnTriggerAttack(bool Start) override;
 	
+	void Throw();
+	void Swing();
+	void ChargeTo();
 };
