@@ -13,6 +13,7 @@
 #include "ZombieTriggerParam.h"
 #include "Blueprint/UserWidget.h"
 #include "Camera/CameraComponent.h"
+#include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "UI/GameOverUI.h"
@@ -482,6 +483,14 @@ void APlayerCharacter::StartedEquipment()
 		if (const bool bHit = GetWorld()->LineTraceSingleByObjectType(HitResult, Start, End, ECC_GameTraceChannel6, QueryParams))
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Hit Actor: %s"), *HitResult.GetActor()->GetName());
+			SetUseControllerRotationYaw(false);
+			GetCapsule()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+			GetCharacterMovement()->SetMovementMode(MOVE_Flying);
+			GetCharacterMovement()->StopMovementImmediately();
+			State = EPlayerState::Zipping;
+
+			ActionComponent->TargetLocationForFlying = HitResult.ImpactPoint;
+			ActionComponent->FlyingSpeed = 1000.0f;
 		}
 		if (true == bVerboseEquipment)
 		{

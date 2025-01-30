@@ -186,4 +186,8 @@ public:
 	void TriggerDropkick();
 	
 	void TriggerLandOnFallSafetyZone();
+
+	FVector TargetLocationForFlying = FVector::ZeroVector;
+	float FlyingSpeed = 0.0f;
+	void FlyingToTarget(float DeltaTime);
 };

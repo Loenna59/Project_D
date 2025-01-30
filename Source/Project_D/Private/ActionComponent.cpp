@@ -38,36 +38,7 @@ void UActionComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 	
 	if (Player->State == EPlayerState::Zipping)
 	{
-		bool bNear = true;
-		bNear &= UKismetMathLibrary::NearlyEqual_FloatFloat(PlayerLocation.X, ZippingEndPosition.X, 50.0f);
-		bNear &= UKismetMathLibrary::NearlyEqual_FloatFloat(PlayerLocation.Y, ZippingEndPosition.Y, 50.0f);
-		bNear &= UKismetMathLibrary::NearlyEqual_FloatFloat(PlayerLocation.Z, ZippingEndPosition.Z, 50.0f);
-		if (bNear) // 끝 지점에 거의 도달했다면 Player가 짚라인 탑승 상태를 벗어나도록 함
-		{
-			Player->SetUseControllerRotationYaw(true);
-			Player->GetCapsule()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-			Player->GetCharacterMovement()->SetMovementMode(MOVE_Walking);
-			Player->GetCharacterMovement()->StopMovementImmediately();
-			// PlayerAnimInterface->Execute_SetPlayerActionState(EPlayerState::WalkingOnGround);
-			
-			Player->State = EPlayerState::WalkingOnGround;
-			TargetZipline = nullptr;
-			ZippingStartPosition = FVector::ZeroVector;
-			ZippingEndPosition = FVector::ZeroVector;
-		}
-		else
-		{
-			// 짚라인의 끝지점과 플레이어의 위치로 나아가야 할 방향을 구한다.
-			const FVector Dir = (ZippingEndPosition - PlayerLocation).GetSafeNormal();
-			const FVector P0 = PlayerLocation;
-			const FVector VT = 1000.0f * DeltaTime * Dir;
-			const FVector P = P0 + VT;
-
-			// Player는 Yaw 축으로만 변화시킨다.
-			Player->SetActorLocation(P);
-			Player->SetActorRotation(FRotator(0.0f, UKismetMathLibrary::FindLookAtRotation(P, ZippingEndPosition).Yaw, 0.0f));
-		}
-
+		FlyingToTarget(DeltaTime);
 		return;
 	}
 	
@@ -92,6 +63,41 @@ void UActionComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 		1.0f
 	);
 	bIsOnLand = bHit;
+}
+
+void UActionComponent::FlyingToTarget(const float DeltaTime)
+{
+	const FVector PlayerLocation = Player->GetActorLocation();
+	
+	bool bNear = true;
+	bNear &= UKismetMathLibrary::NearlyEqual_FloatFloat(PlayerLocation.X, TargetLocationForFlying.X, 50.0f);
+	bNear &= UKismetMathLibrary::NearlyEqual_FloatFloat(PlayerLocation.Y, TargetLocationForFlying.Y, 50.0f);
+	bNear &= UKismetMathLibrary::NearlyEqual_FloatFloat(PlayerLocation.Z, TargetLocationForFlying.Z, 50.0f);
+	if (bNear) // 끝 지점에 거의 도달했다면 그만 날아라
+	{
+		Player->SetUseControllerRotationYaw(true);
+		Player->GetCapsule()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		Player->GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+		Player->GetCharacterMovement()->StopMovementImmediately();
+		Player->State = EPlayerState::WalkingOnGround;
+		TargetLocationForFlying = FVector::ZeroVector;
+		
+		TargetZipline = nullptr;
+		ZippingStartPosition = FVector::ZeroVector;
+		ZippingEndPosition = FVector::ZeroVector;
+	}
+	else
+	{
+		// 짚라인의 끝지점과 플레이어의 위치로 나아가야 할 방향을 구한다.
+		const FVector Dir = (TargetLocationForFlying - PlayerLocation).GetSafeNormal();
+		const FVector P0 = PlayerLocation;
+		const FVector VT = FlyingSpeed * DeltaTime * Dir;
+		const FVector P = P0 + VT;
+
+		// Player는 Yaw 축으로만 변화시킨다.
+		Player->SetActorLocation(P);
+		Player->SetActorRotation(FRotator(0.0f, UKismetMathLibrary::FindLookAtRotation(P, TargetLocationForFlying).Yaw, 0.0f));
+	}
 }
 
 bool UActionComponent::TriggerInteractWall()
@@ -655,12 +661,12 @@ bool UActionComponent::TriggerRideZipline()
 	Player->GetCapsule()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	Player->GetCharacterMovement()->SetMovementMode(MOVE_Flying);
 	Player->GetCharacterMovement()->StopMovementImmediately();
-	// PlayerAnimInterface->Execute_SetPlayerActionState(PlayerAnimInstance, EPlayerState::Zipping);
-	
 	Player->State = EPlayerState::Zipping;
 	
 	ZippingStartPosition = UPlayerHelper::MoveVectorDownward(TargetZipline->StartCablePosition->GetComponentLocation(), 100.0f);
 	ZippingEndPosition = UPlayerHelper::MoveVectorDownward(TargetZipline->EndCablePosition->GetComponentLocation(), 100.0f);
+	TargetLocationForFlying = ZippingEndPosition;
+	FlyingSpeed = 1000.0f;
 	
     Player->SetActorLocation(ZippingStartPosition);
 
