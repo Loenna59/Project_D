@@ -12,6 +12,7 @@
 #include "PlayerHUD.h"
 #include "ZombieTriggerParam.h"
 #include "Blueprint/UserWidget.h"
+#include "Camera/CameraComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "UI/GameOverUI.h"
@@ -34,6 +35,9 @@ APlayerCharacter::APlayerCharacter()
 	
 	
 	WeaponMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("WeaponMesh"));
+	PlayerCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("PlayerCamera"));
+	PlayerCamera->bUsePawnControlRotation = true;
+	PlayerCamera->SetFieldOfView(100.0f);              
 	
 	ActionComponent = CreateDefaultSubobject<UActionComponent>(TEXT("ActionComponent"));
 	MotionWarpingComponent = CreateDefaultSubobject<UMotionWarpingComponent>(TEXT("MotionWarpingComponent"));
@@ -59,8 +63,7 @@ void APlayerCharacter::BeginPlay()
     	PlayerHUD->AddToViewport();
     }
 
-	// Weapon Mesh Attach & Bind Event
-	WeaponMesh->AttachToComponent(Super::GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, "RightHandWeaponSocket");
+	// Bind Event
 	WeaponMesh->OnComponentBeginOverlap.AddDynamic(this, &APlayerCharacter::OnWeaponBeginOverlap);
 
 	// Add Input Mapping Context
@@ -291,7 +294,7 @@ void APlayerCharacter::OnWeaponBeginOverlap(UPrimitiveComponent* OverlappedCompo
 
 void APlayerCharacter::OnDamaged(const int Amount)
 {
-	//UE_LOG(LogTemp, Warning, TEXT("APlayerCharacter::OnDamaged(%d)"), Amount);
+	//UE_LOG(LogTemp, Display, TEXT("APlayerCharacter::OnDamaged(%d)"), Amount);
 	Hp -= Amount;
 	PlayerHUD->OnChangeHp(Hp, MaxHp);
 	if (Hp <= 0)
@@ -304,7 +307,7 @@ void APlayerCharacter::OnDamaged(const int Amount)
 
 void APlayerCharacter::OnDead()
 {
-	UE_LOG(LogTemp, Warning, TEXT("APlayerCharacter::OnDead"));
+	UE_LOG(LogTemp, Display, TEXT("APlayerCharacter::OnDead"));
 
 	bIsDead = true;
 	
@@ -416,7 +419,7 @@ void APlayerCharacter::StartedAttack()
 
 void APlayerCharacter::StartedKick()
 {
-	UE_LOG(LogTemp, Warning, TEXT("APlayerCharacter::StartedKick"));
+	UE_LOG(LogTemp, Display, TEXT("APlayerCharacter::StartedKick"));
 
 	if (true == bIsKicking)
 	{
@@ -450,5 +453,39 @@ void APlayerCharacter::CompletedSprint()
 
 void APlayerCharacter::StartedEquipment()
 {
-	UE_LOG(LogTemp, Warning, TEXT("APlayerCharacter::StartedEquipment"));
+	UE_LOG(LogTemp, Display, TEXT("APlayerCharacter::StartedEquipment"));
+
+	// 우선 Equipment는 Grappling Hook 밖에 없다고 가정한다.
+	// 1. 화면 중앙(크로스헤어 위치)의 방향 벡터를 알고 싶다.
+	// 2. 해당 방향으로 특정 거리 만큼 LineTrace를 하고 싶다.
+	
+	APlayerController* PlayerController = GetLocalViewingPlayerController();
+	
+	// 화면 크기를 구한다.
+	int32 ScreenWidth, ScreenHeight;
+	PlayerController->GetViewportSize(ScreenWidth, ScreenHeight);
+	FVector WorldLocation, WorldDirection;
+
+	// 현재 활성화된 ViewTarget(Player에 부착된 카메라)의 정중앙 위치가 월드좌표상에서 어떤 방향인지 구한다.
+	// WorldLocation : ViewTarget의 월드 좌표 (PlayerCamara의 월드 좌표)
+	// WorldDirection : ViewTarget 중앙이 가리키는 방향
+	if (PlayerController->DeprojectScreenPositionToWorld(ScreenWidth * 0.5f, ScreenHeight * 0.5f, WorldLocation, WorldDirection))
+	{
+		const FVector Start = WorldLocation;  // 카메라 위치가 시작지점
+		const FVector End = Start + (WorldDirection * 1000.0f);  // 화면 중앙 방향으로 1000 만큼
+
+		FHitResult HitResult;
+		FCollisionQueryParams QueryParams;
+		QueryParams.AddIgnoredActor(this);  // 자신의 충돌 무시 (필요시)
+
+		// Object Type이 ECC_GameTraceChannel6(Wall)인 오브젝트들만 대상으로 LineTrace
+		if (const bool bHit = GetWorld()->LineTraceSingleByObjectType(HitResult, Start, End, ECC_GameTraceChannel6, QueryParams))
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Hit Actor: %s"), *HitResult.GetActor()->GetName());
+		}
+		if (true == bVerboseEquipment)
+		{
+			DrawDebugLine(GetWorld(), Start, End, FColor::Red, false, 1.0f, 0, 1.0f);
+		}
+	}
 }

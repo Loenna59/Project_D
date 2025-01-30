@@ -61,8 +61,10 @@ public:
 
 public:
 	// Components
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	UStaticMeshComponent* WeaponMesh = nullptr;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	UCameraComponent* PlayerCamera = nullptr;
 
 	// Actor Components
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
@@ -79,24 +81,26 @@ public:
 	UPlayerHUD* PlayerHUD = nullptr;
 
 	// Input
-	UPROPERTY(EditDefaultsOnly, Category = Input)
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	UInputMappingContext* ImcFPS = nullptr;
-	UPROPERTY(EditDefaultsOnly, Category = Input)
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	UInputAction* IaLookUp = nullptr;
-	UPROPERTY(EditDefaultsOnly, Category = Input)
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	UInputAction* IaTurn = nullptr;
-	UPROPERTY(EditDefaultsOnly, Category = Input)
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	UInputAction* IaMove = nullptr;
-	UPROPERTY(EditDefaultsOnly, Category = Input)
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	UInputAction* IaJump = nullptr;
-	UPROPERTY(EditDefaultsOnly, Category = Input)
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	UInputAction* IaSprint = nullptr;
-	UPROPERTY(EditDefaultsOnly, Category = Input)
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	UInputAction* IaAttack = nullptr;
-	UPROPERTY(EditDefaultsOnly, Category = Input)
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	UInputAction* IaKick = nullptr;
-	UPROPERTY(EditDefaultsOnly, Category = Input)
+	UPROPERTY(EditDefaultsOnly, Category = "Input|Equipment")
 	UInputAction* IaEquipment = nullptr;
+	UPROPERTY(EditDefaultsOnly, Category = "Input|Equipment")
+	bool bVerboseEquipment = false;
 	FVector Direction = FVector::ZeroVector;
 	FVector2D MovementVector = FVector2d::ZeroVector;
 	void TriggeredTurn(const FInputActionValue& InputValue);
