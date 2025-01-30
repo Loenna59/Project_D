@@ -15,9 +15,11 @@ void UAttackZombieState::OnEnter(ABaseZombie* Zombie)
 		TimerHandle.Invalidate();
 	}
 	
-	if (Zombie && Zombie->DetectedTarget)
+	if (Zombie)
 	{
 		// UKismetSystemLibrary::PrintString(GetWorld(),TEXT("ATTACK"));
+		Zombie->OnTriggerAttack(true);
+		
 		GetWorld()->GetTimerManager().SetTimer(
 			TimerHandle,
 			[Zombie] ()
@@ -27,16 +29,12 @@ void UAttackZombieState::OnEnter(ABaseZombie* Zombie)
 			Interval,
 			false
 		);
-		Zombie->OnTriggerAttack(true);
 	}
 }
 
 void UAttackZombieState::OnUpdate(ABaseZombie* Zombie)
 {
-	if (Zombie)
-	{	
-		Zombie->Rotate();
-	}
+	
 }
 
 void UAttackZombieState::OnExit(ABaseZombie* Zombie)

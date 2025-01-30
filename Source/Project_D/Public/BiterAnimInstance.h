@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Animation/AnimInstance.h"
+#include "Animation/ZombieAnimInstance.h"
 #include "BiterAnimInstance.generated.h"
 
 /**
@@ -17,5 +18,4 @@ class PROJECT_D_API UBiterAnimInstance : public UAnimInstance
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	bool bIsWalking;
-	
 };

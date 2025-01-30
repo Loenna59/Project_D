@@ -71,8 +71,8 @@ void UPathfindingComponent::InitializePathFinding()
 	if (AActor* const Owner = GetOwner())
 	{
 		FromLocation = Owner->GetActorLocation();
-		ToLocation = FromPathField->ExitPoint;
-		PathDirection = FromPathField->PathDirection;
+		ToLocation = FromPathField? FromPathField->ExitPoint : FromLocation;
+		PathDirection = FromPathField? FromPathField->PathDirection : EPathDirection::North;
 		PathDirectionChange = EPathDirectionChange::None;
 		DirectionAngleFrom = EPathDirectionExtensions::GetAngle(PathDirection);
 		DirectionAngleTo = EPathDirectionExtensions::GetAngle(PathDirection);
@@ -85,11 +85,13 @@ void UPathfindingComponent::InitializePathFinding()
 void UPathfindingComponent::PrepareNextPathFinding()
 {
 	FromLocation = ToLocation;
-	ToLocation = FromPathField->ExitPoint;
-	PathDirectionChange = EPathDirectionChangeExtensions::GetDirectionChangeTo(PathDirection, FromPathField->PathDirection);
-	PathDirection = FromPathField->PathDirection;
+	ToLocation = FromPathField? FromPathField->ExitPoint : ToLocation;
+	if (FromPathField)
+	{
+		PathDirectionChange = EPathDirectionChangeExtensions::GetDirectionChangeTo(PathDirection, FromPathField->PathDirection);
+	}
+	PathDirection = FromPathField? FromPathField->PathDirection : PathDirection;
 	DirectionAngleFrom = DirectionAngleTo;
-
 	
 	// GameDebug::ShowDisplayLog(GetWorld(), EPathDirectionExtensions::EnumToString(PathDirection));
 	GameDebug::ShowDisplayLog(GetWorld(), EPathDirectionChangeExtensions::EnumToString(PathDirectionChange));

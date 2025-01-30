@@ -17,12 +17,23 @@ class PROJECT_D_API AGasTank : public ABaseZombie
 
 public:
 	AGasTank();
-
 	virtual void BeginPlay() override;
 	
 	virtual void Tick(float DeltaSeconds) override;
 
 	virtual void OnDead() override;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	class USkeletalMeshComponent* LeftArm;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	class USkeletalMeshComponent* RightArm;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	class USkeletalMeshComponent* LeftLeg;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	class USkeletalMeshComponent* RightLeg;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class UStaticMeshComponent* GasCylinder;
@@ -44,15 +55,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 GasTankDurablity = 1;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	class UBoxComponent* AttackPoint;
-
-	virtual void OnTriggerAttack(bool Start) override;
-
 	void SetActiveAttackCollision(bool Active) const;
-	
-	FTimerHandle AttackTimerHandle;
-	float AttackTiming = 1.f;
 
 	FTimerHandle JetBalloonTimerHandle;
 };

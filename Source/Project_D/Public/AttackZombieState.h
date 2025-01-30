@@ -22,5 +22,5 @@ public:
 
 protected:
 	FTimerHandle TimerHandle;
-	const float Interval = 3.f;
+	const float Interval = 1.75f;
 };

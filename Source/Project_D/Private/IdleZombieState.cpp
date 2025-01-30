@@ -5,19 +5,14 @@
 
 #include "BaseZombie.h"
 #include "BiterAnimInstance.h"
+#include "Animation/ZombieAnimInstance.h"
 #include "Kismet/KismetSystemLibrary.h"
 
 void UIdleZombieState::OnEnter(class ABaseZombie* Zombie)
 {
-	if (Zombie)
+	if (Zombie && Zombie->AnimationInstance)
 	{
-		if (UAnimInstance* const Anim = Zombie->GetMesh()->GetAnimInstance())
-		{
-			if (UBiterAnimInstance* BiterAnimInstance = Cast<UBiterAnimInstance>(Anim))
-			{
-				BiterAnimInstance->bIsWalking = false;
-			}
-		}
+		Zombie->AnimationInstance->bIsWalking = false;
 	}
 }
 
