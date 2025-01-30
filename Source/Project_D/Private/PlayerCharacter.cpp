@@ -162,27 +162,7 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	}
 }
 
-USkeletalMeshComponent* APlayerCharacter::GetMesh()
-{
-	return Super::GetMesh();
-}
-
-UCapsuleComponent* APlayerCharacter::GetCapsule()
-{
-	return Super::GetCapsuleComponent();
-}
-
-UCharacterMovementComponent* APlayerCharacter::GetCharacterMovement()
-{
-	return Super::GetCharacterMovement();
-}
-
-UMotionWarpingComponent* APlayerCharacter::GetMotionWarping()
-{
-	return MotionWarpingComponent;
-}
-
-float APlayerCharacter::GetBottomZ()
+float APlayerCharacter::GetBottomZ() const
 {
 	return Super::GetCharacterMovement()->GetFeetLocation().Z;
 }
@@ -484,7 +464,7 @@ void APlayerCharacter::StartedEquipment()
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Hit Actor: %s"), *HitResult.GetActor()->GetName());
 			SetUseControllerRotationYaw(false);
-			GetCapsule()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+			GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 			GetCharacterMovement()->SetMovementMode(MOVE_Flying);
 			GetCharacterMovement()->StopMovementImmediately();
 			State = EPlayerState::Zipping;

@@ -76,7 +76,7 @@ void UActionComponent::FlyingToTarget(const float DeltaTime)
 	if (bNear) // 끝 지점에 거의 도달했다면 그만 날아라
 	{
 		Player->SetUseControllerRotationYaw(true);
-		Player->GetCapsule()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		Player->GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 		Player->GetCharacterMovement()->SetMovementMode(MOVE_Walking);
 		Player->GetCharacterMovement()->StopMovementImmediately();
 		Player->State = EPlayerState::WalkingOnGround;
@@ -431,7 +431,7 @@ void UActionComponent::OnVaultMontageStarted(UAnimMontage* Montage)
 		UE_LOG(LogTemp, Warning, TEXT("Vault Start Location : %s"), *Player->GetMesh()->GetComponentLocation().ToString());
 	}
 	// 장애물과의 상호작용 액션이 동작하는 중에 충돌 처리를 하지 않도록 함
-	Player->GetCapsule()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	Player->GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	Player->GetCharacterMovement()->SetMovementMode(MOVE_Flying);
 	PlayerAnimInstance->OnMontageStarted.RemoveDynamic(this, &UActionComponent::OnVaultMontageStarted);
 }
@@ -456,7 +456,7 @@ void UActionComponent::OnVaultMontageEnded(UAnimMontage* Montage, bool bInterrup
 		UE_LOG(LogTemp, Warning, TEXT("Vault Ended Location : %s"), *Player->GetMesh()->GetComponentLocation().ToString());
 	}
 	bCanAction = true;
-	Player->GetCapsule()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	Player->GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	Player->GetCharacterMovement()->SetMovementMode(MOVE_Walking);
 	PlayerAnimInstance->OnMontageEnded.RemoveDynamic(this, &UActionComponent::OnVaultMontageEnded);
 }
@@ -527,7 +527,7 @@ void UActionComponent::TriggerHang()
 	bCanAction = false;
 	// Hang Idle 중에는 마우스 움직임이 발생해도 회전하지 않도록 합니다. (카메라만 회전)
 	Player->SetUseControllerRotationYaw(false);
-	Player->GetCapsule()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	Player->GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	Player->GetCharacterMovement()->SetMovementMode(MOVE_Flying);
 	Player->GetCharacterMovement()->StopMovementImmediately();
 
@@ -556,7 +556,7 @@ void UActionComponent::MoveOnWall()
 
 void UActionComponent::TriggerHangingHorizontalMovement()
 {
-	UCapsuleComponent* Capsule = Player->GetCapsule();
+	UCapsuleComponent* Capsule = Player->GetCapsuleComponent();
 	UCharacterMovementComponent* Movement = Player->GetCharacterMovement();
 	const FVector WorldLocation = Capsule->GetComponentLocation();
 	const FRotator WorldRotation = Capsule->GetComponentRotation();
@@ -658,7 +658,7 @@ bool UActionComponent::TriggerRideZipline()
 	bCanZipping = false;
 	// Zipline을 타는 중에는 마우스 움직임이 발생해도 회전하지 않도록 합니다. (카메라만 회전)
 	Player->SetUseControllerRotationYaw(false);
-	Player->GetCapsule()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	Player->GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	Player->GetCharacterMovement()->SetMovementMode(MOVE_Flying);
 	Player->GetCharacterMovement()->StopMovementImmediately();
 	Player->State = EPlayerState::Zipping;

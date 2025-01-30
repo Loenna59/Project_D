@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "InputActionValue.h"
-#include "PlayerInterface.h"
 #include "Zipline.h"
 #include "GameFramework/Character.h"
 #include "PlayerCharacter.generated.h"
@@ -26,7 +25,7 @@ enum class EPlayerState : uint8
 };
 
 UCLASS()
-class PROJECT_D_API APlayerCharacter : public ACharacter, public IPlayerInterface
+class PROJECT_D_API APlayerCharacter : public ACharacter
 {
 	GENERATED_BODY()
 
@@ -46,18 +45,13 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	
-	
-// Implement IPlayerInterface
-public:
-	virtual USkeletalMeshComponent* GetMesh() override;
-	virtual UCapsuleComponent* GetCapsule() override;
-	virtual UCharacterMovementComponent* GetCharacterMovement() override;
-	virtual UMotionWarpingComponent* GetMotionWarping() override;
-	virtual float GetBottomZ() override;
 
-	virtual void SetUseControllerRotationPitch(const bool& bUse) override;
-	virtual void SetUseControllerRotationYaw(const bool& bUse) override;
-	virtual void SetUseControllerRotationRoll(const bool& bUse) override;
+public:
+	float GetBottomZ() const;
+
+	void SetUseControllerRotationPitch(const bool& bUse);
+	void SetUseControllerRotationYaw(const bool& bUse);
+	void SetUseControllerRotationRoll(const bool& bUse);
 
 public:
 	// Components
