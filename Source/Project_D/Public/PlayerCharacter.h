@@ -49,6 +49,9 @@ public:
 public:
 	float GetBottomZ() const;
 
+	void SetFlyingMode(EPlayerState InState);
+	void SetWalkingMode();
+
 	void SetUseControllerRotationPitch(const bool& bUse);
 	void SetUseControllerRotationYaw(const bool& bUse);
 	void SetUseControllerRotationRoll(const bool& bUse);

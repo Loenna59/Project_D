@@ -167,6 +167,24 @@ float APlayerCharacter::GetBottomZ() const
 	return Super::GetCharacterMovement()->GetFeetLocation().Z;
 }
 
+void APlayerCharacter::SetFlyingMode(const EPlayerState InState)
+{
+	GetCharacterMovement()->StopMovementImmediately(); // 움직임을 즉시 멈춘다
+	SetUseControllerRotationYaw(false); // 마우스 움직임이 발생해도 Player를 회전시키지 않는다
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision); // 충돌의 영향을 받지 않도록 한다
+	GetCharacterMovement()->SetMovementMode(MOVE_Flying); // MovementMode를 변경한다
+	State = InState;
+}
+
+void APlayerCharacter::SetWalkingMode()
+{
+	GetCharacterMovement()->StopMovementImmediately();
+	SetUseControllerRotationYaw(true);
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+	State = EPlayerState::WalkingOnGround;
+}
+
 void APlayerCharacter::SetUseControllerRotationPitch(const bool& bUse)
 {
 	bUseControllerRotationPitch = bUse;
@@ -439,8 +457,8 @@ void APlayerCharacter::StartedEquipment()
 	// 우선 Equipment는 Grappling Hook 밖에 없다고 가정한다.
 	// 1. 화면 중앙(크로스헤어 위치)의 방향 벡터를 알고 싶다.
 	// 2. 해당 방향으로 특정 거리 만큼 LineTrace를 하고 싶다.
-	
-	APlayerController* PlayerController = GetLocalViewingPlayerController();
+
+	const APlayerController* PlayerController = GetLocalViewingPlayerController();
 	
 	// 화면 크기를 구한다.
 	int32 ScreenWidth, ScreenHeight;
@@ -463,11 +481,7 @@ void APlayerCharacter::StartedEquipment()
 		if (const bool bHit = GetWorld()->LineTraceSingleByObjectType(HitResult, Start, End, ECC_GameTraceChannel6, QueryParams))
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Hit Actor: %s"), *HitResult.GetActor()->GetName());
-			SetUseControllerRotationYaw(false);
-			GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-			GetCharacterMovement()->SetMovementMode(MOVE_Flying);
-			GetCharacterMovement()->StopMovementImmediately();
-			State = EPlayerState::Zipping;
+			SetFlyingMode(EPlayerState::Zipping);
 
 			ActionComponent->TargetLocationForFlying = HitResult.ImpactPoint;
 			ActionComponent->FlyingSpeed = 1000.0f;

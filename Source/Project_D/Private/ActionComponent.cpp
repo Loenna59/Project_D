@@ -75,11 +75,7 @@ void UActionComponent::FlyingToTarget(const float DeltaTime)
 	bNear &= UKismetMathLibrary::NearlyEqual_FloatFloat(PlayerLocation.Z, TargetLocationForFlying.Z, 50.0f);
 	if (bNear) // 끝 지점에 거의 도달했다면 그만 날아라
 	{
-		Player->SetUseControllerRotationYaw(true);
-		Player->GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-		Player->GetCharacterMovement()->SetMovementMode(MOVE_Walking);
-		Player->GetCharacterMovement()->StopMovementImmediately();
-		Player->State = EPlayerState::WalkingOnGround;
+		Player->SetWalkingMode();
 		TargetLocationForFlying = FVector::ZeroVector;
 		
 		TargetZipline = nullptr;
@@ -525,11 +521,7 @@ void UActionComponent::TriggerHang()
 {
 	UE_LOG(LogTemp, Display, TEXT("UActionComponent::TriggerHang"));
 	bCanAction = false;
-	// Hang Idle 중에는 마우스 움직임이 발생해도 회전하지 않도록 합니다. (카메라만 회전)
-	Player->SetUseControllerRotationYaw(false);
-	Player->GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	Player->GetCharacterMovement()->SetMovementMode(MOVE_Flying);
-	Player->GetCharacterMovement()->StopMovementImmediately();
+	Player->SetFlyingMode(EPlayerState::WalkingOnGround);
 
 	const FVector TargetLocation = UPlayerHelper::MoveVectorDownward(
 		UPlayerHelper::MoveVectorBackward(FirstTopHitResult.ImpactPoint, WallRotation, 18.0f),
@@ -656,12 +648,7 @@ bool UActionComponent::TriggerRideZipline()
 	}
 	
 	bCanZipping = false;
-	// Zipline을 타는 중에는 마우스 움직임이 발생해도 회전하지 않도록 합니다. (카메라만 회전)
-	Player->SetUseControllerRotationYaw(false);
-	Player->GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	Player->GetCharacterMovement()->SetMovementMode(MOVE_Flying);
-	Player->GetCharacterMovement()->StopMovementImmediately();
-	Player->State = EPlayerState::Zipping;
+	Player->SetFlyingMode(EPlayerState::Zipping);
 	
 	ZippingStartPosition = UPlayerHelper::MoveVectorDownward(TargetZipline->StartCablePosition->GetComponentLocation(), 100.0f);
 	ZippingEndPosition = UPlayerHelper::MoveVectorDownward(TargetZipline->EndCablePosition->GetComponentLocation(), 100.0f);
