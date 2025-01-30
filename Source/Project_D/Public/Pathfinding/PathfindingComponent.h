@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "BaseZombie.h"
 #include "Components/ActorComponent.h"
 #include "PathfindingComponent.generated.h"
 
@@ -35,9 +36,11 @@ public:
 	
 	void Initialize(AActor* Tracer);
 
-	TArray<class UPathVector*> GetPaths();
+	TArray<class UPathVector*> GetPaths(ABaseZombie* Mover);
 
 	void TraceSpline(const TArray<UPathVector*>& Paths);
 
 	bool UpdatePath();
+
+	bool MoveAlongSpline(ABaseZombie* Mover, float Speed, float DeltaTime);
 };

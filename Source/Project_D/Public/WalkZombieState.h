@@ -29,7 +29,4 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Movement")
 	float RotationSpeed = 10.f;
 	float AcceptanceRadius = 100.f;
-
-private:
-	FVector CurrentVelocity;
 };

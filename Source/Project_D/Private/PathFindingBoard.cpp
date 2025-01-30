@@ -83,6 +83,30 @@ void APathFindingBoard::BeginPlay()
 				UPathVector::MakeNorthSouthNeighbors(Field, Fields[Index]);
 			}
 
+			if (x > 0 && y > 0)
+			{
+				int32 Index = i - FMath::RoundToInt32(BoardSize.X) - 1;
+				UPathVector::MakeNorthWestSouthEastNeighbors(Field, Fields[Index]);
+			}
+
+			// if (x < BoardSize.X - 1 && y < BoardSize.Y - 1)
+			// {
+			// 	int32 Index = i + FMath::RoundToInt32(BoardSize.X) + 1;
+			// 	UPathVector::MakeNorthWestSouthEastNeighbors(Fields[Index], Field);
+			// }
+
+			if (x < BoardSize.X - 1 && y > 0)
+			{
+				int32 Index = i - FMath::RoundToInt32(BoardSize.X) + 1;
+				UPathVector::MakeNorthEastSouthWestNeighbors(Field, Fields[Index]);
+			}
+
+			// if (x > 0 && y < BoardSize.Y - 1)
+			// {
+			// 	int32 Index = i + FMath::RoundToInt32(BoardSize.X) - 1;
+			// 	UPathVector::MakeNorthEastSouthWestNeighbors(Fields[Index], Field);
+			// }
+
 			Field->SetIsAlternative((x & 1) == 0);
 			if ((y & 1) == 0)
 			{
@@ -160,6 +184,10 @@ TArray<UPathVector*> APathFindingBoard::FindPaths(int32 StartIndex)
 			TryAddToOpenSet(Current, Current->South, EPathDirection::North, OpenSet);
 			TryAddToOpenSet(Current, Current->East, EPathDirection::West, OpenSet);
 			TryAddToOpenSet(Current, Current->West, EPathDirection::East, OpenSet);
+			TryAddToOpenSet(Current, Current->NorthEast, EPathDirection::SouthWest, OpenSet);
+			TryAddToOpenSet(Current, Current->NorthWest, EPathDirection::SouthEast, OpenSet);
+			TryAddToOpenSet(Current, Current->SouthEast, EPathDirection::NorthWest, OpenSet);
+			TryAddToOpenSet(Current, Current->SouthWest, EPathDirection::NorthEast, OpenSet);
 		}
 		else
 		{
@@ -167,6 +195,10 @@ TArray<UPathVector*> APathFindingBoard::FindPaths(int32 StartIndex)
 			TryAddToOpenSet(Current, Current->East, EPathDirection::West, OpenSet);
 			TryAddToOpenSet(Current, Current->South, EPathDirection::North, OpenSet);
 			TryAddToOpenSet(Current, Current->North, EPathDirection::South, OpenSet);
+			TryAddToOpenSet(Current, Current->SouthWest, EPathDirection::NorthEast, OpenSet);
+			TryAddToOpenSet(Current, Current->SouthEast, EPathDirection::NorthWest, OpenSet);
+			TryAddToOpenSet(Current, Current->NorthWest, EPathDirection::SouthEast, OpenSet);
+			TryAddToOpenSet(Current, Current->NorthEast, EPathDirection::SouthWest, OpenSet);
 		}
 	}
 
@@ -209,7 +241,14 @@ void APathFindingBoard::TryAddToOpenSet(UPathVector* Current, UPathVector* Neigh
 
 float APathFindingBoard::CalculateHeuristic(UPathVector* Start, UPathVector* Goal)
 {
-	return FVector::Dist(Start->Location, Goal->Location);
+	float Distance = FVector::Dist(Start->Location, Goal->Location);
+	
+	if (Start->NorthEast == Goal || Start->NorthWest == Goal || Start->SouthEast == Goal || Start->SouthWest == Goal)
+	{
+		return Distance * 1.414f; // 대각선 이동 비용
+	}
+
+	return Distance;
 }
 
 TArray<UPathVector*> APathFindingBoard::RetracePath(UPathVector* StartNode, UPathVector* EndNode)
@@ -228,7 +267,8 @@ TArray<UPathVector*> APathFindingBoard::RetracePath(UPathVector* StartNode, UPat
 	Path.Add(EndNode);
 
 	// 경로를 뒤집어 시작점 -> 목적지 순서로 만듦
-	Algo::Reverse(Path);
+	// Spline 사용시 뒤집으면 안됨
+	// Algo::Reverse(Path);
 
 	return Path;
 }

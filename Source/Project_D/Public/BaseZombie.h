@@ -91,6 +91,8 @@ public:
 	float AttackTiming = 0.75f;
 
 	int32 CurrentPathIndex = 0;
+
+	float DistanceAlongSpline = 0.f;
 	
 	virtual bool ContainsBrokenBones(TArray<FName> BoneNames);
 

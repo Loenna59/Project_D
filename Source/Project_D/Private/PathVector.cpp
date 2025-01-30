@@ -115,3 +115,29 @@ void UPathVector::MakeNorthSouthNeighbors(UPathVector* North, UPathVector* South
 		North->South = South;
 	}
 }
+
+void UPathVector::MakeNorthWestSouthEastNeighbors(UPathVector* NorthWest, UPathVector* SouthEast)
+{
+	if (NorthWest)
+	{
+		NorthWest->SouthEast = SouthEast;
+	}
+	
+	if (SouthEast)
+	{
+		SouthEast->NorthWest = NorthWest;
+	}
+}
+
+void UPathVector::MakeNorthEastSouthWestNeighbors(UPathVector* NorthEast, UPathVector* SouthWest)
+{
+	if (NorthEast)
+	{
+		NorthEast->SouthWest = SouthWest;
+	}
+	
+	if (SouthWest)
+	{
+		SouthWest->NorthEast = NorthEast;
+	}
+}
