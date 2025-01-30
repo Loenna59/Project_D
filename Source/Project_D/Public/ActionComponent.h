@@ -87,6 +87,14 @@ public:
 	bool bVerboseDropkick = false;
 	UPROPERTY(EditDefaultsOnly, Category = "Actions|LandOnFallSafetyZone")
 	UAnimMontage* LandOnFallSafetyZoneMontage = nullptr;
+	UPROPERTY(EditDefaultsOnly, Category = "Actions|Flying")
+	float ZippingSpeed = 1000.0f;
+	UPROPERTY(EditDefaultsOnly, Category = "Actions|Flying")
+	float GrapplingSpeed = 1000.0f;
+	UPROPERTY(EditDefaultsOnly, Category = "Actions|Flying")
+	float HookDistance = 1000.0f;
+	UPROPERTY(EditDefaultsOnly, Category = "Actions|Flying")
+	bool bVerboseGrappling = false;
 
 	UPROPERTY()
 	APlayerCharacter* Player = nullptr;
@@ -163,16 +171,6 @@ public:
 	void TriggerHangingHorizontalMovement();
 
 public:
-	UPROPERTY()
-	AZipline* TargetZipline = nullptr;
-	// Player가 Zipline을 탈 수 있는지 여부
-	bool bCanZipping = false;
-	FVector ZippingStartPosition = FVector::ZeroVector;
-	FVector ZippingEndPosition = FVector::ZeroVector;
-
-	//
-	bool TriggerRideZipline();
-
 	UFUNCTION()
 	void OnMeleeAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted);
 	void TriggerMeleeAttack();
@@ -187,6 +185,16 @@ public:
 	
 	void TriggerLandOnFallSafetyZone();
 
+	UPROPERTY()
+    AZipline* TargetZipline = nullptr;
+    // Player가 Zipline을 탈 수 있는지 여부
+    bool bCanZipping = false;
+    FVector ZippingStartPosition = FVector::ZeroVector;
+    FVector ZippingEndPosition = FVector::ZeroVector;
+	bool TriggerRideZipline();
+	
+	void TriggerGrapplingHook();
+	
 	FVector TargetLocationForFlying = FVector::ZeroVector;
 	float FlyingSpeed = 0.0f;
 	void FlyingToTarget(float DeltaTime);

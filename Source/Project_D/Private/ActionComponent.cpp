@@ -653,11 +653,51 @@ bool UActionComponent::TriggerRideZipline()
 	ZippingStartPosition = UPlayerHelper::MoveVectorDownward(TargetZipline->StartCablePosition->GetComponentLocation(), 100.0f);
 	ZippingEndPosition = UPlayerHelper::MoveVectorDownward(TargetZipline->EndCablePosition->GetComponentLocation(), 100.0f);
 	TargetLocationForFlying = ZippingEndPosition;
-	FlyingSpeed = 1000.0f;
+	FlyingSpeed = ZippingSpeed;
 	
     Player->SetActorLocation(ZippingStartPosition);
 
 	return true;
+}
+
+void UActionComponent::TriggerGrapplingHook()
+{
+	// 1. 화면 중앙(크로스헤어 위치)의 방향 벡터를 알고 싶다.
+	// 2. 해당 방향으로 특정 거리 만큼 LineTrace를 하고 싶다.
+
+	const APlayerController* PlayerController = Player->GetLocalViewingPlayerController();
+	
+	// 화면 크기를 구한다.
+	int32 ScreenWidth, ScreenHeight;
+	PlayerController->GetViewportSize(ScreenWidth, ScreenHeight);
+	FVector WorldLocation, WorldDirection;
+
+	// 현재 활성화된 ViewTarget(Player에 부착된 카메라)의 정중앙 위치가 월드좌표상에서 어떤 방향인지 구한다.
+	// WorldLocation : ViewTarget의 월드 좌표 (PlayerCamara의 월드 좌표)
+	// WorldDirection : ViewTarget 중앙이 가리키는 방향
+	if (PlayerController->DeprojectScreenPositionToWorld(ScreenWidth * 0.5f, ScreenHeight * 0.5f, WorldLocation, WorldDirection))
+	{
+		const FVector Start = WorldLocation;  // 카메라 위치가 시작지점
+		const FVector End = Start + (WorldDirection * HookDistance);  // 화면 중앙 방향으로 HookDistance 만큼
+
+		FHitResult HitResult;
+		FCollisionQueryParams QueryParams;
+		QueryParams.AddIgnoredActor(Player);  // 자신의 충돌 무시 (필요시)
+
+		// Object Type이 ECC_GameTraceChannel6(Wall)인 오브젝트들만 대상으로 LineTrace
+		if (const bool bHit = GetWorld()->LineTraceSingleByObjectType(HitResult, Start, End, ECC_GameTraceChannel6, QueryParams))
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Hit Actor: %s"), *HitResult.GetActor()->GetName());
+			Player->SetFlyingMode(EPlayerState::Zipping);
+
+			TargetLocationForFlying = HitResult.ImpactPoint;
+			FlyingSpeed = GrapplingSpeed;
+		}
+		if (true == bVerboseGrappling)
+		{
+			DrawDebugLine(GetWorld(), Start, End, FColor::Red, false, 1.0f, 0, 1.0f);
+		}
+	}
 }
 
 void UActionComponent::OnMeleeAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted)
