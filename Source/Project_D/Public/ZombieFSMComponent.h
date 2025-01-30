@@ -3,11 +3,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "EEnemyState.h"
 #include "AttackZombieState.h"
+#include "DeathZombieState.h"
+#include "EEnemyState.h"
 #include "IdleZombieState.h"
 #include "WalkZombieState.h"
-#include "DeathZombieState.h"
 #include "Components/ActorComponent.h"
 #include "ZombieFSMComponent.generated.h"
 

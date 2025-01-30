@@ -38,7 +38,7 @@ public:
 
 	TArray<class UPathVector*> GetPaths(ABaseZombie* Mover);
 
-	void TraceSpline(const TArray<UPathVector*>& Paths);
+	void TraceSpline(const TArray<UPathVector*>& Paths) const;
 
 	bool UpdatePath();
 

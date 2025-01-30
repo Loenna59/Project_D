@@ -4,7 +4,6 @@
 #include "Pathfinding/PathfindingComponent.h"
 
 #include "BaseZombie.h"
-#include "GameDebug.h"
 #include "PathFindingBoard.h"
 #include "PathVector.h"
 #include "Components/SplineComponent.h"
@@ -51,7 +50,7 @@ void UPathfindingComponent::Initialize(AActor* Tracer)
 	CurrentPathIndex = PathFindingBoard->GetFieldIndex(Tracer->GetActorLocation());	
 }
 
-void UPathfindingComponent::TraceSpline(const TArray<UPathVector*>& Paths)
+void UPathfindingComponent::TraceSpline(const TArray<UPathVector*>& Paths) const
 {
 	if (!SplineComponent || Paths.Num() == 0)
 	{
@@ -100,39 +99,6 @@ bool UPathfindingComponent::UpdatePath()
 	return false;
 }
 
-bool UPathfindingComponent::MoveAlongSpline(ABaseZombie* Mover, float Speed, float DeltaTime)
-{
-	if (!Mover)
-	{
-		return false;
-	}
-	if (!SplineComponent || SplineComponent->GetNumberOfSplinePoints() == 0)
-	{
-		return false;
-	}
-
-	float SplineLength = SplineComponent->GetSplineLength();
-
-	// 현재 이동한 거리 업데이트
-	Mover->DistanceAlongSpline += Speed * DeltaTime;
-
-	// 스플라인 끝에 도달하면 종료
-	if (Mover->DistanceAlongSpline >= SplineLength)
-    {
-		Mover->DistanceAlongSpline = SplineLength; // 스플라인의 끝으로 고정
-		UE_LOG(LogTemp, Warning, TEXT("Zombie reached the end of the path!"));
-		return true;
-    }
-	
-	// 스플라인을 따라 좀비의 위치 업데이트
-	FVector NewLocation = SplineComponent->GetLocationAtDistanceAlongSpline(Mover->DistanceAlongSpline, ESplineCoordinateSpace::World);
-	FRotator NewRotation = SplineComponent->GetRotationAtDistanceAlongSpline(Mover->DistanceAlongSpline, ESplineCoordinateSpace::World);
-
-	Mover->SetActorLocationAndRotation(NewLocation, NewRotation);
-
-	return false;
-}
-
 TArray<class UPathVector*> UPathfindingComponent::GetPaths(ABaseZombie* Mover)
 {
 	TArray<UPathVector*> Paths;
@@ -147,7 +113,6 @@ TArray<class UPathVector*> UPathfindingComponent::GetPaths(ABaseZombie* Mover)
 	}
 
 	CurrentPathIndex = PathFindingBoard->GetFieldIndex(Mover->GetActorLocation());
-	GameDebug::ShowDisplayLog(GetWorld(), FString::FromInt(CurrentPathIndex));
 	Paths = PathFindingBoard->FindPaths(CurrentPathIndex);
 	
 	TraceSpline(Paths);

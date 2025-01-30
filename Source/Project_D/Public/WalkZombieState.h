@@ -20,9 +20,6 @@ public:
 	virtual void OnUpdate(ABaseZombie* Zombie) override;
 	virtual void OnExit(ABaseZombie* Zombie) override;
 
-	UPROPERTY()
-	TArray<class UPathVector*> Path;
-
 	UPROPERTY(EditDefaultsOnly, Category = "Movement")
 	float MovementSpeed = 100.f;
 

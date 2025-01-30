@@ -82,19 +82,30 @@ void ABaseZombie::SetCollisionPartMesh(USkeletalMeshComponent* Part)
 	Part->SetCollisionResponseToChannel(ECC_PhysicsBody, ECR_Ignore);
 }
 
+void ABaseZombie::SetIdle()
+{
+	FSM->ChangeState(EEnemyState::IDLE, this);
+	
+	AI->SetTarget(nullptr);
+	Pathfinding->GetPaths(this);
+}
+
 // Called every frame
 void ABaseZombie::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	if (CurrentHp <= 0)
+	{
+		return;
+	}
 	
 	if (UWorld* const World = GetWorld())
 	{
-		if (bIsAttacking)
+		if (bIsAttacking || bIsHitting)
 		{
 			return;
 		}
-
-		
 		
 		TraceChannelHelper::SphereTraceByChannel(
 			World,
@@ -139,8 +150,7 @@ void ABaseZombie::Tick(float DeltaTime)
 
 				if (!HitPlayer)
 				{
-					AI->SetTarget(nullptr);
-					FSM->ChangeState(EEnemyState::IDLE, this);
+					SetIdle();
 				}
 			}
 		);
@@ -192,7 +202,7 @@ void ABaseZombie::OnTriggerAttack(bool Start)
 			false
 		);
 
-		AnimationInstance->PlayMontage(AI, AnimState::Attack);
+		AnimationInstance->PlayMontage(AI, AnimState::Attack, [](float _) {});
 	}
 }
 
@@ -326,17 +336,17 @@ void ABaseZombie::OnDead()
 		VaultGameModeBase->DecreaseCount();
 	}
 
-	// FTimerHandle TimerHandle;
-	//
-	// GetWorld()->GetTimerManager().SetTimer(
-	// 	TimerHandle,
-	// 	[this] ()
-	// 	{
-	// 		this->Destroy();
-	// 	},
-	// 	5.f,
-	// 	false
-	// );
+	FTimerHandle TimerHandle;
+	
+	GetWorld()->GetTimerManager().SetTimer(
+		TimerHandle,
+		[this] ()
+		{
+			this->Destroy();
+		},
+		5.f,
+		false
+	);
 }
 
 void ABaseZombie::OnTriggerEnter(AActor* OtherActor, ACollisionTriggerParam* Param)
@@ -373,7 +383,34 @@ void ABaseZombie::OnTriggerEnter(AActor* OtherActor, ACollisionTriggerParam* Par
 			return;
 		}
 
-		AnimationInstance->PlayMontage(AI, AnimState::Hit);
+		if (!bIsAttacking)
+		{
+			bIsHitting = true;
+			SetIdle();
+
+			if (HitTimerHandle.IsValid())
+			{
+				GetWorld()->GetTimerManager().ClearTimer(HitTimerHandle);
+				HitTimerHandle.Invalidate();
+			}
+
+			AnimationInstance->PlayMontage(
+				AI,
+				AnimState::Hit,
+				[this] (float PlayLength)
+				{
+					GetWorld()->GetTimerManager().SetTimer(
+						HitTimerHandle,
+						[this] ()
+						{
+							bIsHitting = false;
+						},
+						PlayLength,
+						false
+					);
+				}
+			);
+		}
 	}
 }
 
@@ -386,28 +423,6 @@ void ABaseZombie::OnCollisionHit(UPrimitiveComponent* HitComponent, AActor* Othe
 		// GameDebug::ShowDisplayLog(GetWorld(), "Death");
 		FSM->ChangeState(EEnemyState::DEATH, this);
 	}
-}
-
-void ABaseZombie::Rotate()
-{
-	// if (DetectedTarget)
-	// {
-	// 	FVector Distance = DetectedTarget->GetActorLocation() - GetActorLocation();
-	// 	FVector Direction = Distance.GetSafeNormal();
-	//
-	// 	FRotator LookAtRotation = FRotationMatrix::MakeFromX(Direction).Rotator();
-	//
-	// 	// 현재 회전과 목표 회전을 선형 보간 (LERP)
-	// 	FRotator SmoothedRotation = UKismetMathLibrary::RLerp(
-	// 		GetActorRotation(),  // 현재 회전
-	// 		LookAtRotation,              // 목표 회전
-	// 		GetWorld()->GetDeltaSeconds(), // 보간 속도
-	// 		true                          // 짧은 쪽 경로 선택
-	// 	);
-	// 	
-	// 	SetActorRelativeRotation(SmoothedRotation);
-	// 	// Pathfinding->DirectionAngleFrom = LookAtRotation.Yaw;
-	// }
 }
 
 float ABaseZombie::CalculateDistanceToTarget() const
@@ -431,4 +446,9 @@ void ABaseZombie::FinishAttack()
 	}
 
 	bIsAttacking = false;
+}
+
+AAIController* ABaseZombie::GetAIController() const
+{
+	return AI;
 }

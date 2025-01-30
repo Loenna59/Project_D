@@ -7,31 +7,11 @@
 UENUM(BlueprintType)
 enum class EEnemyState : uint8
 {
-	NONE,
-	IDLE,
-	WALK,
-	ATTACK,
-	CLAWING,
-	DEATH
+	NONE UMETA(DisplayName = "None"),
+	IDLE UMETA(DisplayName = "Idle"),
+	WALK UMETA(DisplayName = "Walk"),
+	ATTACK UMETA(DisplayName = "Attack"),
+	// HIT UMETA(DisplayName = "Hit"),
+	CRAWL UMETA(DisplayName = "Crawl"),
+	DEATH UMETA(DisplayName = "Death"),
 };
-
-FORCEINLINE const FString EnumToString(EEnemyState State)
-{
-	switch (State)
-	{
-	case EEnemyState::NONE:
-		return "None";
-	case EEnemyState::IDLE:
-		return "Idle";
-	case EEnemyState::WALK:
-		return "Walk";
-	case EEnemyState::ATTACK:
-		return "Attack";
-	case EEnemyState::CLAWING:
-		return "Clawing";
-	case EEnemyState::DEATH:
-		return "Death";
-	}
-
-	return "";
-}

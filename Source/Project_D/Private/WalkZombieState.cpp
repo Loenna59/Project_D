@@ -4,9 +4,9 @@
 #include "WalkZombieState.h"
 
 #include "BaseZombie.h"
-#include "GameDebug.h"
 #include "Animation/ZombieAnimInstance.h"
 #include "Pathfinding/PathfindingComponent.h"
+#include "Pathfinding/ZombieAIController.h"
 
 void UWalkZombieState::OnEnter(ABaseZombie* Zombie)
 {
@@ -16,14 +16,13 @@ void UWalkZombieState::OnEnter(ABaseZombie* Zombie)
 		{
 			Zombie->AnimationInstance->bIsWalking = true;
 		}
-
-		// if (AZombieAIController* AI = Cast<AZombieAIController>(Zombie->GetController()))
-		// {
-		// 	AI->MoveToTarget();
-		// }
-
-		Path = Zombie->Pathfinding->GetPaths(Zombie);
-		Zombie->DistanceAlongSpline = 0.0f;
+		
+		if (AZombieAIController* AI = Cast<AZombieAIController>(Zombie->GetController()))
+		{
+			Zombie->Pathfinding->GetPaths(Zombie);
+			AI->SetSplinePoint(Zombie->Pathfinding->SplineComponent);
+			AI->MoveAlongSpline();
+		}
 	}
 }
 
@@ -33,17 +32,12 @@ void UWalkZombieState::OnUpdate(ABaseZombie* Zombie)
 	{
 		if (Zombie->Pathfinding->UpdatePath())
 		{
-			Path = Zombie->Pathfinding->GetPaths(Zombie);
-			Zombie->DistanceAlongSpline = 0.0f;
+			if (AZombieAIController* AI = Cast<AZombieAIController>(Zombie->GetController()))
+			{
+				Zombie->Pathfinding->GetPaths(Zombie);
+				AI->SetSplinePoint(Zombie->Pathfinding->SplineComponent);
+			}
 		}
-
-		float DeltaTime = GetWorld()->DeltaTimeSeconds;
-
-		if (Zombie->Pathfinding->MoveAlongSpline(Zombie, MovementSpeed, DeltaTime))
-		{
-			GameDebug::ShowDisplayLog(GetWorld(), TEXT("목표에 도달"));
-		}
-		
 	}
 }
 
@@ -56,7 +50,9 @@ void UWalkZombieState::OnExit(ABaseZombie* Zombie)
 			Zombie->AnimationInstance->bIsWalking = false;
 		}
 
-		Path.Empty();
-		Zombie->DistanceAlongSpline = 0.0f;
+		if (AZombieAIController* AI = Cast<AZombieAIController>(Zombie->GetController()))
+		{
+			AI->StopMovement();
+		}
 	}
 }
