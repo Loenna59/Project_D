@@ -5,6 +5,7 @@
 
 #include "BaseZombie.h"
 #include "Demolisher.h"
+#include "GameDebug.h"
 
 void UDemolisherAttackState::OnEnter(ABaseZombie* Zombie)
 {
@@ -32,6 +33,11 @@ void UDemolisherAttackState::OnUpdate(ABaseZombie* Zombie)
 
 void UDemolisherAttackState::OnExit(ABaseZombie* Zombie)
 {
+	if (TimerHandle.IsValid())
+	{
+		GetWorld()->GetTimerManager().ClearTimer(TimerHandle);
+		TimerHandle.Invalidate();
+	}
 }
 
 void UDemolisherAttackState::UpdateAttackPattern(ABaseZombie* Zombie)
@@ -61,18 +67,23 @@ void UDemolisherAttackState::UpdateAttackPattern(ABaseZombie* Zombie)
 		return;
 	}
 
+	GameDebug::ShowDisplayLog(GetWorld(), FString::FromInt(DistanceToPlayer));
+
 	// 거리에 따라 공격 타입 선택
-	if (DistanceToPlayer > LongRangeThreshold)
+	if (DistanceToPlayer >= LongRangeThreshold)
 	{
 		// 돌 던지기
+		Duration = ThrowDuration;
 		Demolisher->Throw();
 	}
 	else if (DistanceToPlayer < ShortRangeThreshold)
 	{
+		Duration = SwingDuration;
 		Demolisher->Swing();
 	}
 	else
 	{
+		Duration = ChargingDuration;
 		Demolisher->ChargeTo();
 	}
 

@@ -22,10 +22,10 @@ public:
 private:
 	float ThrowDuration = 2.f;
 	float SwingDuration = 2.f;
-	float ChargeDuration = 3.f;
+	float ChargingDuration = 3.f;
 	
-	float LongRangeThreshold = 1000.f;
-	float ShortRangeThreshold = 200.f;
+	float LongRangeThreshold = 1500.f;
+	float ShortRangeThreshold = 400.f;
 
 	FTimerHandle TimerHandle;
 	

@@ -82,12 +82,12 @@ void ABaseZombie::SetCollisionPartMesh(USkeletalMeshComponent* Part)
 	Part->SetCollisionResponseToChannel(ECC_PhysicsBody, ECR_Ignore);
 }
 
-void ABaseZombie::SetIdle()
+void ABaseZombie::Evaluate()
 {
-	FSM->ChangeState(EEnemyState::IDLE, this);
-	
 	AI->SetTarget(nullptr);
 	Pathfinding->GetPaths(this);
+
+	FSM->EvaluateState(this);
 }
 
 // Called every frame
@@ -150,7 +150,8 @@ void ABaseZombie::Tick(float DeltaTime)
 
 				if (!HitPlayer)
 				{
-					SetIdle();
+					Evaluate();
+					
 				}
 			}
 		);
@@ -386,7 +387,7 @@ void ABaseZombie::OnTriggerEnter(AActor* OtherActor, ACollisionTriggerParam* Par
 		if (!bIsAttacking)
 		{
 			bIsHitting = true;
-			SetIdle();
+			Evaluate();
 
 			if (HitTimerHandle.IsValid())
 			{
@@ -440,12 +441,9 @@ float ABaseZombie::CalculateDistanceToTarget() const
 
 void ABaseZombie::FinishAttack()
 {
-	if (FSM)
-	{
-		FSM->EvaluateState(this);
-	}
-
+	Evaluate();
 	bIsAttacking = false;
+	GameDebug::ShowDisplayLog(GetWorld(), "Finish Attack");
 }
 
 AAIController* ABaseZombie::GetAIController() const

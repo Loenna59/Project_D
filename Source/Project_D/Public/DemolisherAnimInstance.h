@@ -4,17 +4,20 @@
 
 #include "CoreMinimal.h"
 #include "Animation/AnimInstance.h"
+#include "Animation/ZombieAnimInstance.h"
 #include "DemolisherAnimInstance.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class PROJECT_D_API UDemolisherAnimInstance : public UAnimInstance
+class PROJECT_D_API UDemolisherAnimInstance : public UZombieAnimInstance
 {
 	GENERATED_BODY()
 
 public:
-	bool IsWalking;
-	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bIsSprint;
+
+	void SetChargingAttack(bool IsCharging);
 };

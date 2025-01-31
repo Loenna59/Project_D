@@ -33,7 +33,7 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	void SetIdle();
+	void Evaluate();
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TMap<FName, EBodyPart> BoneRangeMap;
@@ -111,7 +111,7 @@ public:
 
 	float CalculateDistanceToTarget() const;
 
-	void FinishAttack();
+	virtual void FinishAttack();
 
 	AAIController* GetAIController() const;
 
