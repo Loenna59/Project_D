@@ -60,7 +60,6 @@ ADemolisher::ADemolisher()
 void ADemolisher::OnTriggerAttack(bool Start)
 {
 	bIsAttacking = Start;
-	// Super::OnTriggerAttack(Start);
 }
 
 void ADemolisher::Throw()
@@ -77,7 +76,6 @@ void ADemolisher::Swing()
 
 void ADemolisher::ChargeTo(float Speed, float Acceleration)
 {
-	GameDebug::ShowDisplayLog(GetWorld(), "ChargeTo");
 	if (UDemolisherAnimInstance* D_Anim = Cast<UDemolisherAnimInstance>(AnimationInstance))
 	{
 		D_Anim->SetChargingAttack(true);
@@ -86,19 +84,18 @@ void ADemolisher::ChargeTo(float Speed, float Acceleration)
 	FVector TargetLocation = AI->TargetActor->GetActorLocation();
 	FVector Location = GetActorLocation();
 	FVector Direction = (TargetLocation - Location).GetSafeNormal();
-	float ChargeSpeed = Speed;
+	ChargeSpeed = Speed;
 
 	GetWorldTimerManager().SetTimer(
 		ChargingTimerHandle,
-		[&ChargeSpeed, Direction, Acceleration, this]()
+		[Direction, Acceleration, this]()
 		{
-			ChargeSpeed += Acceleration * 0.1f;
-			FVector Delta = Direction * ChargeSpeed;
-
-			FVector TargetLocation = AI->TargetActor->GetActorLocation();
+			GameDebug::ShowDisplayLog(GetWorld(), FString::SanitizeFloat(ChargeSpeed));
+			ChargeSpeed += Acceleration;
+			FVector Delta = Direction * ChargeSpeed * 0.1f;
 			FVector Location = GetActorLocation();
-
-			SetActorLocation(Location + Delta, true);
+			
+			SetActorLocation(Location + Delta);
 		},
 		0.1f,
 		true

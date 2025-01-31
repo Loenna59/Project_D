@@ -328,8 +328,8 @@ void ABaseZombie::OnDead()
 {
 	if (USkeletalMeshComponent* const MeshComponent = GetMesh())
 	{
-		MeshComponent->SetSimulatePhysics(true);
-		// MeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		// MeshComponent->SetSimulatePhysics(true);
+		MeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	}
 
 	if (AVaultGameModeBase* VaultGameModeBase = Cast<AVaultGameModeBase>(GetWorld()->GetAuthGameMode()))
@@ -337,17 +337,17 @@ void ABaseZombie::OnDead()
 		VaultGameModeBase->DecreaseCount();
 	}
 
-	FTimerHandle TimerHandle;
-	
-	GetWorld()->GetTimerManager().SetTimer(
-		TimerHandle,
-		[this] ()
-		{
-			this->Destroy();
-		},
-		5.f,
-		false
-	);
+	// FTimerHandle TimerHandle;
+	//
+	// GetWorld()->GetTimerManager().SetTimer(
+	// 	TimerHandle,
+	// 	[this] ()
+	// 	{
+	// 		this->Destroy();
+	// 	},
+	// 	5.f,
+	// 	false
+	// );
 }
 
 void ABaseZombie::OnTriggerEnter(AActor* OtherActor, ACollisionTriggerParam* Param)
@@ -371,6 +371,8 @@ void ABaseZombie::OnTriggerEnter(AActor* OtherActor, ACollisionTriggerParam* Par
 
 				if (InstantKilled(Part))
 				{
+					// 즉사
+					CurrentHp = 0;
 					FSM->ChangeState(EEnemyState::DEATH, this);
 					return;
 				}

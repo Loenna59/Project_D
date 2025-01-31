@@ -43,3 +43,8 @@ void UZombieAnimInstance::OnMontageEnded(UAnimMontage* Montage, bool bInterrupte
 	CurrentMontage = nullptr;
 	CurrentState = AnimState::None;
 }
+
+bool UZombieAnimInstance::GetRandomBoolThreadSafe()
+{
+	return FMath::RandBool();
+}

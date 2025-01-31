@@ -24,11 +24,11 @@ private:
 	float SwingDuration = 2.f;
 	float ChargingDuration = 3.f;
 	
-	float LongRangeThreshold = 1000.f;
+	float LongRangeThreshold = 1500.f;
 	float ShortRangeThreshold = 400.f;
 	
-	float ChargeSpeed = 500.f;
-	float ChargeAcceleration = 200.f;
+	float ChargeSpeed = 250.f;
+	float ChargeAcceleration = 10.f;
 
 	FTimerHandle TimerHandle;
 	

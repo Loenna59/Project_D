@@ -4,13 +4,17 @@
 #include "DeathZombieState.h"
 
 #include "BaseZombie.h"
+#include "Animation/ZombieAnimInstance.h"
 #include "Kismet/KismetSystemLibrary.h"
 
 void UDeathZombieState::OnEnter(ABaseZombie* Zombie)
 {
 	if (Zombie)
 	{
-		// UKismetSystemLibrary::PrintString(GetWorld(), "Dead");
+		if (Zombie->AnimationInstance)
+		{
+			Zombie->AnimationInstance->bIsDead = true;
+		}
 		Zombie->OnDead();
 	}
 }

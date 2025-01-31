@@ -40,5 +40,6 @@ public:
 	
 	double bIsWalkingDistance;
 
+	float ChargeSpeed = 0.f;
 	FTimerHandle ChargingTimerHandle;
 };

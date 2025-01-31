@@ -42,6 +42,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	bool bIsWalking;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bIsDead;
+
 	UPROPERTY()
 	AnimState CurrentState = AnimState::None;
 	
@@ -56,5 +59,7 @@ public:
 
 	UFUNCTION()
 	void OnMontageEnded(UAnimMontage* Montage, bool bInterrupted);
-	
+
+	UFUNCTION(BlueprintCallable, BlueprintPure, meta = (BlueprintThreadSafe))
+	bool GetRandomBoolThreadSafe();
 };
