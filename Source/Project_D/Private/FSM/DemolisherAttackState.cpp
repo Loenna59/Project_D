@@ -6,6 +6,7 @@
 #include "BaseZombie.h"
 #include "Demolisher.h"
 #include "GameDebug.h"
+#include "PhysicsHelper.h"
 
 void UDemolisherAttackState::OnEnter(ABaseZombie* Zombie)
 {
@@ -67,24 +68,23 @@ void UDemolisherAttackState::UpdateAttackPattern(ABaseZombie* Zombie)
 		return;
 	}
 
-	GameDebug::ShowDisplayLog(GetWorld(), FString::FromInt(DistanceToPlayer));
-
 	// 거리에 따라 공격 타입 선택
-	if (DistanceToPlayer >= LongRangeThreshold)
-	{
-		// 돌 던지기
-		Duration = ThrowDuration;
-		Demolisher->Throw();
-	}
-	else if (DistanceToPlayer < ShortRangeThreshold)
+	if (DistanceToPlayer < ShortRangeThreshold)
 	{
 		Duration = SwingDuration;
 		Demolisher->Swing();
 	}
 	else
+	if (DistanceToPlayer < LongRangeThreshold)
 	{
-		Duration = ChargingDuration;
-		Demolisher->ChargeTo();
+		Duration = UPhysicsHelper::CalculateDuration(DistanceToPlayer, ChargeSpeed, ChargeAcceleration);
+		Demolisher->ChargeTo(ChargeSpeed, ChargeAcceleration);
+	}
+	else
+	{
+		// 돌 던지기
+		Duration = ThrowDuration;
+		Demolisher->Throw();
 	}
 
 	GetWorld()->GetTimerManager().SetTimer(

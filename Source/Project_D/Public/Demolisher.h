@@ -31,10 +31,14 @@ public:
 	virtual void OnTriggerAttack(bool Start) override;
 
 	virtual void FinishAttack() override;
+
+	virtual void Evaluate() override;
 	
 	void Throw();
 	void Swing();
-	void ChargeTo();
+	void ChargeTo(float Speed, float Acceleration);
 	
 	double bIsWalkingDistance;
+
+	FTimerHandle ChargingTimerHandle;
 };

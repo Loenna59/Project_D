@@ -443,7 +443,6 @@ void ABaseZombie::FinishAttack()
 {
 	Evaluate();
 	bIsAttacking = false;
-	GameDebug::ShowDisplayLog(GetWorld(), "Finish Attack");
 }
 
 AAIController* ABaseZombie::GetAIController() const
