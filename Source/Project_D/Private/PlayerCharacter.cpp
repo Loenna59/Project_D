@@ -111,7 +111,7 @@ void APlayerCharacter::Landed(const FHitResult& Hit)
 		const bool bSafe = UKismetSystemLibrary::SphereOverlapActors(
 			this,
 			Hit.ImpactPoint,
-			30.0f,
+			60.0f,
 			ObjectTypes,
 			ActorClassFilter,
 			ActorsToIgnore,
