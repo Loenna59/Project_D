@@ -3,6 +3,7 @@
 
 #include "ZombieFSMComponent.h"
 #include "BaseZombie.h"
+#include "GameDebug.h"
 
 // Sets default values for this component's properties
 UZombieFSMComponent::UZombieFSMComponent()
@@ -19,6 +20,8 @@ void UZombieFSMComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
+	bSetupCompleted = false;
+	
 	SetComponentTickEnabled(true);
 }
 
@@ -85,8 +88,6 @@ void UZombieFSMComponent::TickComponent(float DeltaTime, ELevelTick TickType,
                                         FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
-	// UKismetSystemLibrary::PrintString(GetWorld(), EnumToString(CurrentState));
  
 	if (ZombieCharacter && StateMap.Contains((CurrentState)))
 	{

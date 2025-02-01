@@ -26,12 +26,19 @@ float UPhysicsHelper::CalculateDuration(float Distance, float InitialVelocity, f
 		return -1.0f; // 해 없음
 	}
 
-	// 근의 공식을 사용하여 시간 계산
-	float t1 = (-b + FMath::Sqrt(Discriminant)) / (2 * a);
-	float t2 = (-b - FMath::Sqrt(Discriminant)) / (2 * a);
+	// 근의 공식을 사용하여 시간 계산 (수치적 안정성 개선)
+	float SqrtDiscriminant = FMath::Sqrt(Discriminant);
+	float t1 = (-b + SqrtDiscriminant) / (2 * a);
+	float t2 = (-b - SqrtDiscriminant) / (2 * a);
 
 	// 양의 시간 값을 선택
 	float Time = FMath::Max(t1, t2);
+
+	// 수치적 안정성 검증
+	if (Time < 0)
+	{
+		return -1.0f; // 유효하지 않은 시간
+	}
 
 	return Time;
 }

@@ -158,9 +158,10 @@ void ABaseZombie::Tick(float DeltaTime)
 	}
 }
 
-void ABaseZombie::OnTriggerAttack(bool Start)
+void ABaseZombie::OnStartAttack()
 {
-	bIsAttacking = Start;
+	bIsAttacking = true;
+	
 	if (bIsAttacking && AttackPoint)
 	{
 		if (AttackTimerHandle.IsValid())
@@ -337,17 +338,17 @@ void ABaseZombie::OnDead()
 		VaultGameModeBase->DecreaseCount();
 	}
 
-	// FTimerHandle TimerHandle;
-	//
-	// GetWorld()->GetTimerManager().SetTimer(
-	// 	TimerHandle,
-	// 	[this] ()
-	// 	{
-	// 		this->Destroy();
-	// 	},
-	// 	5.f,
-	// 	false
-	// );
+	FTimerHandle TimerHandle;
+	
+	GetWorld()->GetTimerManager().SetTimer(
+		TimerHandle,
+		[this] ()
+		{
+			this->Destroy();
+		},
+		5.f,
+		false
+	);
 }
 
 void ABaseZombie::OnTriggerEnter(AActor* OtherActor, ACollisionTriggerParam* Param)
@@ -422,9 +423,13 @@ void ABaseZombie::OnCollisionHit(UPrimitiveComponent* HitComponent, AActor* Othe
 {
 	if (OtherActor->IsA<AExplosiveCollisionActor>())
 	{
-		GetMesh()->SetSimulatePhysics(true);
-		// GameDebug::ShowDisplayLog(GetWorld(), "Death");
-		FSM->ChangeState(EEnemyState::DEATH, this);
+		CurrentHp -= 200;
+		if (CurrentHp <= 0)
+		{
+			GetMesh()->SetSimulatePhysics(true);
+			// GameDebug::ShowDisplayLog(GetWorld(), "Death");
+			FSM->ChangeState(EEnemyState::DEATH, this);
+		}
 	}
 }
 

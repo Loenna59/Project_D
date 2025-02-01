@@ -80,7 +80,7 @@ void AGasTank::BeginPlay()
 
 void AGasTank::Tick(float DeltaSeconds)
 {
-	if (FSM->GetCurrentState() == EEnemyState::DEATH && bIsExplosion)
+	if (bIsExplosion)
 	{
 		JetBalloonComponent->StartSimulate(GetMesh());
 		DeadTime += DeltaSeconds;
@@ -100,6 +100,8 @@ void AGasTank::Tick(float DeltaSeconds)
 			GetWorld()->SpawnActor<AExplosiveCollisionActor>(AExplosiveCollisionActor::StaticClass(), SpawnTransform);
 			GetWorld()->SpawnActor<ARadialForceActor>(ARadialForceActor::StaticClass(), SpawnTransform);
 
+			FSM->ChangeState(EEnemyState::DEATH, this);
+
 			this->Destroy();
 		}
 	}
@@ -117,12 +119,6 @@ void AGasTank::OnDead()
 		VaultGameModeBase->DecreaseCount();
 	}
 	
-	if (GasTankDurablity <= 0)
-	{
-		bIsExplosion = true;
-		return;
-	}
-	
 	Super::OnDead();
 }
 
@@ -133,7 +129,8 @@ void AGasTank::OnTriggerEnter(AActor* OtherActor, ACollisionTriggerParam* Param)
 		GasTankDurablity -= 1;
 		if (GasTankDurablity <= 0)
 		{
-			FSM->ChangeState(EEnemyState::DEATH, this);
+			bIsExplosion = true;
+			Evaluate();
 		}
 	}
 	else

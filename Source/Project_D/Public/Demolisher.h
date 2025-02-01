@@ -25,21 +25,20 @@ protected:
 	
 	virtual void Tick(float DeltaSeconds) override;
 
+	void SetActiveAttackCollision(bool Active);
+
 public:
 	ADemolisher();
 
-	virtual void OnTriggerAttack(bool Start) override;
-
 	virtual void FinishAttack() override;
-
-	virtual void Evaluate() override;
 	
 	void Throw();
-	void Swing();
-	void ChargeTo(float Speed, float Acceleration);
 	
-	double bIsWalkingDistance;
+	void ChargeTo(float Speed, float Acceleration);
 
 	float ChargeSpeed = 0.f;
 	FTimerHandle ChargingTimerHandle;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float MidRangeAttackRadius = 800.f;
 };

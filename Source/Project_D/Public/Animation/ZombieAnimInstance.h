@@ -19,7 +19,6 @@ enum class AnimState :uint8
 	Moving,
 	Attack,
 	Throw,
-	Swing,
 	Hit,
 	Crawl,
 	Dead

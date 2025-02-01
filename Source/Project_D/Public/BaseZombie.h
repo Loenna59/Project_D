@@ -60,7 +60,6 @@ public:
 	float AttackRadius = 200.f;
 	
 	bool bIsAttacking = false;
-
 	bool bIsHitting = false;
 
 	UPROPERTY(EditAnywhere)
@@ -99,7 +98,7 @@ public:
 	
 	virtual bool ContainsBrokenBones(TArray<FName> BoneNames);
 
-	virtual void OnTriggerAttack(bool Start);
+	virtual void OnStartAttack();
 
 	virtual void OnDead();
 

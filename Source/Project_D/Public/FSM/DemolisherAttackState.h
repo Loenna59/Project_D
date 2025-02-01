@@ -19,18 +19,16 @@ public:
 	virtual void OnUpdate(ABaseZombie* Zombie) override;
 	virtual void OnExit(ABaseZombie* Zombie) override;
 
-private:
-	float ThrowDuration = 2.f;
-	float SwingDuration = 2.f;
-	float ChargingDuration = 3.f;
+protected:
+	void UpdateAttackPattern(ABaseZombie* Zombie);
 	
-	float LongRangeThreshold = 1500.f;
-	float ShortRangeThreshold = 400.f;
+private:
+	float ThrowDuration = 3.f;
+	float SwingDuration = 2.f;
 	
 	float ChargeSpeed = 250.f;
-	float ChargeAcceleration = 10.f;
+	float ChargeAcceleration = 2.f;
 
 	FTimerHandle TimerHandle;
-	
-	void UpdateAttackPattern(ABaseZombie* Zombie);
+	const float Interval = 1.75f;
 };
