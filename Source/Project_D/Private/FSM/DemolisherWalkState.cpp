@@ -4,7 +4,6 @@
 
 #include "BaseZombie.h"
 #include "Demolisher.h"
-#include "GameDebug.h"
 
 void UDemolisherWalkState::OnEnter(class ABaseZombie* Zombie)
 {
@@ -14,6 +13,7 @@ void UDemolisherWalkState::OnEnter(class ABaseZombie* Zombie)
 	}
 	
 	CurrentDistance = Zombie->CalculateDistanceToTarget();
+	CurrentTime = 0;
 
 	Super::OnEnter(Zombie);
 }
@@ -21,14 +21,22 @@ void UDemolisherWalkState::OnEnter(class ABaseZombie* Zombie)
 void UDemolisherWalkState::OnUpdate(class ABaseZombie* Zombie)
 {
 	Super::OnUpdate(Zombie);
+
+	CurrentTime += GetWorld()->GetDeltaSeconds();
+	
 	if (Zombie)
 	{
 		if (ADemolisher* Demolisher = Cast<ADemolisher>(Zombie))
 		{
+			if (CurrentTime >= MaxWalkDuration)
+			{
+				Demolisher->Evaluate();
+			}
 			
 			float Distance = Zombie->CalculateDistanceToTarget();
 	
 			float Destination = Demolisher->AttackRadius;
+			
 			if (CurrentDistance > Demolisher->MidRangeAttackRadius)
 			{
 				Destination = Demolisher->MidRangeAttackRadius;

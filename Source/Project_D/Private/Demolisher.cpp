@@ -4,6 +4,7 @@
 #include "Demolisher.h"
 
 #include "DemolisherAnimInstance.h"
+#include "DemolisherProp.h"
 #include "GameDebug.h"
 #include "PlayerCharacter.h"
 #include "TraceChannelHelper.h"
@@ -173,14 +174,58 @@ void ADemolisher::Throw()
 {
 	AI->StopMovement();
 	bIsAttacking = true;
-
+	
 	FVector TargetLocation = AI->TargetActor->GetActorLocation();
 	FVector Direction = (TargetLocation - GetActorLocation()).GetSafeNormal();
 	FRotator DestRotation = FRotationMatrix::MakeFromX(Direction).Rotator();
 
 	SetActorRotation(DestRotation);
 	
-	AnimationInstance->PlayMontage(AI, AnimState::Throw, [](float _) {});
+	AnimationInstance->PlayMontage(AI,
+		AnimState::Throw,
+		[this, TargetLocation](float PlayLength)
+		{
+			FActorSpawnParameters SpawnParams;
+			ADemolisherProp* Prop = GetWorld()->SpawnActor<ADemolisherProp>(PropFactory, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
+			Prop->GetRootComponent()->SetVisibility(false);
+			
+			if (GetMesh()->DoesSocketExist(TEXT("RightHand")))
+			{
+				Prop->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, TEXT("RightHand"));
+			}
+
+			TWeakObjectPtr<ADemolisherProp> WeakProp = Prop;
+			
+			FTimerHandle PropTimerHandle;
+			GetWorldTimerManager().SetTimer(
+				PropTimerHandle,
+				[WeakProp]()
+				{
+					if (WeakProp.IsValid())
+					{
+						WeakProp->GetRootComponent()->SetVisibility(true);
+					}
+				},
+				1.f,
+				false
+			);
+			
+			FTimerHandle PropTimerHandle2;
+			GetWorldTimerManager().SetTimer(
+				PropTimerHandle2,
+				[this, WeakProp, TargetLocation]()
+				{
+					if (WeakProp.IsValid())
+					{
+						WeakProp->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+						WeakProp->Fire(WeakProp->GetActorLocation(), TargetLocation);
+					}
+				},
+				PlayLength - 1.4f,
+				false
+			);
+		}
+	);
 }
 
 void ADemolisher::ChargeTo(float Speed, float Acceleration)
@@ -203,6 +248,9 @@ void ADemolisher::ChargeTo(float Speed, float Acceleration)
     FVector Location = GetActorLocation();
     FVector Direction = (TargetLocation - Location).GetSafeNormal();
     ChargeSpeed = Speed;
+	
+	FRotator DestRotation = FRotationMatrix::MakeFromX(Direction).Rotator();
+	SetActorRotation(DestRotation);
 
     GetWorldTimerManager().SetTimer(
         ChargingTimerHandle,
@@ -221,11 +269,8 @@ void ADemolisher::ChargeTo(float Speed, float Acceleration)
             ChargeSpeed += Acceleration;
             FVector Delta = Direction * ChargeSpeed * GetWorld()->GetDeltaSeconds();
             FVector Location = GetActorLocation();
-
-        	FRotator DestRotation = FRotationMatrix::MakeFromX(Direction).Rotator();
-        	FRotator NewRotation = FMath::RInterpTo(GetActorRotation(), DestRotation, 0.01f, 10.f);
         	
-            SetActorLocationAndRotation(Location + Delta, NewRotation);
+            SetActorLocation(Location + Delta);
 
         	TraceChannelHelper::SphereTraceByChannel(
         		GetWorld(),
@@ -244,7 +289,7 @@ void ADemolisher::ChargeTo(float Speed, float Acceleration)
         				UPrimitiveComponent* HitComp = Hit.GetComponent();
                         if (HitComp && HitComp->Mobility == EComponentMobility::Movable)
                         {
-                            HitComp->AddImpulse(Direction * ChargeSpeed * 1000.f, NAME_None, true);
+                            // HitComp->AddImpulse(Direction * ChargeSpeed * 1000.f, NAME_None, true);
                         }
                     }
         		}

@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "BaseZombie.h"
+#include "DemolisherProp.h"
 #include "Demolisher.generated.h"
 
 UENUM(BlueprintType)
@@ -41,4 +42,7 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float MidRangeAttackRadius = 800.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TSubclassOf<class ADemolisherProp> PropFactory;
 };

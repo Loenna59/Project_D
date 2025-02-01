@@ -339,12 +339,17 @@ void ABaseZombie::OnDead()
 	}
 
 	FTimerHandle TimerHandle;
+
+	TWeakObjectPtr<ABaseZombie> WeakSelf = this;
 	
 	GetWorld()->GetTimerManager().SetTimer(
 		TimerHandle,
-		[this] ()
+		[WeakSelf] ()
 		{
-			this->Destroy();
+			if (WeakSelf.IsValid())
+			{
+				WeakSelf->Destroy();
+			}
 		},
 		5.f,
 		false

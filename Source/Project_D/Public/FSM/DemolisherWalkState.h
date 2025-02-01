@@ -21,4 +21,7 @@ public:
 	virtual void OnExit(class ABaseZombie* Zombie) override;
 
 	float CurrentDistance;
+	float CurrentTime;
+	
+	const float MaxWalkDuration = 3.f;
 };
