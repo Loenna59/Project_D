@@ -37,6 +37,7 @@ void UPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	GroundSpeed = Velocity.Size2D();
 	bShouldMove = (GroundSpeed > 3.0f) && (UKismetMathLibrary::NotEqual_VectorVector(Movement->GetCurrentAcceleration(), FVector::ZeroVector, 0.0f));
 	bIsFalling = Movement->IsFalling();
+	UE_LOG(LogTemp, Warning, TEXT("%hs"), bIsFalling ? "Falling" : "Not Falling");
 	MovementVector = Player->MovementVector;
 
 	// States

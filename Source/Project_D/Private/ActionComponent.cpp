@@ -51,7 +51,7 @@ void UActionComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 		GetWorld(),
 		StartEnd,
 		StartEnd,
-		4.0f,
+		5.0f,
 		UEngineTypes::ConvertToTraceType(ECC_Visibility),
 		false,
 		ActorsToIgnore,
@@ -63,6 +63,8 @@ void UActionComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 		1.0f
 	);
 	bIsOnLand = bHit;
+
+	UE_LOG(LogTemp, Warning, TEXT("%hs"), bIsOnLand ? "OnLand" : "Not On Land");
 }
 
 void UActionComponent::FlyingToTarget(const float DeltaTime)
@@ -70,9 +72,9 @@ void UActionComponent::FlyingToTarget(const float DeltaTime)
 	const FVector PlayerLocation = Player->GetActorLocation();
 	
 	bool bNear = true;
-	bNear &= UKismetMathLibrary::NearlyEqual_FloatFloat(PlayerLocation.X, TargetLocationForFlying.X, 50.0f);
-	bNear &= UKismetMathLibrary::NearlyEqual_FloatFloat(PlayerLocation.Y, TargetLocationForFlying.Y, 50.0f);
-	bNear &= UKismetMathLibrary::NearlyEqual_FloatFloat(PlayerLocation.Z, TargetLocationForFlying.Z, 50.0f);
+	bNear &= UKismetMathLibrary::NearlyEqual_FloatFloat(PlayerLocation.X, TargetLocationForFlying.X, 100.0f);
+	bNear &= UKismetMathLibrary::NearlyEqual_FloatFloat(PlayerLocation.Y, TargetLocationForFlying.Y, 100.0f);
+	bNear &= UKismetMathLibrary::NearlyEqual_FloatFloat(PlayerLocation.Z, TargetLocationForFlying.Z, 100.0f);
 	if (bNear) // 끝 지점에 거의 도달했다면 그만 날아라
 	{
 		Player->SetWalkingMode();
@@ -365,21 +367,19 @@ bool UActionComponent::TryInteractWall()
 	// TODO: 각 행동에 필요한 높이 값을 에디터에서 수정할 수 있도록 UPROPERTY 세팅
 	if (FirstTopHitResult.bBlockingHit)
 	{
-		if (WallHeight <= 300.0f)
+		if (WallHeight <= 350.0f)
 		{
-			if (bIsStanding)
+			if (WallHeight > 150.0f)
 			{
-				if (WallHeight > 150.0f)
+				if (bVerboseInteract)
 				{
-					if (bVerboseInteract)
-					{
-						UE_LOG(LogTemp, Warning, TEXT("Climb 동작 수행"));
-					}
-					TriggerHang();
-					return true;
+					UE_LOG(LogTemp, Warning, TEXT("Climb 동작 수행"));
 				}
+				TriggerClimb();
+				// TriggerHang();
+				return true;
 			}
-			else
+			if (false == bIsStanding)
 			{
 				if (WallHeight <= 140.0f)
 				{
@@ -508,7 +508,7 @@ void UActionComponent::OnStartHangMontageBlendingOut(UAnimMontage* Montage, bool
 void UActionComponent::OnStartHangMontageEnded(UAnimMontage* Montage, bool bInterrupted)
 {
 	UE_LOG(LogTemp, Display, TEXT("UActionComponent::OnStartHangMontageEnded"));
-	PlayerAnimInstance->OnMontageBlendingOut.RemoveDynamic(this, &UActionComponent::OnStartHangMontageEnded);
+	PlayerAnimInstance->OnMontageEnded.RemoveDynamic(this, &UActionComponent::OnStartHangMontageEnded);
 
 	const FVector TargetLocation = UPlayerHelper::MoveVectorDownward(
 		UPlayerHelper::MoveVectorBackward(FirstTopHitResult.ImpactPoint, WallRotation, 18.0f),
@@ -532,6 +532,46 @@ void UActionComponent::TriggerHang()
 	PlayerAnimInstance->OnMontageBlendingOut.AddDynamic(this, &UActionComponent::OnStartHangMontageBlendingOut);
 	PlayerAnimInstance->OnMontageEnded.AddDynamic(this, &UActionComponent::OnStartHangMontageEnded);
 	PlayerAnimInstance->Montage_Play(IdleToHangMontage);
+}
+
+void UActionComponent::OnClimbingMontageStarted(UAnimMontage* Montage)
+{
+	UE_LOG(LogTemp, Display, TEXT("UActionComponent::OnClimbingMontageStarted"));
+	PlayerAnimInstance->OnMontageStarted.RemoveDynamic(this, &UActionComponent::OnClimbingMontageStarted);
+
+	Player->SetFlyingMode(EPlayerState::WalkingOnGround);
+
+	const FVector StartLocation = UPlayerHelper::MoveVectorBackward(
+		Player->GetActorLocation(),
+		WallRotation,
+		50.0f
+	);
+	Player->SetActorLocationAndRotation(StartLocation, WallRotation);
+}
+
+void UActionComponent::OnClimbingMontageEnded(UAnimMontage* Montage, bool bInterrupted)
+{
+	UE_LOG(LogTemp, Display, TEXT("UActionComponent::OnClimbingMontageEnded"));
+    PlayerAnimInstance->OnMontageEnded.RemoveDynamic(this, &UActionComponent::OnClimbingMontageEnded);
+
+	Player->SetWalkingMode();
+	
+    const FVector TargetLocation = UPlayerHelper::MoveVectorUpward(
+    	UPlayerHelper::MoveVectorForward(
+			FirstTopHitResult.ImpactPoint,
+			WallRotation,
+			130.0f
+		),
+		30.0f
+    );
+    Player->SetActorLocationAndRotation(TargetLocation, WallRotation);
+}
+
+void UActionComponent::TriggerClimb()
+{
+	PlayerAnimInstance->OnMontageStarted.AddDynamic(this, &UActionComponent::OnClimbingMontageStarted);
+	PlayerAnimInstance->OnMontageEnded.AddDynamic(this, &UActionComponent::OnClimbingMontageEnded);
+	PlayerAnimInstance->Montage_Play(ClimbingMontage);
 }
 
 void UActionComponent::MoveOnWall()

@@ -63,6 +63,8 @@ public:
 	float IdleToHangParam1 = 18.0f;
 	UPROPERTY(EditDefaultsOnly, Category = "Actions|IdleToHang")
 	float IdleToHangParam2 = 203.0f;
+	UPROPERTY(EditDefaultsOnly, Category = "Actions|Climbing")
+	UAnimMontage* ClimbingMontage = nullptr;
 	UPROPERTY(EditDefaultsOnly, Category = "Actions|MeleeAttack")
     UAnimMontage* MeleeAttackMontage = nullptr;
 	UPROPERTY(EditDefaultsOnly, Category = "Actions|StandingKick")
@@ -140,7 +142,7 @@ public:
 
 	/// 장애물의 높이를 계산
 	void MeasureWall();
-
+	
 	// 
 	bool TryInteractWall();
 
@@ -163,6 +165,12 @@ public:
 	void OnStartHangMontageEnded(UAnimMontage* Montage, bool bInterrupted);
 	//
 	void TriggerHang();
+
+	UFUNCTION()
+	void OnClimbingMontageStarted(UAnimMontage* Montage);
+	UFUNCTION()
+	void OnClimbingMontageEnded(UAnimMontage* Montage, bool bInterrupted);
+	void TriggerClimb();
 
 	//
 	void MoveOnWall();
