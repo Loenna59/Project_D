@@ -28,10 +28,13 @@ void UZombieFSMComponent::BeginPlay()
 void UZombieFSMComponent::SetupState(ABaseZombie* Zombie)
 {
 	ZombieCharacter = Zombie;
+
+	UAttackZombieState* AttackState = NewObject<UAttackZombieState>(this);
+	AttackState->Initialize(AttackInterval);
 	
 	StateMap.Add(EEnemyState::IDLE, NewObject<UIdleZombieState>(this));
 	StateMap.Add(EEnemyState::WALK, NewObject<UWalkZombieState>(this));
-	StateMap.Add(EEnemyState::ATTACK, NewObject<UAttackZombieState>(this));
+	StateMap.Add(EEnemyState::ATTACK, AttackState);
 	StateMap.Add(EEnemyState::DEATH, NewObject<UDeathZombieState>(this));
 }
 

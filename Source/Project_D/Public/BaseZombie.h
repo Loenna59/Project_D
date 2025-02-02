@@ -46,11 +46,8 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TArray<EBodyPart> WeaknessParts;
-	
-	UPROPERTY(EditAnywhere)
-	AActor* Attacker;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(VisibleAnywhere)
 	class UZombieFSMComponent* FSM;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -62,7 +59,7 @@ public:
 	bool bIsAttacking = false;
 	bool bIsHitting = false;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY()
 	int32 CurrentHp;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -74,7 +71,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float Mass = 75.f;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY()
 	class UZombieAnimInstance* AnimationInstance;
 
 	UPROPERTY(EditAnywhere)
@@ -83,15 +80,16 @@ public:
 	UPROPERTY()
 	class AZombieAIController* AI;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(VisibleAnywhere)
 	class UBoxComponent* AttackPoint;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY()
 	TMap<EBodyPart, TObjectPtr<USkeletalMeshComponent>> PartMeshes;
 
 	FTimerHandle AttackTimerHandle;
 	FTimerHandle HitTimerHandle;
-	
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float AttackTiming = 0.75f;
 
 	int32 CurrentPathIndex = 0;

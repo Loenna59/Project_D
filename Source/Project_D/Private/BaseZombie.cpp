@@ -4,9 +4,6 @@
 #include "BaseZombie.h"
 
 #include "ExplosiveCollisionActor.h"
-#include "GameDebug.h"
-#include "PathFindingBoard.h"
-#include "PathVector.h"
 #include "PlayerCharacter.h"
 #include "TraceChannelHelper.h"
 #include "VaultGameModeBase.h"
@@ -16,7 +13,6 @@
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
-#include "Kismet/KismetMathLibrary.h"
 #include "Pathfinding/PathfindingComponent.h"
 #include "Pathfinding/ZombieAIController.h"
 #include "Project_D/Project_DCharacter.h"
@@ -30,7 +26,7 @@ ABaseZombie::ABaseZombie()
 	GetMesh()->SetRelativeLocation(FVector(0, 0, -90));
 	GetMesh()->SetRelativeRotation(FRotator(0, -90, 0));
 
-	GetCapsuleComponent()->SetCollisionProfileName("Enemy");
+	GetCapsuleComponent()->SetCollisionProfileName(TEXT("Enemy"));
 	GetMesh()->SetCollisionEnabled(ECollisionEnabled::Type::QueryAndPhysics);
 	GetMesh()->SetCollisionObjectType(ECC_PhysicsBody);
 	GetMesh()->SetCollisionResponseToAllChannels(ECR_Block);
@@ -362,8 +358,6 @@ void ABaseZombie::OnTriggerEnter(AActor* OtherActor, ACollisionTriggerParam* Par
 	{
 		FName HitBoneName = ZombieParam->HitBoneName;
 		int32 Damage = ZombieParam->Damage;
-		
-		this->Attacker = OtherActor;
 
 		if (BoneRangeMap.Contains(HitBoneName))
 		{

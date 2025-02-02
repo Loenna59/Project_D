@@ -5,6 +5,11 @@
 
 #include "BaseZombie.h"
 
+void UAttackZombieState::Initialize(const float _Interval)
+{
+	Interval = _Interval;
+}
+
 void UAttackZombieState::OnEnter(ABaseZombie* Zombie)
 {
 	if (TimerHandle.IsValid())

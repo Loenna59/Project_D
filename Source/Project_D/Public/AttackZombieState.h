@@ -16,11 +16,14 @@ class PROJECT_D_API UAttackZombieState : public UObject, public IZombieState
 	GENERATED_BODY()
 
 public:
+	FORCEINLINE void Initialize(const float _Interval);
+	
 	virtual void OnEnter(ABaseZombie* Zombie) override;
 	virtual void OnUpdate(ABaseZombie* Zombie) override;
 	virtual void OnExit(ABaseZombie* Zombie) override;
 
 protected:
 	FTimerHandle TimerHandle;
-	const float Interval = 1.75f;
+
+	float Interval;
 };

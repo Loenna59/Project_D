@@ -5,9 +5,20 @@
 
 #include "BaseZombie.h"
 #include "Demolisher.h"
-#include "GameDebug.h"
 #include "PhysicsHelper.h"
-#include "Pathfinding/ZombieAIController.h"
+
+void UDemolisherAttackState::Initialize(
+	const float _Interval,
+	const float _ThrowDuration,
+	const float _ChargeSpeed,
+	const float _ChargeAcceleration
+)
+{
+	Interval = _Interval;
+	ThrowDuration = _ThrowDuration;
+	ChargeSpeed = _ChargeSpeed;
+	ChargeAcceleration = _ChargeAcceleration;
+}
 
 void UDemolisherAttackState::OnEnter(ABaseZombie* Zombie)
 {
@@ -19,7 +30,6 @@ void UDemolisherAttackState::OnEnter(ABaseZombie* Zombie)
 	
 	if (Zombie)
 	{
-		// UKismetSystemLibrary::PrintString(GetWorld(),TEXT("ATTACK"));
 		UpdateAttackPattern(Zombie);
 	}
 }
@@ -45,9 +55,9 @@ void UDemolisherAttackState::UpdateAttackPattern(ABaseZombie* Zombie)
 		return;
 	}
 	
-	ADemolisher* Demolisher = Cast<ADemolisher>(Zombie);
+	TWeakObjectPtr<ADemolisher> Demolisher = Cast<ADemolisher>(Zombie);
 
-	if (!Demolisher)
+	if (!Demolisher.IsValid())
 	{
 		return;
 	}
@@ -69,7 +79,7 @@ void UDemolisherAttackState::UpdateAttackPattern(ABaseZombie* Zombie)
 	else if (DistanceToPlayer <= Demolisher->MidRangeAttackRadius)
 	{
 		Demolisher->ChargeTo(ChargeSpeed, ChargeAcceleration);
-		Duration = UPhysicsHelper::CalculateDuration(DistanceToPlayer, ChargeSpeed, ChargeAcceleration);
+		Duration = UPhysicsHelper::CalculateDuration(DistanceToPlayer, ChargeSpeed, ChargeAcceleration) * 0.5f;
 	}
 	else
 	{

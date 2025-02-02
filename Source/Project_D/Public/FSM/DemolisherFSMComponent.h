@@ -16,5 +16,13 @@ class PROJECT_D_API UDemolisherFSMComponent : public UZombieFSMComponent
 
 public:
 	virtual void SetupState(ABaseZombie* Zombie) override;
-	
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="FSM")
+	float ThrowDuration = 3.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="FSM")
+	float ChargeSpeed = 250.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="FSM")
+	float ChargeAcceleration = 2.f;
 };

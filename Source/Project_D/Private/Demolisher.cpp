@@ -5,7 +5,6 @@
 
 #include "DemolisherAnimInstance.h"
 #include "DemolisherProp.h"
-#include "GameDebug.h"
 #include "PlayerCharacter.h"
 #include "TraceChannelHelper.h"
 #include "VaultGameModeBase.h"
@@ -27,8 +26,13 @@ ADemolisher::ADemolisher()
 	AttackPoint->SetBoxExtent(FVector(50, 50, 50));
 	AttackPoint->SetCollisionProfileName(TEXT("EnemyAttack"));
 	AttackPoint->SetGenerateOverlapEvents(true);
+
+	AttackPoint2 = CreateDefaultSubobject<UBoxComponent>(TEXT("AttackPoint2"));
+	AttackPoint2->SetupAttachment(GetMesh());
 	
-	SetActiveAttackCollision(false);
+	AttackPoint2->SetBoxExtent(FVector(50, 50, 50));
+	AttackPoint2->SetCollisionProfileName(TEXT("EnemyAttack"));
+	AttackPoint2->SetGenerateOverlapEvents(true);
 }
 
 void ADemolisher::BeginPlay()
@@ -65,6 +69,11 @@ void ADemolisher::BeginPlay()
 	if (GetMesh()->DoesSocketExist(TEXT("AttackSocket")))
 	{
 		AttackPoint->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, TEXT("AttackSocket"));
+	}
+
+	if (GetMesh()->DoesSocketExist(TEXT("AttackSocket2")))
+	{
+		AttackPoint2->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, TEXT("AttackSocket2"));
 	}
 }
 
@@ -164,10 +173,100 @@ void ADemolisher::Tick(float DeltaSeconds)
 	}
 }
 
-void ADemolisher::SetActiveAttackCollision(bool Active)
+void ADemolisher::OnStartAttack()
 {
-	AttackPoint->SetVisibility(Active);
-	AttackPoint->SetCollisionEnabled(Active? ECollisionEnabled::QueryOnly : ECollisionEnabled::NoCollision);
+	bIsAttacking = true;
+	
+	if (AttackPoint && AttackPoint2)
+	{
+		if (AttackTimerHandle.IsValid())
+		{
+			GetWorldTimerManager().ClearTimer(AttackTimerHandle);
+			AttackTimerHandle.Invalidate();
+		}
+
+		if (AttackTimerHandle2.IsValid())
+		{
+			GetWorldTimerManager().ClearTimer(AttackTimerHandle2);
+			AttackTimerHandle2.Invalidate();
+		}
+
+		TWeakObjectPtr<ADemolisher> WeakThis = Cast<ADemolisher>(this);
+		
+		GetWorldTimerManager().SetTimer(
+			AttackTimerHandle,
+			[WeakThis]
+			{
+				if (WeakThis.IsValid())
+				{
+					TraceChannelHelper::SphereTraceByChannel(
+						WeakThis->GetWorld(),
+						WeakThis.Get(),
+						WeakThis->AttackPoint->GetComponentLocation(),
+						WeakThis->AttackPoint->GetComponentLocation(),
+						FRotator::ZeroRotator,
+						ECC_Visibility,
+						200,
+						true,
+						true,
+						[] (bool bHit, TArray<FHitResult> HitResults)
+						{
+							for (FHitResult HitResult : HitResults)
+							{
+								if (AActor* Actor = HitResult.GetActor())
+								{
+									if (APlayerCharacter* P = Cast<APlayerCharacter>(Actor))
+									{
+										P->OnDamaged(20);
+									}
+								}
+							}
+						}
+					);
+				}
+			},
+			AttackTiming,
+			false
+		);
+
+		GetWorldTimerManager().SetTimer(
+			AttackTimerHandle2,
+			[WeakThis]
+			{
+				if (WeakThis.IsValid())
+				{
+					TraceChannelHelper::SphereTraceByChannel(
+						WeakThis->GetWorld(),
+						WeakThis.Get(),
+						WeakThis->AttackPoint2->GetComponentLocation(),
+						WeakThis->AttackPoint2->GetComponentLocation(),
+						FRotator::ZeroRotator,
+						ECC_Visibility,
+						200,
+						true,
+						true,
+						[] (bool bHit, TArray<FHitResult> HitResults)
+						{
+							for (FHitResult HitResult : HitResults)
+							{
+								if (AActor* Actor = HitResult.GetActor())
+								{
+									if (APlayerCharacter* P = Cast<APlayerCharacter>(Actor))
+									{
+										P->OnDamaged(20);
+									}
+								}
+							}
+						}
+					);
+				}
+			},
+			AttackTiming2,
+			false
+		);
+
+		AnimationInstance->PlayMontage(AI, AnimState::Attack, [](float _) {});
+	}
 }
 
 void ADemolisher::Throw()
@@ -265,7 +364,8 @@ void ADemolisher::ChargeTo(float Speed, float Acceleration)
 				}
         		return;
         	}
-            GameDebug::ShowDisplayLog(GetWorld(), FString::SanitizeFloat(ChargeSpeed));
+        	
+            // GameDebug::ShowDisplayLog(GetWorld(), FString::SanitizeFloat(ChargeSpeed));
             ChargeSpeed += Acceleration;
             FVector Delta = Direction * ChargeSpeed * GetWorld()->GetDeltaSeconds();
             FVector Location = GetActorLocation();

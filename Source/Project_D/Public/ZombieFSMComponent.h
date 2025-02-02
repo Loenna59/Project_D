@@ -42,6 +42,9 @@ protected:
 	UPROPERTY()
 	class ABaseZombie* ZombieCharacter;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="FSM")
+	float AttackInterval = 1.75f;
+
 public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType,

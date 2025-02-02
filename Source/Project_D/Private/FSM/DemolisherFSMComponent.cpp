@@ -7,12 +7,13 @@
 
 void UDemolisherFSMComponent::SetupState(ABaseZombie* Zombie)
 {
-	//Super::SetupState(Zombie);
-
 	ZombieCharacter = Zombie;
+
+	UDemolisherAttackState* AttackState = NewObject<UDemolisherAttackState>(this);
+	AttackState->Initialize(AttackInterval, ThrowDuration, ChargeSpeed, ChargeAcceleration);
 
 	StateMap.Add(EEnemyState::IDLE, NewObject<UIdleZombieState>(this));
 	StateMap.Add(EEnemyState::WALK, NewObject<UDemolisherWalkState>(this));
-	StateMap.Add(EEnemyState::ATTACK, NewObject<UDemolisherAttackState>(this));
+	StateMap.Add(EEnemyState::ATTACK, AttackState);
 	StateMap.Add(EEnemyState::DEATH, NewObject<UDeathZombieState>(this));
 }
