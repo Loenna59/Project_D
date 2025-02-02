@@ -17,11 +17,11 @@ protected:
 	
 	virtual void Tick(float DeltaSeconds) override;
 
-	float ChargeSpeed = 0.f;
+	float CurrentChargeSpeed = 0.f;
 	
 	FTimerHandle ChargingTimerHandle;
 	FTimerHandle AttackTimerHandle2;
-	
+
 public:
 	ADemolisher();
 
@@ -32,6 +32,13 @@ public:
 	void Throw();
 	
 	void ChargeTo(float Speed, float Acceleration);
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="FSM")
+	float ThrowDuration = 2.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="FSM")
+	float ChargeSpeed = 250.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="FSM")
+	float ChargeAcceleration = 2.f;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float AttackTiming2 = 1.6f;

@@ -4,6 +4,7 @@
 #include "Pathfinding/ZombieAIController.h"
 
 #include "Components/SplineComponent.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "Navigation/PathFollowingComponent.h"
 
 void AZombieAIController::BeginPlay()
@@ -75,29 +76,18 @@ void AZombieAIController::MoveAlongSpline()
 	{
 		FVector SplinePoint = SplinePoints[CurrentSplinePointIndex];
 		MoveToLocation(SplinePoint, 100.f, false);
-
-		// 다음 스플라인 포인트까지의 방향 벡터 계산
-		if (CurrentSplinePointIndex < SplinePoints.Num() - 1)
-		{
-			FVector NextSplinePoint = SplinePoints[CurrentSplinePointIndex + 1];
-			FVector Direction = (NextSplinePoint - SplinePoint).GetSafeNormal();
-            
-			// 방향 벡터를 기반으로 회전값 계산
-			FRotator NewRotation = FRotationMatrix::MakeFromX(Direction).Rotator();
-            
-			// 액터의 방향을 회전값으로 설정
-			if (GetOwner())
-			{
-				GetOwner()->SetActorRotation(NewRotation);
-			}
-		}
-		
 		CurrentSplinePointIndex++;
 	}
 }
 
 void AZombieAIController::StopMovement()
 {
+	if (GetOwner() && TargetActor)
+	{
+		FRotator NewRotation = UKismetMathLibrary::FindLookAtRotation(GetOwner()->GetActorLocation(), TargetActor->GetActorLocation());
+		SetControlRotation(NewRotation);
+	}
+	
 	Super::StopMovement();
 	
 	SplinePoints.Empty();

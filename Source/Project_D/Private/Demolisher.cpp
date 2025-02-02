@@ -10,11 +10,17 @@
 #include "VaultGameModeBase.h"
 #include "Components/BoxComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "FSM/DemolisherAttackState.h"
 #include "FSM/DemolisherFSMComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/KismetMathLibrary.h"
+#include "Kismet/KismetStringLibrary.h"
+#include "Kismet/KismetSystemLibrary.h"
 #include "Pathfinding/PathfindingComponent.h"
 #include "Pathfinding/ZombieAIController.h"
 #include "Project_D/Project_DCharacter.h"
+
+class UDemolisherAttackState;
 
 ADemolisher::ADemolisher()
 {
@@ -48,6 +54,11 @@ void ADemolisher::BeginPlay()
 	AI = Cast<AZombieAIController>(GetController());
 
 	FSM = NewObject<UDemolisherFSMComponent>(this);
+	
+	UDemolisherAttackState* AttackState = NewObject<UDemolisherAttackState>(FSM);
+	AttackState->Initialize(AttackInterval, ThrowDuration, ChargeSpeed, ChargeAcceleration);
+	FSM->SetupState(this, AttackState);
+	
 	AddOwnedComponent(FSM);
 	FSM->RegisterComponent();
 
@@ -273,12 +284,8 @@ void ADemolisher::Throw()
 {
 	AI->StopMovement();
 	bIsAttacking = true;
-	
-	FVector TargetLocation = AI->TargetActor->GetActorLocation();
-	FVector Direction = (TargetLocation - GetActorLocation()).GetSafeNormal();
-	FRotator DestRotation = FRotationMatrix::MakeFromX(Direction).Rotator();
 
-	SetActorRotation(DestRotation);
+	FVector TargetLocation = AI->TargetActor->GetActorLocation();
 	
 	AnimationInstance->PlayMontage(AI,
 		AnimState::Throw,
@@ -346,9 +353,9 @@ void ADemolisher::ChargeTo(float Speed, float Acceleration)
     FVector TargetLocation = AI->TargetActor->GetActorLocation();
     FVector Location = GetActorLocation();
     FVector Direction = (TargetLocation - Location).GetSafeNormal();
-    ChargeSpeed = Speed;
+    CurrentChargeSpeed = Speed;
 	
-	FRotator DestRotation = FRotationMatrix::MakeFromX(Direction).Rotator();
+	FRotator DestRotation = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), TargetLocation);
 	SetActorRotation(DestRotation);
 
     GetWorldTimerManager().SetTimer(
@@ -366,8 +373,8 @@ void ADemolisher::ChargeTo(float Speed, float Acceleration)
         	}
         	
             // GameDebug::ShowDisplayLog(GetWorld(), FString::SanitizeFloat(ChargeSpeed));
-            ChargeSpeed += Acceleration;
-            FVector Delta = Direction * ChargeSpeed * GetWorld()->GetDeltaSeconds();
+            CurrentChargeSpeed += Acceleration;
+            FVector Delta = Direction * CurrentChargeSpeed * GetWorld()->GetDeltaSeconds();
             FVector Location = GetActorLocation();
         	
             SetActorLocation(Location + Delta);
@@ -389,7 +396,8 @@ void ADemolisher::ChargeTo(float Speed, float Acceleration)
         				UPrimitiveComponent* HitComp = Hit.GetComponent();
                         if (HitComp && HitComp->Mobility == EComponentMobility::Movable)
                         {
-                            // HitComp->AddImpulse(Direction * ChargeSpeed * 1000.f, NAME_None, true);
+                        	// HitComp->SetSimulatePhysics(true);
+                            // HitComp->AddImpulse(Direction * ChargeSpeed, NAME_None, true);
                         }
                     }
         		}

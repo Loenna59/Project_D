@@ -19,18 +19,13 @@ UZombieFSMComponent::UZombieFSMComponent()
 void UZombieFSMComponent::BeginPlay()
 {
 	Super::BeginPlay();
-
-	bSetupCompleted = false;
 	
 	SetComponentTickEnabled(true);
 }
 
-void UZombieFSMComponent::SetupState(ABaseZombie* Zombie)
+void UZombieFSMComponent::SetupState(ABaseZombie* Zombie, const TScriptInterface<IZombieState>& AttackState)
 {
 	ZombieCharacter = Zombie;
-
-	UAttackZombieState* AttackState = NewObject<UAttackZombieState>(this);
-	AttackState->Initialize(AttackInterval);
 	
 	StateMap.Add(EEnemyState::IDLE, NewObject<UIdleZombieState>(this));
 	StateMap.Add(EEnemyState::WALK, NewObject<UWalkZombieState>(this));
@@ -40,11 +35,9 @@ void UZombieFSMComponent::SetupState(ABaseZombie* Zombie)
 
 void UZombieFSMComponent::ChangeState(EEnemyState NewState, ABaseZombie* Zombie)
 {
-	if (!bSetupCompleted)
+	if (StateMap.IsEmpty())
 	{
-		bSetupCompleted = true;
-
-		SetupState(Zombie);
+		return;
 	}
 	
 	if (CurrentState == EEnemyState::DEATH)
@@ -72,7 +65,7 @@ void UZombieFSMComponent::ChangeState(EEnemyState NewState, ABaseZombie* Zombie)
 
 void UZombieFSMComponent::EvaluateState(ABaseZombie* Zombie)
 {
-	if (!Zombie || !bSetupCompleted)
+	if (!Zombie)
 	{
 		return;
 	}

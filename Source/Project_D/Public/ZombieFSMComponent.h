@@ -21,17 +21,16 @@ public:
 	// Sets default values for this component's properties
 	UZombieFSMComponent();
 
+	virtual void SetupState(ABaseZombie* Zombie, const TScriptInterface<IZombieState>& AttackState);
+
 	void ChangeState(EEnemyState NewState, ABaseZombie* Zombie);
 	
 	void EvaluateState(ABaseZombie* Zombie);
 
 protected:
-	bool bSetupCompleted = false;
-	
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
-	virtual void SetupState(ABaseZombie* Zombie);
 
 	UPROPERTY()
 	EEnemyState CurrentState = EEnemyState::NONE;

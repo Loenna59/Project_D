@@ -5,13 +5,10 @@
 #include "FSM/DemolisherAttackState.h"
 #include "FSM/DemolisherWalkState.h"
 
-void UDemolisherFSMComponent::SetupState(ABaseZombie* Zombie)
+void UDemolisherFSMComponent::SetupState(ABaseZombie* Zombie, const TScriptInterface<IZombieState>& AttackState)
 {
 	ZombieCharacter = Zombie;
-
-	UDemolisherAttackState* AttackState = NewObject<UDemolisherAttackState>(this);
-	AttackState->Initialize(AttackInterval, ThrowDuration, ChargeSpeed, ChargeAcceleration);
-
+	
 	StateMap.Add(EEnemyState::IDLE, NewObject<UIdleZombieState>(this));
 	StateMap.Add(EEnemyState::WALK, NewObject<UDemolisherWalkState>(this));
 	StateMap.Add(EEnemyState::ATTACK, AttackState);

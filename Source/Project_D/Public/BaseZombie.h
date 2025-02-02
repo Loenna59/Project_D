@@ -89,11 +89,17 @@ public:
 	FTimerHandle AttackTimerHandle;
 	FTimerHandle HitTimerHandle;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="FSM")
+	float AttackInterval = 1.75f;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float AttackTiming = 0.75f;
 
 	int32 CurrentPathIndex = 0;
-	
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TSubclassOf<class ABloodDecalActor> BloodDecalFactory;
+
 	virtual bool ContainsBrokenBones(TArray<FName> BoneNames);
 
 	virtual void OnStartAttack();

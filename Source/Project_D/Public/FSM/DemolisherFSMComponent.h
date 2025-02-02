@@ -15,7 +15,7 @@ class PROJECT_D_API UDemolisherFSMComponent : public UZombieFSMComponent
 	GENERATED_BODY()
 
 public:
-	virtual void SetupState(ABaseZombie* Zombie) override;
+	virtual void SetupState(ABaseZombie* Zombie, const TScriptInterface<IZombieState>& AttackState) override;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="FSM")
 	float ThrowDuration = 3.f;

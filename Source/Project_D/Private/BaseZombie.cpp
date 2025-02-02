@@ -11,6 +11,8 @@
 #include "Animation/ZombieAnimInstance.h"
 #include "Components/BoxComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "Components/DecalComponent.h"
+#include "Effect/BloodDecalActor.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Pathfinding/PathfindingComponent.h"
@@ -50,6 +52,12 @@ void ABaseZombie::BeginPlay()
 	AI = Cast<AZombieAIController>(GetController());
 
 	FSM = NewObject<UZombieFSMComponent>(this);
+
+	UAttackZombieState* AttackZombieState = NewObject<UAttackZombieState>(FSM);
+	AttackZombieState->Initialize(AttackInterval);
+
+	FSM->SetupState(this, AttackZombieState);
+	
 	AddOwnedComponent(FSM);
 	FSM->RegisterComponent();
 
@@ -241,40 +249,6 @@ void ABaseZombie::Dismemberment(EBodyPart Part)
 		
 		PartMesh->AddImpulse(CalculateImpulse());
 	}
-	
-	// if (USkeletalMeshComponent* MeshComponent = GetMesh())
-	// {
-	// 	FTransform SocketTransform = MeshComponent->GetSocketTransform(HitBoneName);
-	// 	MeshComponent->BreakConstraint(CalculateImpulse(), SocketTransform.GetLocation(), HitBoneName);
-	//
-	// 	// 피 효과 부여하려면 여기서
-	//
-	// 	BrokenParts.Add(HitBoneName);
-	//
-	// 	if (UWorld* const World = GetWorld())
-	// 	{
-	// 		FVector Start = MeshComponent->GetComponentLocation(); // WorldLocation
-	// 		FVector End = Start + FVector(0, 0, -1000.f);
-	// 		
-	// 		TraceChannelHelper::LineTraceByChannel(
-	// 			World,
-	// 			this,
-	// 			Start,
-	// 			End,
-	// 			ECC_Visibility,
-	// 			true,
-	// 			false,
-	// 			[this](bool bHit, FHitResult HitResult)
-	// 			{
-	// 				FVector Location = HitResult.Location;
-	// 				FRotator Rotator = FRotationMatrix::MakeFromX(HitResult.Normal).Rotator();
-	// 	
-	// 				// 핏자국 찍기 (Decal)
-	// 				// FVector DecalScale(-63.f, -128.f, -128.f);
-	// 			}
-	// 		);
-	// 	}
-	// }
 }
 
 // 충격량 계산
@@ -358,6 +332,41 @@ void ABaseZombie::OnTriggerEnter(AActor* OtherActor, ACollisionTriggerParam* Par
 	{
 		FName HitBoneName = ZombieParam->HitBoneName;
 		int32 Damage = ZombieParam->Damage;
+
+		if (USkeletalMeshComponent* MeshComponent = GetMesh())
+		{
+			// 피 효과 부여하려면 여기서
+	
+			if (UWorld* const World = GetWorld())
+			{
+				FVector Start = MeshComponent->GetComponentLocation(); // WorldLocation
+				FVector End = Start + FVector(0, 0, -1000.f);
+			
+				TraceChannelHelper::LineTraceByChannel(
+					World,
+					this,
+					Start,
+					End,
+					ECC_Visibility,
+					true,
+					false,
+					[this](bool bHit, FHitResult HitResult)
+					{
+						FVector Location = HitResult.Location;
+						// 법선 벡터를 기준으로 Z축을 정렬
+						FRotator Rotation = FRotationMatrix::MakeFromZ(HitResult.Normal).Rotator();
+
+						float RandRot = FMath::FRandRange(0.f, 359.f);
+						Rotation.Yaw += RandRot;
+						
+						Location.X += FMath::FRandRange(-100.f, 100.f);
+						Location.Y += FMath::FRandRange(-100.f, 100.f);
+						
+						GetWorld()->SpawnActor<ABloodDecalActor>(BloodDecalFactory, Location, Rotation);
+					}
+				);
+			}
+		}
 
 		if (BoneRangeMap.Contains(HitBoneName))
 		{
