@@ -86,15 +86,15 @@ void UPlayerAnimInstance::AnimNotify_OnDropkickImpact() const
 	        	// 컴포넌트 소유 액터가 좀비일 경우에만...
 	        	if (ABaseZombie* Zombie = Cast<ABaseZombie>(HitComponent->GetOwner()))
 	        	{
-	        		HitComponent->SetSimulatePhysics(true); // 해당 컴포넌트의 물리 시뮬레이션을 활성화 하고
-	        		const FVector Impulse = ForwardVector * ImpulseStrength; // 임펄스의 크기 벡터
-	        		HitComponent->AddImpulseAtLocation(Impulse, Hit.ImpactPoint); // 벡터 방향으로 날려버린다
 	        		AZombieTriggerParam* Param = NewObject<AZombieTriggerParam>();
-
+	        		
 	        		// 데미지 처리
 	        		Param->Damage = 99999;
 	        		Param->HitResult = Hit;
+	        		Param->bIsSimulatePhysics = true;
+	        		Param->ImpulseStrength = ImpulseStrength;
 	        		Zombie->OnTriggerEnter(Player, Param);
+	        		break;
 	        	}
         	}
         }
@@ -154,13 +154,15 @@ void UPlayerAnimInstance::AnimNotify_OnStandingKickImpact() const
 				// 컴포넌트 소유 액터가 좀비일 경우에만...
 				if (ABaseZombie* Zombie = Cast<ABaseZombie>(HitComponent->GetOwner()))
 				{
-					HitComponent->SetSimulatePhysics(true); // 해당 컴포넌트의 물리 시뮬레이션을 활성화 하고
-					const FVector Impulse = ForwardVector * ImpulseStrength; // 임펄스의 크기 벡터
-					HitComponent->AddImpulseAtLocation(Impulse, Hit.ImpactPoint); // 날려버린다
 					AZombieTriggerParam* Param = NewObject<AZombieTriggerParam>();
+	        	
+					// 데미지 처리
 					Param->Damage = 99999;
 					Param->HitResult = Hit;
+					Param->bIsSimulatePhysics = true;
+					Param->ImpulseStrength = ImpulseStrength;
 					Zombie->OnTriggerEnter(Player, Param);
+					break;
 				}
 			}
 		}

@@ -19,36 +19,36 @@ void AVaultGameModeBase::DecreaseCount()
 	FString Str = FString::Printf(TEXT("Number of Zombie: %d"), ZombieCount);
 	
 	GameDebug::ShowDisplayLog(GetWorld(), Str);
-	if (ZombieCount <= 0)
-	{
-		UGameClearUI* GameClearUI = Cast<UGameClearUI>(CreateWidget(GetWorld(), UIFactory));
-		// 3초 뒤에...
-		FTimerHandle TimerHandle;
-
-		APostProcessVolume* PostProcessVolume = GetWorld()->SpawnActor<APostProcessVolume>(APostProcessVolume::StaticClass());
-		if (PostProcessVolume)
-		{
-			PostProcessVolume->bUnbound = true;
-			PostProcessVolume->Settings.MotionBlurAmount = 10.0f;
-
-			GetWorld()->GetTimerManager().SetTimer(
-				TimerHandle,
-				[GameClearUI, PostProcessVolume]()
-				{
-					if (PostProcessVolume && PostProcessVolume->IsValidLowLevel())
-					{
-						PostProcessVolume->Destroy();
-					}
-					
-					if (GameClearUI)
-					{
-						GameClearUI->AddToViewport();
-					}
-				},
-				3.0f,
-				false
-			);
-		}
-		
-	}
+	// if (ZombieCount <= 0)
+	// {
+	// 	UGameClearUI* GameClearUI = Cast<UGameClearUI>(CreateWidget(GetWorld(), UIFactory));
+	// 	// 3초 뒤에...
+	// 	FTimerHandle TimerHandle;
+	//
+	// 	APostProcessVolume* PostProcessVolume = GetWorld()->SpawnActor<APostProcessVolume>(APostProcessVolume::StaticClass());
+	// 	if (PostProcessVolume)
+	// 	{
+	// 		PostProcessVolume->bUnbound = true;
+	// 		PostProcessVolume->Settings.MotionBlurAmount = 10.0f;
+	//
+	// 		GetWorld()->GetTimerManager().SetTimer(
+	// 			TimerHandle,
+	// 			[GameClearUI, PostProcessVolume]()
+	// 			{
+	// 				if (PostProcessVolume && PostProcessVolume->IsValidLowLevel())
+	// 				{
+	// 					PostProcessVolume->Destroy();
+	// 				}
+	// 				
+	// 				if (GameClearUI)
+	// 				{
+	// 					GameClearUI->AddToViewport();
+	// 				}
+	// 			},
+	// 			3.0f,
+	// 			false
+	// 		);
+	// 	}
+	// 	
+	// }
 }

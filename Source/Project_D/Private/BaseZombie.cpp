@@ -81,10 +81,10 @@ void ABaseZombie::BeginPlay()
 
 void ABaseZombie::SetCollisionPartMesh(USkeletalMeshComponent* Part)
 {
-	Part->SetCollisionObjectType(ECC_PhysicsBody);
-	Part->SetCollisionResponseToAllChannels(ECR_Block);
-	Part->SetCollisionResponseToChannel(ECC_GameTraceChannel2, ECR_Ignore);
-	Part->SetCollisionResponseToChannel(ECC_PhysicsBody, ECR_Ignore);
+	// Part->SetCollisionObjectType(ECC_PhysicsBody);
+	// Part->SetCollisionResponseToAllChannels(ECR_Block);
+	// Part->SetCollisionResponseToChannel(ECC_GameTraceChannel2, ECR_Ignore);
+	// Part->SetCollisionResponseToChannel(ECC_PhysicsBody, ECR_Ignore);
 }
 
 void ABaseZombie::Evaluate()
@@ -300,8 +300,11 @@ void ABaseZombie::OnDead()
 {
 	if (USkeletalMeshComponent* const MeshComponent = GetMesh())
 	{
-		// MeshComponent->SetSimulatePhysics(true);
-		MeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		if (!MeshComponent->IsSimulatingPhysics())
+		{
+			// MeshComponent->SetSimulatePhysics(true);
+			MeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		}
 	}
 
 	if (AVaultGameModeBase* VaultGameModeBase = Cast<AVaultGameModeBase>(GetWorld()->GetAuthGameMode()))
@@ -335,6 +338,7 @@ void ABaseZombie::OnTriggerEnter(AActor* OtherActor, ACollisionTriggerParam* Par
 		int32 Damage = ZombieParam->Damage;
 
 		FHitResult HitResult = ZombieParam->HitResult;
+		
 		USkeletalMeshComponent* MeshComponent = GetMesh();
 
 		if (MeshComponent)
@@ -394,6 +398,19 @@ void ABaseZombie::OnTriggerEnter(AActor* OtherActor, ACollisionTriggerParam* Par
 		}
 
 		CurrentHp -= Damage;
+
+		bool IsSimulated = MeshComponent && ZombieParam->bIsSimulatePhysics;
+		// GameDebug::ShowDisplayLog(GetWorld(), FString::FromInt(IsSimulated), FColor::White);
+			
+		if (IsSimulated)
+		{
+			// GameDebug::ShowDisplayLog(GetWorld(), "OnTriggerEnter", FColor::Red);
+			const FVector ForwardVector = HitResult.GetActor()->GetActorForwardVector();
+				
+			MeshComponent->SetSimulatePhysics(true); // 해당 컴포넌트의 물리 시뮬레이션을 활성화 하고
+			const FVector Impulse = ForwardVector * ZombieParam->ImpulseStrength; // 임펄스의 크기 벡터
+			MeshComponent->AddImpulseAtLocation(Impulse, HitResult.ImpactPoint); // 벡터 방향으로 날려버린다
+		}
 		
 		if (CurrentHp <= 0)
 		{
@@ -401,7 +418,7 @@ void ABaseZombie::OnTriggerEnter(AActor* OtherActor, ACollisionTriggerParam* Par
 			return;
 		}
 
-		if (!bIsAttacking)
+		if (!bIsAttacking && !IsSimulated)
 		{
 			bIsHitting = true;
 			Evaluate();
@@ -411,29 +428,24 @@ void ABaseZombie::OnTriggerEnter(AActor* OtherActor, ACollisionTriggerParam* Par
 				GetWorld()->GetTimerManager().ClearTimer(HitTimerHandle);
 				HitTimerHandle.Invalidate();
 			}
-
-			bool IsSimulated = MeshComponent && MeshComponent->IsSimulatingPhysics();
 			
-			if (!IsSimulated)
-			{
-				AnimationInstance->PlayMontage(
-					AI,
-					AnimState::Hit,
-					[this] (float PlayLength)
-					{
-						GetWorld()->GetTimerManager().SetTimer(
-							HitTimerHandle,
-							[this] ()
-							{
-								bIsHitting = false;
-							},
-							PlayLength,
-							false
-						);
-					}
-				);
-				
-			}
+			AnimationInstance->PlayMontage(
+				AI,
+				AnimState::Hit,
+				[this] (float PlayLength)
+				{
+					GetWorld()->GetTimerManager().SetTimer(
+						HitTimerHandle,
+						[this] ()
+						{
+							bIsHitting = false;
+						},
+						PlayLength,
+						false
+					);
+				}
+			);
+			
 		}
 	}
 }
@@ -457,7 +469,7 @@ void ABaseZombie::OnCollisionHit(UPrimitiveComponent* HitComponent, AActor* Othe
 void ABaseZombie::OnMeshCollisionHit(UPrimitiveComponent* HitComponent, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
-	GameDebug::ShowDisplayLog(GetWorld(), "OnMeshCollisionHit");
+	// GameDebug::ShowDisplayLog(GetWorld(), "OnMeshCollisionHit");
 }
 
 float ABaseZombie::CalculateDistanceToTarget() const

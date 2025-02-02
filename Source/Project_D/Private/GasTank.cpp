@@ -122,17 +122,17 @@ void AGasTank::OnDead()
 
 void AGasTank::OnTriggerEnter(AActor* OtherActor, ACollisionTriggerParam* Param)
 {
-	if (GasTankDurablity > 0 && Param->HitResult.Component == GasCylinder)
-	{
-		GasTankDurablity -= 1;
-		if (GasTankDurablity <= 0)
-		{
-			bIsExplosion = true;
-			Evaluate();
-		}
-	}
-	else
-	{
+	// if (GasTankDurablity > 0 && Param->HitResult.Component == GasCylinder)
+	// {
+	// 	GasTankDurablity -= 1;
+	// 	if (GasTankDurablity <= 0)
+	// 	{
+	// 		bIsExplosion = true;
+	// 		Evaluate();
+	// 	}
+	// }
+	// else
+	// {
 		Super::OnTriggerEnter(OtherActor, Param);
-	}
+	// }
 }

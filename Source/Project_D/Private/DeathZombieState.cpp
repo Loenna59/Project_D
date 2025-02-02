@@ -11,9 +11,12 @@ void UDeathZombieState::OnEnter(ABaseZombie* Zombie)
 {
 	if (Zombie)
 	{
-		if (Zombie->AnimationInstance)
+		if (!Zombie->GetMesh()->IsSimulatingPhysics())
 		{
-			Zombie->AnimationInstance->bIsDead = true;
+			if (Zombie->AnimationInstance)
+			{
+				Zombie->AnimationInstance->bIsDead = true;
+			}
 		}
 		Zombie->OnDead();
 	}
