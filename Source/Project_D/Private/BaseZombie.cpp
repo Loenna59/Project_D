@@ -333,12 +333,15 @@ void ABaseZombie::OnTriggerEnter(AActor* OtherActor, ACollisionTriggerParam* Par
 		FName HitBoneName = ZombieParam->HitBoneName;
 		int32 Damage = ZombieParam->Damage;
 
+		FHitResult HitResult = ZombieParam->HitResult;
+
 		if (USkeletalMeshComponent* MeshComponent = GetMesh())
 		{
 			// 피 효과 부여하려면 여기서
-	
 			if (UWorld* const World = GetWorld())
 			{
+				UGameplayStatics::SpawnEmitterAtLocation(World, BloodSplatter, HitResult.Location);
+				
 				FVector Start = MeshComponent->GetComponentLocation(); // WorldLocation
 				FVector End = Start + FVector(0, 0, -1000.f);
 			

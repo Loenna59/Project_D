@@ -98,6 +98,9 @@ public:
 	int32 CurrentPathIndex = 0;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	class UParticleSystem* BloodSplatter;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TSubclassOf<class ABloodDecalActor> BloodDecalFactory;
 
 	virtual bool ContainsBrokenBones(TArray<FName> BoneNames);
