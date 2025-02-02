@@ -47,7 +47,7 @@ void ADemolisherProp::Fire(FVector StartLocation, FVector TargetLocation)
 			0.5f
 		);
 
-		if (bSuggest)
+		if (bSuggest && bShowDebug)
 		{
 			FPredictProjectilePathParams PredictParams(10.0f, StartLocation, Velocity, 10.0f);
 			PredictParams.DrawDebugTime = 10.0f;     
@@ -66,6 +66,8 @@ void ADemolisherProp::OnCollisionHit(UPrimitiveComponent* HitComponent, AActor* 
 {
 	// GameDebug::ShowDisplayLog(GetWorld(), "OnCollisionHit", FColor::Orange);
 
+	UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ParticleSystem, Hit.Location);
+	
 	FTimerHandle TimerHandle;
 
 	TWeakObjectPtr<ADemolisherProp> WeakThis = this;

@@ -25,6 +25,12 @@ protected:
 	
 public:
 	ADemolisherProp();
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	class UParticleSystem* ParticleSystem;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bShowDebug = false;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float Speed = 1000;
