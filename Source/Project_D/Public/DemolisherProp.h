@@ -21,7 +21,7 @@ protected:
 
 	FVector Velocity;
 
-	bool bLaunch = false;
+	bool bIsCollisionHit = false;
 	
 public:
 	ADemolisherProp();

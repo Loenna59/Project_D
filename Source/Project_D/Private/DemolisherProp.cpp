@@ -64,7 +64,12 @@ void ADemolisherProp::Fire(FVector StartLocation, FVector TargetLocation)
 void ADemolisherProp::OnCollisionHit(UPrimitiveComponent* HitComponent, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
-	// GameDebug::ShowDisplayLog(GetWorld(), "OnCollisionHit", FColor::Orange);
+	if (bIsCollisionHit)
+	{
+		return;
+	}
+
+	bIsCollisionHit = true;
 
 	UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ParticleSystem, Hit.Location);
 	

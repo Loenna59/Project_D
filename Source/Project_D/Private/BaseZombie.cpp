@@ -4,6 +4,7 @@
 #include "BaseZombie.h"
 
 #include "ExplosiveCollisionActor.h"
+#include "GameDebug.h"
 #include "PlayerCharacter.h"
 #include "TraceChannelHelper.h"
 #include "VaultGameModeBase.h"
@@ -29,10 +30,6 @@ ABaseZombie::ABaseZombie()
 	GetMesh()->SetRelativeRotation(FRotator(0, -90, 0));
 
 	GetCapsuleComponent()->SetCollisionProfileName(TEXT("Enemy"));
-	GetMesh()->SetCollisionEnabled(ECollisionEnabled::Type::QueryAndPhysics);
-	GetMesh()->SetCollisionObjectType(ECC_PhysicsBody);
-	GetMesh()->SetCollisionResponseToAllChannels(ECR_Block);
-	GetMesh()->SetCollisionResponseToChannel(ECC_GameTraceChannel2, ECR_Ignore);
 
 	AIControllerClass = AZombieAIController::StaticClass();
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
@@ -44,6 +41,7 @@ void ABaseZombie::BeginPlay()
 	Super::BeginPlay();
 
 	CurrentHp = MaxHp;
+	GetMesh()->SetMassOverrideInKg(NAME_None, Mass);
 
 	// GetMesh()->SetMassOverrideInKg(NAME_None, Mass);
 	GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
@@ -63,7 +61,11 @@ void ABaseZombie::BeginPlay()
 
 	FSM->ChangeState(EEnemyState::IDLE, this);
 
+	GetMesh()->SetNotifyRigidBodyCollision(true);
+	GetMesh()->SetGenerateOverlapEvents(true);
+	
 	GetCapsuleComponent()->OnComponentHit.AddDynamic(this, &ABaseZombie::OnCollisionHit);
+	GetMesh()->OnComponentHit.AddDynamic(this, &ABaseZombie::OnMeshCollisionHit);
 
 	if (AVaultGameModeBase* VaultGameModeBase = Cast<AVaultGameModeBase>(GetWorld()->GetAuthGameMode()))
 	{
@@ -79,7 +81,6 @@ void ABaseZombie::BeginPlay()
 
 void ABaseZombie::SetCollisionPartMesh(USkeletalMeshComponent* Part)
 {
-	Part->SetCollisionEnabled(ECollisionEnabled::Type::QueryAndPhysics);
 	Part->SetCollisionObjectType(ECC_PhysicsBody);
 	Part->SetCollisionResponseToAllChannels(ECR_Block);
 	Part->SetCollisionResponseToChannel(ECC_GameTraceChannel2, ECR_Ignore);
@@ -334,8 +335,9 @@ void ABaseZombie::OnTriggerEnter(AActor* OtherActor, ACollisionTriggerParam* Par
 		int32 Damage = ZombieParam->Damage;
 
 		FHitResult HitResult = ZombieParam->HitResult;
+		USkeletalMeshComponent* MeshComponent = GetMesh();
 
-		if (USkeletalMeshComponent* MeshComponent = GetMesh())
+		if (MeshComponent)
 		{
 			// 피 효과 부여하려면 여기서
 			if (UWorld* const World = GetWorld())
@@ -392,6 +394,7 @@ void ABaseZombie::OnTriggerEnter(AActor* OtherActor, ACollisionTriggerParam* Par
 		}
 
 		CurrentHp -= Damage;
+		
 		if (CurrentHp <= 0)
 		{
 			FSM->ChangeState(EEnemyState::DEATH, this);
@@ -409,22 +412,28 @@ void ABaseZombie::OnTriggerEnter(AActor* OtherActor, ACollisionTriggerParam* Par
 				HitTimerHandle.Invalidate();
 			}
 
-			AnimationInstance->PlayMontage(
-				AI,
-				AnimState::Hit,
-				[this] (float PlayLength)
-				{
-					GetWorld()->GetTimerManager().SetTimer(
-						HitTimerHandle,
-						[this] ()
-						{
-							bIsHitting = false;
-						},
-						PlayLength,
-						false
-					);
-				}
-			);
+			bool IsSimulated = MeshComponent && MeshComponent->IsSimulatingPhysics();
+			
+			if (!IsSimulated)
+			{
+				AnimationInstance->PlayMontage(
+					AI,
+					AnimState::Hit,
+					[this] (float PlayLength)
+					{
+						GetWorld()->GetTimerManager().SetTimer(
+							HitTimerHandle,
+							[this] ()
+							{
+								bIsHitting = false;
+							},
+							PlayLength,
+							false
+						);
+					}
+				);
+				
+			}
 		}
 	}
 }
@@ -434,14 +443,21 @@ void ABaseZombie::OnCollisionHit(UPrimitiveComponent* HitComponent, AActor* Othe
 {
 	if (OtherActor->IsA<AExplosiveCollisionActor>())
 	{
-		CurrentHp -= 200;
+		GetMesh()->SetSimulatePhysics(true);
+		
+		CurrentHp -= 99999;
+
 		if (CurrentHp <= 0)
 		{
-			GetMesh()->SetSimulatePhysics(true);
-			// GameDebug::ShowDisplayLog(GetWorld(), "Death");
 			FSM->ChangeState(EEnemyState::DEATH, this);
 		}
 	}
+}
+
+void ABaseZombie::OnMeshCollisionHit(UPrimitiveComponent* HitComponent, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+{
+	GameDebug::ShowDisplayLog(GetWorld(), "OnMeshCollisionHit");
 }
 
 float ABaseZombie::CalculateDistanceToTarget() const

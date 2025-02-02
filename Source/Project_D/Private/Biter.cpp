@@ -32,12 +32,6 @@ ABiter::ABiter()
 	LeftLeg->SetLeaderPoseComponent(GetMesh());
 	RightLeg->SetLeaderPoseComponent(GetMesh());
 
-	ABaseZombie::SetCollisionPartMesh(Head);
-	ABaseZombie::SetCollisionPartMesh(LeftArm);
-	ABaseZombie::SetCollisionPartMesh(RightArm);
-	ABaseZombie::SetCollisionPartMesh(LeftLeg);
-	ABaseZombie::SetCollisionPartMesh(RightLeg);
-
 	AttackPoint = CreateDefaultSubobject<UBoxComponent>(TEXT("AttackPoint"));
 	AttackPoint->SetupAttachment(GetMesh());
 	
@@ -57,6 +51,12 @@ void ABiter::BeginPlay()
 	PartMeshes.Add(EBodyPart::RightLeg, RightLeg);
 	PartMeshes.Add(EBodyPart::LeftArm, LeftArm);
 	PartMeshes.Add(EBodyPart::RightArm, RightArm);
+
+	SetCollisionPartMesh(Head);
+	SetCollisionPartMesh(LeftArm);
+	SetCollisionPartMesh(RightArm);
+	SetCollisionPartMesh(LeftLeg);
+	SetCollisionPartMesh(RightLeg);
 
 	GetCharacterMovement()->MaxWalkSpeed = 100.f;
 

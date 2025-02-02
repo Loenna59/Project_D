@@ -355,9 +355,6 @@ void ADemolisher::ChargeTo(float Speed, float Acceleration)
     FVector Direction = (TargetLocation - Location).GetSafeNormal();
     CurrentChargeSpeed = Speed;
 	
-	FRotator DestRotation = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), TargetLocation);
-	SetActorRotation(DestRotation);
-
     GetWorldTimerManager().SetTimer(
         ChargingTimerHandle,
         [Direction, Acceleration, this]()
@@ -404,7 +401,8 @@ void ADemolisher::ChargeTo(float Speed, float Acceleration)
         	);
         },
         0.01f,
-        true
+        true,
+        0.25f
     );
 }
 

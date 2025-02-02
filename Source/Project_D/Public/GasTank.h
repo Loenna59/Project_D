@@ -55,7 +55,5 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 GasTankDurablity = 1;
 
-	void SetActiveAttackCollision(bool Active) const;
-
 	FTimerHandle JetBalloonTimerHandle;
 };

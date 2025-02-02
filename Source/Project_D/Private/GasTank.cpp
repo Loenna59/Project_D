@@ -34,11 +34,6 @@ AGasTank::AGasTank()
 	LeftLeg->SetLeaderPoseComponent(GetMesh());
 	RightLeg->SetLeaderPoseComponent(GetMesh());
 
-	ABaseZombie::SetCollisionPartMesh(LeftArm);
-	ABaseZombie::SetCollisionPartMesh(RightArm);
-	ABaseZombie::SetCollisionPartMesh(LeftLeg);
-	ABaseZombie::SetCollisionPartMesh(RightLeg);
-
 	AttackPoint = CreateDefaultSubobject<UBoxComponent>(TEXT("AttackPoint"));
 	AttackPoint->SetupAttachment(GetMesh());
 	
@@ -50,8 +45,6 @@ AGasTank::AGasTank()
 	
 	GasCylinder->SetCollisionProfileName("Enemy");
 	GasCylinder->SetGenerateOverlapEvents(true);
-	
-	SetActiveAttackCollision(false);
 }
 
 void AGasTank::BeginPlay()
@@ -62,6 +55,11 @@ void AGasTank::BeginPlay()
 	PartMeshes.Add(EBodyPart::RightLeg, RightLeg);
 	PartMeshes.Add(EBodyPart::LeftArm, LeftArm);
 	PartMeshes.Add(EBodyPart::RightArm, RightArm);
+
+	SetCollisionPartMesh(LeftArm);
+	SetCollisionPartMesh(RightArm);
+	SetCollisionPartMesh(LeftLeg);
+	SetCollisionPartMesh(RightLeg);
 
 	JetBalloonComponent = NewObject<UJetBalloonComponent>(this);
 	AddOwnedComponent(JetBalloonComponent);
@@ -137,10 +135,4 @@ void AGasTank::OnTriggerEnter(AActor* OtherActor, ACollisionTriggerParam* Param)
 	{
 		Super::OnTriggerEnter(OtherActor, Param);
 	}
-}
-
-void AGasTank::SetActiveAttackCollision(bool Active) const
-{
-	AttackPoint->SetVisibility(Active);
-	AttackPoint->SetCollisionEnabled(Active? ECollisionEnabled::QueryOnly : ECollisionEnabled::NoCollision);
 }
