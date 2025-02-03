@@ -13,6 +13,7 @@
 #include "FSM/DemolisherAttackState.h"
 #include "FSM/DemolisherFSMComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Kismet/KismetStringLibrary.h"
 #include "Kismet/KismetSystemLibrary.h"
@@ -371,7 +372,7 @@ void ADemolisher::ChargeTo(float Speed, float Acceleration)
         	
             // GameDebug::ShowDisplayLog(GetWorld(), FString::SanitizeFloat(ChargeSpeed));
             CurrentChargeSpeed += Acceleration;
-            FVector Delta = Direction * CurrentChargeSpeed * GetWorld()->GetDeltaSeconds();
+            FVector Delta = Direction * CurrentChargeSpeed * 0.01f;
             FVector Location = GetActorLocation();
         	
             SetActorLocation(Location + Delta);
@@ -418,6 +419,25 @@ void ADemolisher::FinishAttack()
 	{
 		D_Anim->SetChargingAttack(false);
 	}
+
+	TWeakObjectPtr<APawn> Player = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
+
+	if (Player.IsValid())
+	{
+		FRotator NewRotation = UKismetMathLibrary::FindLookAtRotation(GetOwner()->GetActorLocation(), Player->GetActorLocation());
+		SetActorRotation(NewRotation);
+	}
+
+	FTimerHandle WaitTimerHandle;
+	TWeakObjectPtr<ADemolisher> WeakThis = this;
 	
-	Super::FinishAttack();
+	GetWorldTimerManager().SetTimer(
+		WaitTimerHandle,
+		[WeakThis] ()
+		{
+			WeakThis->Super::FinishAttack();
+		},
+		1.f,
+		false
+	);
 }
