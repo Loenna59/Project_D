@@ -37,12 +37,22 @@ void UPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	GroundSpeed = Velocity.Size2D();
 	bShouldMove = (GroundSpeed > 3.0f) && (UKismetMathLibrary::NotEqual_VectorVector(Movement->GetCurrentAcceleration(), FVector::ZeroVector, 0.0f));
 	bIsFalling = Movement->IsFalling();
-	UE_LOG(LogTemp, Warning, TEXT("%hs"), bIsFalling ? "Falling" : "Not Falling");
 	MovementVector = Player->MovementVector;
+	float ControlPitch = Player->GetControlRotation().Pitch;
+	if (ControlPitch > 180.0f) {
+		ControlPitch = 360.0f - ControlPitch;
+	}
+	else
+	{
+		ControlPitch = -ControlPitch;	
+	}
+	ControlPitch /= 3;
+	AimRotation = FRotator(0.0f, 0.0f, ControlPitch);
 
 	// States
 	bIsDead = Player->bIsDead;
 	PlayerState = Player->State;
+	PlayerHandState = Player->HandState;
 }
 
 void UPlayerAnimInstance::AnimNotify_OnDropkickImpact() const

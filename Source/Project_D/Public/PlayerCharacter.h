@@ -24,6 +24,14 @@ enum class EPlayerState : uint8
 	Zipping
 };
 
+UENUM()
+enum class EPlayerHandState : uint8
+{
+	Hand,
+	Machete,
+	Gun
+};
+
 UCLASS()
 class PROJECT_D_API APlayerCharacter : public ACharacter
 {
@@ -59,7 +67,9 @@ public:
 public:
 	// Components
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-	UStaticMeshComponent* WeaponMesh = nullptr;
+	UStaticMeshComponent* MacheteMesh = nullptr;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	UStaticMeshComponent* GunMesh = nullptr;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	UCameraComponent* PlayerCamera = nullptr;
 
@@ -109,10 +119,15 @@ public:
 	void CompletedSprint();
 	void StartedEquipment();
 	void MoveOnGround();
+	void PickGun();
+	void PickMachete();
+	void PickHand();
 
 	// States
 	UPROPERTY()
 	EPlayerState State = EPlayerState::WalkingOnGround;
+	UPROPERTY()
+	EPlayerHandState HandState = EPlayerHandState::Hand;
 	int Hp = 100;
 	int MaxHp = 100;
 	bool bIsHardLanding = false;

@@ -63,8 +63,6 @@ void UActionComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 		1.0f
 	);
 	bIsOnLand = bHit;
-
-	UE_LOG(LogTemp, Warning, TEXT("%hs"), bIsOnLand ? "OnLand" : "Not On Land");
 }
 
 void UActionComponent::FlyingToTarget(const float DeltaTime)

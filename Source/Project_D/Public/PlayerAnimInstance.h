@@ -34,6 +34,8 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Binded Data|States")
 	EPlayerState PlayerState = EPlayerState::WalkingOnGround;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Binded Data|States")
+	EPlayerHandState PlayerHandState = EPlayerHandState::Hand;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Binded Data|States")
 	bool bShouldMove = false;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Binded Data|States")
 	bool bIsFalling = false;
@@ -46,6 +48,8 @@ protected:
 	FVector Velocity = FVector::ZeroVector;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Binded Data|Values")
 	float GroundSpeed = 0.0f;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Binded Data|Values")
+	FRotator AimRotation = FRotator::ZeroRotator;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Binded Data|Fall")
 	float MinHardFallVelocity = 1000.0f;

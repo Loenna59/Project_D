@@ -35,7 +35,8 @@ APlayerCharacter::APlayerCharacter()
 	}
 	
 	
-	WeaponMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("WeaponMesh"));
+	MacheteMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MacheteMesh"));
+	GunMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("GunMesh"));
 	PlayerCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("PlayerCamera"));
 	PlayerCamera->bUsePawnControlRotation = true;
 	PlayerCamera->SetFieldOfView(100.0f);              
@@ -65,7 +66,7 @@ void APlayerCharacter::BeginPlay()
     }
 
 	// Bind Event
-	WeaponMesh->OnComponentBeginOverlap.AddDynamic(this, &APlayerCharacter::OnWeaponBeginOverlap);
+	MacheteMesh->OnComponentBeginOverlap.AddDynamic(this, &APlayerCharacter::OnWeaponBeginOverlap);
 
 	// Add Input Mapping Context
 	if (const auto PlayerController = Cast<APlayerController>(Controller))
@@ -146,6 +147,10 @@ void APlayerCharacter::Tick(float DeltaTime)
 void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
+
+	PlayerInputComponent->BindKey(EKeys::One, IE_Pressed, this, &APlayerCharacter::PickGun);
+	PlayerInputComponent->BindKey(EKeys::Two, IE_Pressed, this, &APlayerCharacter::PickMachete);
+	PlayerInputComponent->BindKey(EKeys::Three, IE_Pressed, this, &APlayerCharacter::PickHand);
 	
 	if (const auto PlayerInput = CastChecked<UEnhancedInputComponent>(PlayerInputComponent))
 	{
@@ -217,6 +222,41 @@ void APlayerCharacter::MoveOnGround()
 	AddMovementInput(RightDirection, MovementVector.X);
 }
 
+void APlayerCharacter::PickGun()
+{
+	if (HandState == EPlayerHandState::Gun)
+	{
+		PickHand();
+	}
+	else
+	{
+		HandState = EPlayerHandState::Gun;
+		GunMesh->SetVisibility(true);
+		MacheteMesh->SetVisibility(false);
+	}
+}
+
+void APlayerCharacter::PickMachete()
+{
+	if (HandState == EPlayerHandState::Machete)
+	{
+		PickHand();
+	}
+	else
+	{
+		HandState = EPlayerHandState::Machete;
+		GunMesh->SetVisibility(false);
+		MacheteMesh->SetVisibility(true);
+	}
+}
+
+void APlayerCharacter::PickHand()
+{
+	HandState = EPlayerHandState::Hand;
+	GunMesh->SetVisibility(false);
+	MacheteMesh->SetVisibility(false);
+}
+
 void APlayerCharacter::OnZiplineBeginOverlap(AZipline* InZipline)
 {
 	if (EPlayerState::Zipping == State)
@@ -253,8 +293,8 @@ void APlayerCharacter::OnWeaponBeginOverlap(UPrimitiveComponent* OverlappedCompo
 			FHitResult HitResult;
 			const bool bHit = UKismetSystemLibrary::SphereTraceSingle(
 				GetWorld(),
-				WeaponMesh->GetComponentLocation(),
-				WeaponMesh->GetComponentLocation(),
+				MacheteMesh->GetComponentLocation(),
+				MacheteMesh->GetComponentLocation(),
 				30.0f,
 				UEngineTypes::ConvertToTraceType(ECC_Visibility),
 				false,
@@ -412,8 +452,11 @@ void APlayerCharacter::StartedAttack()
 	{
 		return;
 	}
-	
-	ActionComponent->TriggerMeleeAttack();
+
+	if (HandState == EPlayerHandState::Machete)
+	{
+		ActionComponent->TriggerMeleeAttack();
+	}
 }
 
 void APlayerCharacter::StartedKick()
