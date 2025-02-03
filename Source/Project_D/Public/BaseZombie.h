@@ -8,6 +8,7 @@
 #include "EBodyPart.h"
 #include "PathVector.h"
 #include "ZombieFSMComponent.h"
+#include "ZombieTriggerParam.h"
 #include "GameFramework/Character.h"
 #include "BaseZombie.generated.h"
 
@@ -108,6 +109,9 @@ public:
 	virtual void OnStartAttack();
 
 	virtual void OnDead();
+
+	virtual void PhysicsAttack(AZombieTriggerParam* ZombieParam, FHitResult HitResult, USkeletalMeshComponent* MeshComponent,
+	                   bool& IsSimulated);
 
 	UFUNCTION()
 	virtual void OnTriggerEnter(AActor* OtherActor, ACollisionTriggerParam* Param) override;
