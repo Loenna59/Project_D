@@ -25,6 +25,7 @@ public:
 	UProgressBar* ProgressBarHp;
 	UPROPERTY(meta=(BindWidget))
 	UStackBox* StackBox;
+	UPROPERTY(meta=(BindWidget))
 	UUserWidget* DemolisherHealthUI;
 	
 	void OnChangeHp(int Hp, int MaxHp);
