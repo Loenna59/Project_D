@@ -7,5 +7,5 @@ void UDemolisherHealthUI::OnChangeHp(int Hp, int MaxHp)
 {
 	TextHp->SetText(FText::FromString(FString::Printf(TEXT("%d"), Hp)));
 	
-	ProgressBarHp->SetPercent(static_cast<float>(Hp) / MaxHp);
+	ProgressBarHp->SetPercent(FMath::Max(0, static_cast<float>(Hp) / MaxHp));
 }
