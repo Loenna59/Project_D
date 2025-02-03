@@ -383,22 +383,22 @@ void ABaseZombie::OnDead()
 		VaultGameModeBase->DecreaseCount();
 	}
 
-	// FTimerHandle TimerHandle;
-	//
-	// TWeakObjectPtr<ABaseZombie> WeakSelf = this;
-	//
-	// GetWorldTimerManager().SetTimer(
-	// 	TimerHandle,
-	// 	[WeakSelf] ()
-	// 	{
-	// 		if (WeakSelf.IsValid())
-	// 		{
-	// 			WeakSelf->Destroy();
-	// 		}
-	// 	},
-	// 	5.f,
-	// 	false
-	// );
+	FTimerHandle TimerHandle;
+	
+	TWeakObjectPtr<ABaseZombie> WeakSelf = this;
+	
+	GetWorldTimerManager().SetTimer(
+		TimerHandle,
+		[WeakSelf] ()
+		{
+			if (WeakSelf.IsValid())
+			{
+				WeakSelf->Destroy();
+			}
+		},
+		5.f,
+		false
+	);
 }
 
 void ABaseZombie::PhysicsAttack(AZombieTriggerParam* const ZombieParam, FHitResult HitResult, USkeletalMeshComponent* MeshComponent, bool& IsSimulated)
@@ -503,7 +503,7 @@ void ABaseZombie::OnTriggerEnter(AActor* OtherActor, ACollisionTriggerParam* Par
 
 		if (!bIsAttacking && !IsSimulated)
 		{
-			bIsHitting = true;
+			// bIsHitting = true;
 			Evaluate();
 
 			if (HitTimerHandle.IsValid())
@@ -523,7 +523,7 @@ void ABaseZombie::OnTriggerEnter(AActor* OtherActor, ACollisionTriggerParam* Par
 						{
 							if (WeakThis.IsValid())
 							{
-								WeakThis->bIsHitting = false;
+								// WeakThis->bIsHitting = false;
 							}
 						},
 						PlayLength,
