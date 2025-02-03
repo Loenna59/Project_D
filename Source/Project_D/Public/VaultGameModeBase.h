@@ -26,6 +26,10 @@ public:
 	
 	int32 ZombieCount = 0;
 
+	UPROPERTY()
+	bool bIsAppearDemolisher;
+
+	UPROPERTY()
 	AActor* DemolisherSpawnPoint;
 
 	void IncreaseCount();
