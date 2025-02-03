@@ -239,14 +239,14 @@ void ABaseZombie::Dismemberment(EBodyPart Part)
 	{
 		USkeletalMeshComponent* PartMesh = PartMeshes[Part];
 
+		FDetachmentTransformRules Rules(EDetachmentRule::KeepWorld, true);
+		PartMesh->DetachFromComponent(Rules);
 		PartMesh->SetLeaderPoseComponent(nullptr);
+
 		PartMesh->SetCollisionProfileName("Ragdoll");
 		PartMesh->SetSimulatePhysics(true);
+		PartMesh->ResetAllBodiesSimulatePhysics();
 		PartMesh->SetCollisionResponseToChannel(ECC_EngineTraceChannel2, ECR_Ignore);
-
-		FDetachmentTransformRules Rules(EDetachmentRule::KeepRelative, true);
-		
-		PartMesh->DetachFromComponent(Rules);
 		
 		PartMesh->AddImpulse(CalculateImpulse());
 	}
@@ -312,22 +312,22 @@ void ABaseZombie::OnDead()
 		VaultGameModeBase->DecreaseCount();
 	}
 
-	FTimerHandle TimerHandle;
-
-	TWeakObjectPtr<ABaseZombie> WeakSelf = this;
-	
-	GetWorld()->GetTimerManager().SetTimer(
-		TimerHandle,
-		[WeakSelf] ()
-		{
-			if (WeakSelf.IsValid())
-			{
-				WeakSelf->Destroy();
-			}
-		},
-		5.f,
-		false
-	);
+	// FTimerHandle TimerHandle;
+	//
+	// TWeakObjectPtr<ABaseZombie> WeakSelf = this;
+	//
+	// GetWorld()->GetTimerManager().SetTimer(
+	// 	TimerHandle,
+	// 	[WeakSelf] ()
+	// 	{
+	// 		if (WeakSelf.IsValid())
+	// 		{
+	// 			WeakSelf->Destroy();
+	// 		}
+	// 	},
+	// 	5.f,
+	// 	false
+	// );
 }
 
 void ABaseZombie::OnTriggerEnter(AActor* OtherActor, ACollisionTriggerParam* Param)
