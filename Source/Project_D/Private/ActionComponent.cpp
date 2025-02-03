@@ -677,6 +677,14 @@ void UActionComponent::TriggerHangingHorizontalMovement()
 	}
 }
 
+bool UActionComponent::CalcAimVector(FVector& OutLocation, FVector& OutDirection) const
+{
+	const APlayerController* PlayerController = Player->GetLocalViewingPlayerController();
+	int32 ScreenWidth, ScreenHeight;
+	PlayerController->GetViewportSize(ScreenWidth, ScreenHeight);
+	return PlayerController->DeprojectScreenPositionToWorld(ScreenWidth * 0.5f, ScreenHeight * 0.5f, OutLocation, OutDirection);
+}
+
 bool UActionComponent::TriggerRideZipline()
 {
 	// 근처에 Zipline이 없다면
@@ -700,23 +708,10 @@ bool UActionComponent::TriggerRideZipline()
 
 void UActionComponent::TriggerGrapplingHook()
 {
-	// 1. 화면 중앙(크로스헤어 위치)의 방향 벡터를 알고 싶다.
-	// 2. 해당 방향으로 특정 거리 만큼 LineTrace를 하고 싶다.
-
-	const APlayerController* PlayerController = Player->GetLocalViewingPlayerController();
-	
-	// 화면 크기를 구한다.
-	int32 ScreenWidth, ScreenHeight;
-	PlayerController->GetViewportSize(ScreenWidth, ScreenHeight);
-	FVector WorldLocation, WorldDirection;
-
-	// 현재 활성화된 ViewTarget(Player에 부착된 카메라)의 정중앙 위치가 월드좌표상에서 어떤 방향인지 구한다.
-	// WorldLocation : ViewTarget의 월드 좌표 (PlayerCamara의 월드 좌표)
-	// WorldDirection : ViewTarget 중앙이 가리키는 방향
-	if (PlayerController->DeprojectScreenPositionToWorld(ScreenWidth * 0.5f, ScreenHeight * 0.5f, WorldLocation, WorldDirection))
+	if (FVector AimLocation, AimDirection; CalcAimVector(AimLocation, AimDirection))
 	{
-		const FVector Start = WorldLocation;  // 카메라 위치가 시작지점
-		const FVector End = Start + (WorldDirection * HookDistance);  // 화면 중앙 방향으로 HookDistance 만큼
+		const FVector Start = AimLocation;  // 카메라 위치가 시작지점
+		const FVector End = Start + (AimDirection * HookDistance);  // 화면 중앙 방향으로 HookDistance 만큼
 
 		FHitResult HitResult;
 		FCollisionQueryParams QueryParams;
@@ -751,6 +746,29 @@ void UActionComponent::TriggerMeleeAttack()
 	Player->bIsAttacking = true;
 	PlayerAnimInstance->OnMontageEnded.AddDynamic(this, &UActionComponent::OnMeleeAttackMontageEnded);
 	PlayerAnimInstance->Montage_Play(MeleeAttackMontage);
+}
+
+void UActionComponent::TriggerGunShot()
+{
+	if (FVector AimLocation, AimDirection; CalcAimVector(AimLocation, AimDirection))
+	{
+		const FVector Start = AimLocation;  // 카메라 위치가 시작지점
+		const FVector End = Start + (AimDirection * 10000.0f);  // 화면 중앙 방향으로 HookDistance 만큼
+
+		FHitResult HitResult;
+		FCollisionQueryParams QueryParams;
+		QueryParams.AddIgnoredActor(Player);  // 자신은 무시
+
+		// Projectile Collision Preset으로 Raytrace (Projectile과 반응하는 경우에만 감지)
+		if (const bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_GameTraceChannel1, QueryParams))
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Hit Actor: %s"), *HitResult.GetActor()->GetName());
+		}
+		//if (true == bVerboseShooting)
+		{
+			DrawDebugLine(GetWorld(), Start, End, FColor::Red, false, 1.0f, 0, 1.0f);
+		}
+	}
 }
 
 void UActionComponent::OnStandingKickMontageEnded(UAnimMontage* Montage, bool bInterrupted)

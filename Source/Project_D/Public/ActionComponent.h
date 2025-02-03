@@ -179,9 +179,13 @@ public:
 	void TriggerHangingHorizontalMovement();
 
 public:
+	bool CalcAimVector(FVector& OutLocation, FVector& OutDirection) const;
+	
 	UFUNCTION()
 	void OnMeleeAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted);
 	void TriggerMeleeAttack();
+
+	void TriggerGunShot();
 	
 	UFUNCTION()
 	void OnStandingKickMontageEnded(UAnimMontage* Montage, bool bInterrupted);

@@ -455,6 +455,10 @@ void APlayerCharacter::StartedAttack()
 	{
 		ActionComponent->TriggerMeleeAttack();
 	}
+	else if (HandState == EPlayerHandState::Gun)
+	{
+		ActionComponent->TriggerGunShot();
+	}
 }
 
 void APlayerCharacter::StartedKick()
