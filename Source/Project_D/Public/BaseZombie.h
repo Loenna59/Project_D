@@ -10,6 +10,7 @@
 #include "ZombieFSMComponent.h"
 #include "ZombieTriggerParam.h"
 #include "GameFramework/Character.h"
+#include "UI/DemolisherHealthUI.h"
 #include "BaseZombie.generated.h"
 
 UCLASS()
@@ -62,6 +63,9 @@ public:
 
 	UPROPERTY()
 	int32 CurrentHp;
+
+	UPROPERTY()
+	UDemolisherHealthUI* HealthUI;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 MaxHp = 100;

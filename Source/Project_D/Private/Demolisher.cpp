@@ -6,6 +6,7 @@
 #include "DemolisherAnimInstance.h"
 #include "DemolisherProp.h"
 #include "PlayerCharacter.h"
+#include "PlayerHUD.h"
 #include "TraceChannelHelper.h"
 #include "VaultGameModeBase.h"
 #include "Components/BoxComponent.h"
@@ -15,8 +16,6 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
-#include "Kismet/KismetStringLibrary.h"
-#include "Kismet/KismetSystemLibrary.h"
 #include "Pathfinding/PathfindingComponent.h"
 #include "Pathfinding/ZombieAIController.h"
 #include "Project_D/Project_DCharacter.h"
@@ -47,6 +46,23 @@ void ADemolisher::BeginPlay()
 	AActor::BeginPlay();
 
 	CurrentHp = MaxHp;
+
+	APawn* PlayPawn = GetWorld()->GetFirstPlayerController()->GetPawn();
+	if (PlayPawn)
+	{
+		APlayerCharacter* Player = Cast<APlayerCharacter>(PlayPawn);
+		if (Player)
+		{
+			UUserWidget* UI = Player->PlayerHUD->DemolisherHealthUI;
+			HealthUI = Cast<UDemolisherHealthUI>(UI);
+
+			if (HealthUI)
+			{
+				HealthUI->SetVisibility(ESlateVisibility::Visible);
+				HealthUI->OnChangeHp(CurrentHp, MaxHp);
+			}
+		}
+	}
 
 	// GetMesh()->SetMassOverrideInKg(NAME_None, Mass);
 	GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
@@ -95,6 +111,9 @@ void ADemolisher::Tick(float DeltaSeconds)
 
 	if (CurrentHp <= 0)
 	{
+		// 죽음상태로 강제
+		AI->StopMovement();
+		FSM->ChangeState(EEnemyState::DEATH, this);
 		return;
 	}
 	
@@ -503,4 +522,14 @@ void ADemolisher::PhysicsAttack(AZombieTriggerParam* ZombieParam, FHitResult Hit
 			
 	}
 	
+}
+
+void ADemolisher::OnTriggerEnter(class AActor* OtherActor, class ACollisionTriggerParam* Param)
+{
+	Super::OnTriggerEnter(OtherActor, Param);
+
+	if (HealthUI)
+	{
+		HealthUI->OnChangeHp(CurrentHp, MaxHp);
+	}
 }

@@ -30,6 +30,8 @@ public:
 	virtual void FinishAttack() override;
 
 	virtual void PhysicsAttack(AZombieTriggerParam* ZombieParam, FHitResult HitResult, USkeletalMeshComponent* MeshComponent, bool& IsSimulated) override;
+
+	virtual void OnTriggerEnter(class AActor* OtherActor, class ACollisionTriggerParam* Param) override;
 	
 	void Throw();
 	

@@ -170,7 +170,7 @@ void UPlayerAnimInstance::AnimNotify_OnStandingKickImpact() const
 					AZombieTriggerParam* Param = NewObject<AZombieTriggerParam>();
 	        	
 					// 데미지 처리
-					Param->Damage = 10;
+					Param->Damage = 99999;
 					Param->HitResult = Hit;
 					Param->bIsSimulatePhysics = true;
 					Param->ImpulseStrength = ImpulseStrength;
