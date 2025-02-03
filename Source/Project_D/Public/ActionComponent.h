@@ -103,6 +103,10 @@ public:
 	UParticleSystem* HitConcreteParticle = nullptr;
 	UPROPERTY(EditDefaultsOnly, Category = "Actions|Shooting")
     UParticleSystem* HitLeatherParticle = nullptr;
+	UPROPERTY(EditDefaultsOnly, Category = "Actions|Shooting")
+	USoundBase* FireSound = nullptr;
+	UPROPERTY(EditDefaultsOnly, Category = "Actions|Shooting")
+	float FireSoundVolumeMultiplier = 1.0f;
 
 	UPROPERTY()
 	APlayerCharacter* Player = nullptr;
