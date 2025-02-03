@@ -28,8 +28,6 @@ protected:
 	UCharacterMovementComponent* Movement = nullptr;
 	UPROPERTY()
 	UActionComponent* ActionComponent = nullptr;
-	
-	
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Binded Data|States")
 	EPlayerState PlayerState = EPlayerState::WalkingOnGround;
@@ -60,4 +58,12 @@ protected:
 	void AnimNotify_OnDropkickImpact() const;
 	UFUNCTION()
 	void AnimNotify_OnStandingKickImpact() const;
+
+public:
+	UFUNCTION()
+	void ProceduralRecoil(float Multiplier);
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	FTransform Recoil = FTransform::Identity;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	FTransform RecoilTransform = FTransform::Identity;
 };

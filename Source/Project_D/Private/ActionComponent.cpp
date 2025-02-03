@@ -752,6 +752,7 @@ void UActionComponent::TriggerMeleeAttack()
 
 void UActionComponent::TriggerGunShot()
 {
+	PlayerAnimInstance->ProceduralRecoil(1.5f);
 	if (FVector AimLocation, AimDirection; CalcAimVector(AimLocation, AimDirection))
 	{
 		const FVector Start = AimLocation;  // 카메라 위치가 시작지점

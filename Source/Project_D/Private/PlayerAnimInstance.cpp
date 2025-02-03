@@ -53,6 +53,9 @@ void UPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	bIsDead = Player->bIsDead;
 	PlayerState = Player->State;
 	PlayerHandState = Player->HandState;
+
+	Recoil = UKismetMathLibrary::TInterpTo(Recoil, RecoilTransform, DeltaSeconds, 25.0f);
+	RecoilTransform = UKismetMathLibrary::TInterpTo(RecoilTransform, FTransform::Identity, DeltaSeconds, 15.0f);
 }
 
 void UPlayerAnimInstance::AnimNotify_OnDropkickImpact() const
@@ -191,4 +194,21 @@ void UPlayerAnimInstance::AnimNotify_OnStandingKickImpact() const
 			2.0f
 		);
 	}
+}
+
+void UPlayerAnimInstance::ProceduralRecoil(float Multiplier)
+{
+	RecoilTransform = FTransform::Identity;
+	FRotator RecoilRotation = RecoilTransform.Rotator();
+	float X = UKismetMathLibrary::RandomFloatInRange(-2.5f, -5.0f) * Multiplier;
+	float Y = UKismetMathLibrary::RandomFloatInRange(-0.8f, 0.8f) * Multiplier;
+	float Z = UKismetMathLibrary::RandomFloatInRange(-1.6f, 1.6f) * Multiplier;
+	RecoilRotation = FRotator(Y, Z, X);
+	FVector RecoilLocation = RecoilTransform.GetLocation();
+	X = UKismetMathLibrary::RandomFloatInRange(-0.16f, 0.16f) * Multiplier;
+	Y = UKismetMathLibrary::RandomFloatInRange(-1.1f, -2.1f) * Multiplier;
+	Z = UKismetMathLibrary::RandomFloatInRange(0.0f, 0.0f) * Multiplier;
+	RecoilLocation = FVector(X, Y, Z);
+	RecoilTransform.SetLocation(RecoilLocation);
+	RecoilTransform.SetRotation(RecoilRotation.Quaternion());
 }
