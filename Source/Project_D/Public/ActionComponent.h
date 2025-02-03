@@ -97,6 +97,12 @@ public:
 	float HookDistance = 1000.0f;
 	UPROPERTY(EditDefaultsOnly, Category = "Actions|Flying")
 	bool bVerboseGrappling = false;
+	UPROPERTY(EditDefaultsOnly, Category = "Actions|Shooting")
+	float Damage = 10.0f;
+	UPROPERTY(EditDefaultsOnly, Category = "Actions|Shooting")
+	UParticleSystem* HitConcreteParticle = nullptr;
+	UPROPERTY(EditDefaultsOnly, Category = "Actions|Shooting")
+    UParticleSystem* HitLeatherParticle = nullptr;
 
 	UPROPERTY()
 	APlayerCharacter* Player = nullptr;

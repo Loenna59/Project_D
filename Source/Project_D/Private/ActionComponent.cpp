@@ -10,6 +10,7 @@
 #include "PlayerAnimInstance.h"
 #include "Zipline.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Kismet/KismetSystemLibrary.h"
 
@@ -774,6 +775,11 @@ void UActionComponent::TriggerGunShot()
 				Param->HitResult = HitResult;
 				Param->bIsSimulatePhysics = false;
 				Zombie->OnTriggerEnter(Player, Param);
+				UGameplayStatics::SpawnEmitterAtLocation(this, HitLeatherParticle, HitResult.ImpactPoint);
+			}
+			else
+			{
+				UGameplayStatics::SpawnEmitterAtLocation(this, HitConcreteParticle, HitResult.ImpactPoint);
 			}
 		}
 		//if (true == bVerboseShooting)
