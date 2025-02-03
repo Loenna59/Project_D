@@ -40,9 +40,9 @@ void UJetBalloonComponent::StartSimulate(USkeletalMeshComponent* Mesh)
 	Mesh->SetSimulatePhysics(true);
 
 	FVector RandomImpulse = FVector(
-	FMath::FRandRange(-25.f, 25.f),
-	FMath::FRandRange(-25.f, 25.f),
-		FMath::FRandRange(10.f, 20.f) // 위쪽 방향 힘 추가
+	FMath::FRandRange(-50.f, 50.f),
+	FMath::FRandRange(-50.f, 50.f),
+		FMath::FRandRange(50.f, 100.f) // 위쪽 방향 힘 추가
 	);
 			
 	FVector ImpulseLocation = Mesh->GetComponentLocation().UpVector;
@@ -52,9 +52,9 @@ void UJetBalloonComponent::StartSimulate(USkeletalMeshComponent* Mesh)
 			
 	// 특정 뼈에도 추가적인 Force 적용 (예: pelvis 아래쪽)
 	FVector BoneForce = FVector(
-		FMath::FRandRange(-10.f, 10.f),
-        FMath::FRandRange(-10.f, 10.f),
-        FMath::FRandRange(10.f, 15.f)
+		FMath::FRandRange(-20.f, 20.f),
+        FMath::FRandRange(-20.f, 20.f),
+        FMath::FRandRange(20.f, 50.f)
 	);
 	
 	Mesh->AddImpulseToAllBodiesBelow(BoneForce, "Spine", true, true);
