@@ -11,7 +11,7 @@ void ATitleMode::BeginPlay()
 {
 	Super::BeginPlay();
 
-	ensure(UIFactory);
+	// ensure(UIFactory);
 	
 	UUserWidget* UI = CreateWidget<UTitleUI>(GetWorld(), UIFactory, TEXT("TitleUI"));
 	UI->AddToViewport();

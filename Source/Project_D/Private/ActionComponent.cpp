@@ -789,6 +789,7 @@ void UActionComponent::TriggerGunShot()
 				// 데미지 처리
 				Param->Damage = 10;
 				Param->HitResult = HitResult;
+				Param->HitBoneName = HitResult.BoneName;
 				Param->bIsSimulatePhysics = false;
 				Zombie->OnTriggerEnter(Player, Param);
 				UGameplayStatics::SpawnEmitterAtLocation(this, HitLeatherParticle, HitResult.ImpactPoint);
