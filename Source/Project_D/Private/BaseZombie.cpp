@@ -4,7 +4,7 @@
 #include "BaseZombie.h"
 
 #include "ExplosiveCollisionActor.h"
-#include "GameDebug.h"
+#include "NiagaraFunctionLibrary.h"
 #include "PlayerCharacter.h"
 #include "TraceChannelHelper.h"
 #include "VaultGameModeBase.h"
@@ -12,7 +12,6 @@
 #include "Animation/ZombieAnimInstance.h"
 #include "Components/BoxComponent.h"
 #include "Components/CapsuleComponent.h"
-#include "Components/DecalComponent.h"
 #include "Effect/BloodDecalActor.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -102,6 +101,9 @@ void ABaseZombie::Tick(float DeltaTime)
 
 	if (CurrentHp <= 0)
 	{
+		// 죽음상태로 강제
+		AI->StopMovement();
+		FSM->ChangeState(EEnemyState::DEATH, this);
 		return;
 	}
 	
@@ -245,10 +247,10 @@ bool ABaseZombie::ApplyDamageToBone(EBodyPart Part, int32 Damage)
 
 void ABaseZombie::Dismemberment(EBodyPart Part)
 {
-	BrokenParts.Add(Part);
-
 	if (PartMeshes.Contains(Part))
 	{
+		BrokenParts.Add(Part);
+		
 		USkeletalMeshComponent* PartMesh = PartMeshes[Part];
 
 		FDetachmentTransformRules Rules(EDetachmentRule::KeepWorld, true);
@@ -261,6 +263,41 @@ void ABaseZombie::Dismemberment(EBodyPart Part)
 		PartMesh->SetCollisionResponseToChannel(ECC_EngineTraceChannel2, ECR_Ignore);
 		
 		PartMesh->AddImpulse(CalculateImpulse());
+
+		FName SocketName = NAME_None;
+
+		switch (Part)
+		{
+		case EBodyPart::Head:
+			SocketName = TEXT("NeckSocket");
+			break;
+		case EBodyPart::LeftArm:
+			SocketName = TEXT("LeftArmSocket");
+			break;
+		case EBodyPart::RightArm:
+			SocketName = TEXT("RightArmSocket");
+			break;
+		}
+
+		if (GetMesh()->DoesSocketExist(SocketName))
+		{
+			FTransform SocketTransform = GetMesh()->GetSocketTransform(SocketName);
+			// UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+			// 	GetWorld(),
+			// 	BloodNiagaraSystem,
+			// 	SocketTransform.GetLocation(),
+			// 	SocketTransform.GetRotation().Rotator()
+			// );
+			UNiagaraFunctionLibrary::SpawnSystemAttached(
+				BloodNiagaraSystem,
+				GetMesh(),
+				SocketName,
+				FVector::ZeroVector,
+				FRotator::ZeroRotator,
+				EAttachLocation::Type::SnapToTarget,
+				true
+			);
+		}
 	}
 }
 

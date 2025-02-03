@@ -104,6 +104,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TSubclassOf<class ABloodDecalActor> BloodDecalFactory;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	class UNiagaraSystem* BloodNiagaraSystem;
+
 	virtual bool ContainsBrokenBones(TArray<FName> BoneNames);
 
 	virtual void OnStartAttack();
