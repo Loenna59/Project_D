@@ -17,10 +17,7 @@ public:
 	AZombieTriggerParam();
 	
 	int32 Damage;
-
 	FName HitBoneName;
-
 	bool bIsSimulatePhysics = false;
-
-	float ImpulseStrength;
+	FVector Impulse;
 };

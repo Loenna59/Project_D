@@ -408,11 +408,8 @@ void ABaseZombie::PhysicsAttack(AZombieTriggerParam* const ZombieParam, FHitResu
 			
 	if (IsSimulated)
 	{
-		// GameDebug::ShowDisplayLog(GetWorld(), "OnTriggerEnter", FColor::Red);
-		const FVector ForwardVector = HitResult.GetActor()->GetActorForwardVector();
-				
 		MeshComponent->SetSimulatePhysics(true); // 해당 컴포넌트의 물리 시뮬레이션을 활성화 하고
-		const FVector Impulse = ForwardVector * ZombieParam->ImpulseStrength; // 임펄스의 크기 벡터
+		const FVector Impulse = ZombieParam->Impulse; // 임펄스의 크기 벡터
 		MeshComponent->AddImpulseAtLocation(Impulse, HitResult.ImpactPoint); // 벡터 방향으로 날려버린다
 	}
 }
@@ -477,7 +474,6 @@ void ABaseZombie::OnTriggerEnter(AActor* OtherActor, ACollisionTriggerParam* Par
 			if (ApplyDamageToBone(Part, Damage))
 			{
 				// GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Cyan, HitBoneName.ToString());
-				// FSM->ChangeState(EEnemyState::CLAWING, this);
 				Dismemberment(Part);
 
 				if (InstantKilled(Part))
@@ -503,7 +499,6 @@ void ABaseZombie::OnTriggerEnter(AActor* OtherActor, ACollisionTriggerParam* Par
 
 		if (!bIsAttacking && !IsSimulated)
 		{
-			// bIsHitting = true;
 			Evaluate();
 
 			if (HitTimerHandle.IsValid())
@@ -515,21 +510,7 @@ void ABaseZombie::OnTriggerEnter(AActor* OtherActor, ACollisionTriggerParam* Par
 			AnimationInstance->PlayMontage(
 				AI,
 				AnimState::Hit,
-				[WeakThis] (float PlayLength)
-				{
-					WeakThis->GetWorldTimerManager().SetTimer(
-						WeakThis->HitTimerHandle,
-						[WeakThis] ()
-						{
-							if (WeakThis.IsValid())
-							{
-								// WeakThis->bIsHitting = false;
-							}
-						},
-						PlayLength,
-						false
-					);
-				}
+				[] (float _){}
 			);
 			
 		}

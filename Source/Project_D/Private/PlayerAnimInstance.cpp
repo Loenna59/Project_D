@@ -105,7 +105,7 @@ void UPlayerAnimInstance::AnimNotify_OnDropkickImpact() const
 	        		Param->Damage = 99999;
 	        		Param->HitResult = Hit;
 	        		Param->bIsSimulatePhysics = true;
-	        		Param->ImpulseStrength = ImpulseStrength;
+	        		Param->Impulse = ForwardVector * ImpulseStrength;
 	        		Zombie->OnTriggerEnter(Player, Param);
 	        		break;
 	        	}
@@ -173,7 +173,7 @@ void UPlayerAnimInstance::AnimNotify_OnStandingKickImpact() const
 					Param->Damage = 99999;
 					Param->HitResult = Hit;
 					Param->bIsSimulatePhysics = true;
-					Param->ImpulseStrength = ImpulseStrength;
+					Param->Impulse = ForwardVector * ImpulseStrength;
 					Zombie->OnTriggerEnter(Player, Param);
 					break;
 				}
