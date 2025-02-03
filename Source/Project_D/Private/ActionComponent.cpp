@@ -754,6 +754,16 @@ void UActionComponent::TriggerGunShot()
 {
 	PlayerAnimInstance->ProceduralRecoil(1.5f);
 	UGameplayStatics::PlaySound2D(this, FireSound, FireSoundVolumeMultiplier);
+	const auto* PlayerMesh = Player->GetMesh();
+	const auto SocketTransform = PlayerMesh->GetSocketTransform(TEXT("RightHandGunMuzzleSocket"));
+	UGameplayStatics::SpawnEmitterAtLocation(this, MuzzleParticle, SocketTransform.GetLocation(), SocketTransform.Rotator());
+	/*UGameplayStatics::SpawnEmitterAttached(
+		MuzzleParticle,
+		Player->GetMesh(),
+		TEXT("RightHandGunMuzzleSocket"),
+		SocketTransform.GetLocation(),
+		SocketTransform.GetRotation().Rotator()
+	);*/
 	
 	if (FVector AimLocation, AimDirection; CalcAimVector(AimLocation, AimDirection))
 	{
