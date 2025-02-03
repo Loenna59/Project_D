@@ -361,21 +361,19 @@ void APlayerCharacter::OnDead()
 		// GameOverUI 생성 (아직 표시 X)
 		UGameOverUI* GameOverUI = Cast<UGameOverUI>(CreateWidget(GetWorld(), GameOverUIFactory));
 
+		TWeakObjectPtr<APostProcessVolume> WeakPostProcess = PostProcessVolume;
+		TWeakObjectPtr<UGameOverUI> WeakUI = GameOverUI;
+
 		// 3초 뒤에...
 		FTimerHandle TimerHandle;
 		GetWorld()->GetTimerManager().SetTimer(
 			TimerHandle,
-			[PostProcessVolume, GameOverUI]()
+			[WeakPostProcess, WeakUI]()
 			{
-				// 흑백 효과 삭제
-				if (PostProcessVolume && PostProcessVolume->IsValidLowLevel())
+				if (WeakPostProcess.IsValid() && WeakUI.IsValid())
 				{
-					PostProcessVolume->Destroy();
-				}
-
-				if (GameOverUI)
-				{
-					GameOverUI->AddToViewport();
+					WeakPostProcess->Destroy();
+					WeakUI->AddToViewport();
 				}
 			},
 			3.0f,

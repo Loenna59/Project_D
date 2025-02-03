@@ -22,12 +22,18 @@ void UAttackZombieState::OnEnter(ABaseZombie* Zombie)
 	{
 		// UKismetSystemLibrary::PrintString(GetWorld(),TEXT("ATTACK"));
 		Zombie->OnStartAttack();
+
+		TWeakObjectPtr<ABaseZombie> WeakObject = Zombie;
 		
 		GetWorld()->GetTimerManager().SetTimer(
 			TimerHandle,
-			[Zombie] ()
+			[WeakObject] ()
 			{
-				Zombie->FinishAttack();		
+				if (!WeakObject.IsValid())
+				{
+					return;
+				}
+				WeakObject->FinishAttack();		
 			},
 			Interval,
 			false 

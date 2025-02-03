@@ -4,14 +4,11 @@
 #include "GasTank.h"
 
 #include "ExplosiveCollisionActor.h"
-#include "GameDebug.h"
 #include "PlayerCharacter.h"
 #include "TraceChannelHelper.h"
 #include "VaultGameModeBase.h"
-#include "Animation/ZombieAnimInstance.h"
 #include "Components/BoxComponent.h"
 #include "Kismet/GameplayStatics.h"
-#include "Pathfinding/ZombieAIController.h"
 #include "PhysicsEngine/RadialForceActor.h"
 
 

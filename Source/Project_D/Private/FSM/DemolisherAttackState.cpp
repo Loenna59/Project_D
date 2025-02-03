@@ -86,12 +86,17 @@ void UDemolisherAttackState::UpdateAttackPattern(ABaseZombie* Zombie)
 		Duration = ThrowDuration;
 		Demolisher->Throw();
 	}
-
+	
 	GetWorld()->GetTimerManager().SetTimer(
 		TimerHandle,
-		[Zombie] ()
+		[Demolisher] ()
 		{
-			Zombie->FinishAttack();		
+			if (!Demolisher.IsValid())
+			{
+				return;
+			}
+			
+			Demolisher->FinishAttack();		
 		},
 		Duration,
 		false
