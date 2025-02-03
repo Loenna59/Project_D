@@ -61,7 +61,6 @@ public:
 	float AttackRadius = 200.f;
 	
 	bool bIsAttacking = false;
-	bool bIsHitting = false;
 
 	UPROPERTY()
 	int32 CurrentHp;

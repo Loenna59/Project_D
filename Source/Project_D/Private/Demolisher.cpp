@@ -120,7 +120,7 @@ void ADemolisher::Tick(float DeltaSeconds)
 	
 	if (UWorld* const World = GetWorld())
 	{
-		if (bIsAttacking || bIsHitting)
+		if (bIsAttacking)
 		{
 			return;
 		}
@@ -486,7 +486,6 @@ void ADemolisher::PhysicsAttack(AZombieTriggerParam* ZombieParam, FHitResult Hit
 {
 	if (!bIsAttacking)
 	{
-		bIsHitting = true;
 		Evaluate();
 
 		if (HitTimerHandle.IsValid())
@@ -500,25 +499,7 @@ void ADemolisher::PhysicsAttack(AZombieTriggerParam* ZombieParam, FHitResult Hit
 		AnimationInstance->PlayMontage(
 			AI,
 			AnimState::Hit,
-			[WeakThis] (float PlayLength)
-			{
-				if (WeakThis.IsValid())
-				{
-					WeakThis->GetWorldTimerManager().SetTimer(
-						WeakThis->HitTimerHandle,
-						[WeakThis] ()
-						{
-							if (!WeakThis.IsValid())
-							{
-								return;
-							}
-							WeakThis->bIsHitting = false;
-						},
-						PlayLength,
-						false
-					);
-				}
-			}
+			[] (float _){}
 		);
 			
 	}

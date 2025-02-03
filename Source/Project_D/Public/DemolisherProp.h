@@ -27,6 +27,9 @@ public:
 	ADemolisherProp();
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	class USoundWave* SFX;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class UParticleSystem* ParticleSystem;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)

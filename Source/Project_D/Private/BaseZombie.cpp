@@ -131,7 +131,7 @@ void ABaseZombie::Tick(float DeltaTime)
 	
 	if (UWorld* const World = GetWorld())
 	{
-		if (bIsAttacking || bIsHitting)
+		if (bIsAttacking)
 		{
 			return;
 		}

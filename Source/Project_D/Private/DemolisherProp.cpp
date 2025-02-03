@@ -4,6 +4,7 @@
 #include "DemolisherProp.h"
 
 #include "GameDebug.h"
+#include "PlayerCharacter.h"
 #include "GeometryCollection/GeometryCollectionComponent.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -71,7 +72,16 @@ void ADemolisherProp::OnCollisionHit(UPrimitiveComponent* HitComponent, AActor* 
 
 	bIsCollisionHit = true;
 
+	UGameplayStatics::PlaySoundAtLocation(GetWorld(), SFX, Hit.Location);
 	UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ParticleSystem, Hit.Location);
+
+	if (AActor* HitActor = Hit.GetActor())
+	{
+		if (APlayerCharacter* Player = Cast<APlayerCharacter>(HitActor))
+		{
+			Player->OnDamaged(20);
+		}
+	}
 	
 	FTimerHandle TimerHandle;
 
