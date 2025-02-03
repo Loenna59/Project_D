@@ -3,6 +3,7 @@
 
 #include "ActionComponent.h"
 
+#include "BaseZombie.h"
 #include "PlayerHelper.h"
 #include "Components/CapsuleComponent.h"
 #include "MotionWarpingComponent.h"
@@ -763,6 +764,17 @@ void UActionComponent::TriggerGunShot()
 		if (const bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_GameTraceChannel1, QueryParams))
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Hit Actor: %s"), *HitResult.GetActor()->GetName());
+			// 좀비 액터일 경우에는...
+			if (ABaseZombie* Zombie = Cast<ABaseZombie>(HitResult.GetActor()))
+			{
+				AZombieTriggerParam* Param = NewObject<AZombieTriggerParam>();
+	        	
+				// 데미지 처리
+				Param->Damage = 10;
+				Param->HitResult = HitResult;
+				Param->bIsSimulatePhysics = false;
+				Zombie->OnTriggerEnter(Player, Param);
+			}
 		}
 		//if (true == bVerboseShooting)
 		{
