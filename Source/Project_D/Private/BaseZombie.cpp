@@ -361,22 +361,22 @@ void ABaseZombie::OnDead()
 		VaultGameModeBase->DecreaseCount();
 	}
 
-	FTimerHandle TimerHandle;
-	
-	TWeakObjectPtr<ABaseZombie> WeakSelf = this;
-	
-	GetWorldTimerManager().SetTimer(
-		TimerHandle,
-		[WeakSelf] ()
-		{
-			if (WeakSelf.IsValid())
-			{
-				WeakSelf->Destroy();
-			}
-		},
-		5.f,
-		false
-	);
+	// FTimerHandle TimerHandle;
+	//
+	// TWeakObjectPtr<ABaseZombie> WeakSelf = this;
+	//
+	// GetWorldTimerManager().SetTimer(
+	// 	TimerHandle,
+	// 	[WeakSelf] ()
+	// 	{
+	// 		if (WeakSelf.IsValid())
+	// 		{
+	// 			WeakSelf->Destroy();
+	// 		}
+	// 	},
+	// 	5.f,
+	// 	false
+	// );
 }
 
 void ABaseZombie::PhysicsAttack(AZombieTriggerParam* const ZombieParam, FHitResult HitResult, USkeletalMeshComponent* MeshComponent, bool& IsSimulated)

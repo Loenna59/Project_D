@@ -17,10 +17,21 @@ class PROJECT_D_API AVaultGameModeBase : public AGameModeBase
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TSubclassOf<class UGameClearUI> UIFactory;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TSubclassOf<class ADemolisher> DemolisherFactory;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	class ULevelSequence* DemolisherSequence;
 	
 	int32 ZombieCount = 0;
 
+	AActor* DemolisherSpawnPoint;
+
 	void IncreaseCount();
 	void DecreaseCount();
+
+	UFUNCTION()
+	void OnSequenceFinished();
 	
 };
