@@ -4,6 +4,7 @@
 #include "PlayerHUD.h"
 
 #include "Components/ProgressBar.h"
+#include "Components/StackBox.h"
 #include "Components/TextBlock.h"
 
 void UPlayerHUD::OnChangeHp(const int Hp, const int MaxHp)
@@ -12,4 +13,9 @@ void UPlayerHUD::OnChangeHp(const int Hp, const int MaxHp)
 	TextHp->SetText(FText::FromString(FString::Printf(TEXT("%d"), Hp)));
 	
 	ProgressBarHp->SetPercent(static_cast<float>(Hp) / MaxHp);
+}
+
+void UPlayerHUD::OnZombieCleared()
+{
+	StackBox->RemoveChildAt(1);
 }

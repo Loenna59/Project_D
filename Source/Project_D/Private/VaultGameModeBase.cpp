@@ -3,8 +3,8 @@
 
 #include "VaultGameModeBase.h"
 
-#include "GameDebug.h"
-#include "UI/GameClearUI.h"
+#include "PlayerCharacter.h"
+#include "PlayerHUD.h"
 
 void AVaultGameModeBase::IncreaseCount()
 {
@@ -15,10 +15,19 @@ void AVaultGameModeBase::IncreaseCount()
 void AVaultGameModeBase::DecreaseCount()
 {
 	ZombieCount--;
+	UE_LOG(LogTemp, Display, TEXT("Number of Zombie: %d"), ZombieCount);
 
-	FString Str = FString::Printf(TEXT("Number of Zombie: %d"), ZombieCount);
-	
-	GameDebug::ShowDisplayLog(GetWorld(), Str);
+	// 미션 목록에서 좀비 소탕 미션을 삭제
+	if (ZombieCount <= 0)
+	{
+		if (const APlayerCharacter* Player = Cast<APlayerCharacter>(GetOwner()))
+		{
+			if (Player->PlayerHUD)
+			{
+				Player->PlayerHUD->OnZombieCleared();
+			}
+		};
+	}
 	// if (ZombieCount <= 0)
 	// {
 	// 	UGameClearUI* GameClearUI = Cast<UGameClearUI>(CreateWidget(GetWorld(), UIFactory));

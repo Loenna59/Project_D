@@ -7,6 +7,7 @@
 #include "Blueprint/UserWidget.h"
 #include "PlayerHUD.generated.h"
 
+class UStackBox;
 class UTextBlock;
 class UProgressBar;
 /**
@@ -22,6 +23,9 @@ public:
 	UTextBlock* TextHp;
 	UPROPERTY(meta=(BindWidget))
 	UProgressBar* ProgressBarHp;
+	UPROPERTY(meta=(BindWidget))
+	UStackBox* StackBox;
 	
 	void OnChangeHp(int Hp, int MaxHp);
+	void OnZombieCleared();
 };
