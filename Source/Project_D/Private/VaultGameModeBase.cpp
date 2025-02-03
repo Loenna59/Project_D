@@ -81,16 +81,32 @@ void AVaultGameModeBase::DecreaseCount()
 			{
 				DemolisherSpawnPoint = FoundActors[0];
 
-				// 시퀀스 시작
 				FMovieSceneSequencePlaybackSettings PlaybackSettings;
 				ALevelSequenceActor* OutActor;
 			
 				ULevelSequencePlayer* LevelSequencePlayer = ULevelSequencePlayer::CreateLevelSequencePlayer(GetWorld(), DemolisherSequence, PlaybackSettings, OutActor);
-				if (LevelSequencePlayer->IsValidLowLevel())
-				{
-					LevelSequencePlayer->Play();
-					LevelSequencePlayer->OnFinished.AddDynamic(this, &AVaultGameModeBase::OnSequenceFinished);
-				}
+
+				FTimerHandle PlayerTimerHandle;
+				TWeakObjectPtr<ULevelSequencePlayer> WeakPlayer = LevelSequencePlayer;
+				TWeakObjectPtr<AVaultGameModeBase> WeakThis = this;
+
+				GetWorld()->GetTimerManager().SetTimer(
+					PlayerTimerHandle,
+					[WeakPlayer, WeakThis] ()
+					{
+						if (WeakPlayer->IsValidLowLevel())
+						{
+							// 시퀀스 시작
+							WeakPlayer->Play();
+							WeakPlayer->OnFinished.AddDynamic(WeakThis.Get(), &AVaultGameModeBase::OnSequenceFinished);
+							
+						}
+						
+					},
+					3.f,
+					false
+				);
+				
 			}
 			
 		}
