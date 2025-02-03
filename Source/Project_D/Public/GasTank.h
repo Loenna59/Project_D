@@ -21,8 +21,6 @@ public:
 	
 	virtual void Tick(float DeltaSeconds) override;
 
-	virtual void OnDead() override;
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class USkeletalMeshComponent* LeftArm;
 

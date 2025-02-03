@@ -107,16 +107,6 @@ void AGasTank::Tick(float DeltaSeconds)
 
 }
 
-void AGasTank::OnDead()
-{
-	if (AVaultGameModeBase* VaultGameModeBase = Cast<AVaultGameModeBase>(GetWorld()->GetAuthGameMode()))
-	{
-		VaultGameModeBase->DecreaseCount();
-	}
-	
-	Super::OnDead();
-}
-
 void AGasTank::OnTriggerEnter(AActor* OtherActor, ACollisionTriggerParam* Param)
 {
 	if (GasTankDurablity > 0 && Param->HitResult.Component == GasCylinder)

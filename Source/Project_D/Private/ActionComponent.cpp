@@ -778,7 +778,7 @@ void UActionComponent::TriggerGunShot()
 		QueryParams.AddIgnoredActor(Player);  // 자신은 무시
 
 		// Projectile Collision Preset으로 Raytrace (Projectile과 반응하는 경우에만 감지)
-		if (const bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_GameTraceChannel1, QueryParams))
+		if (const bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility, QueryParams))
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Hit Actor: %s"), *HitResult.GetActor()->GetName());
 			// 좀비 액터일 경우에는...
@@ -790,7 +790,6 @@ void UActionComponent::TriggerGunShot()
 				Param->Damage = 10;
 				Param->HitResult = HitResult;
 				Param->HitBoneName = HitResult.BoneName;
-				Param->bIsSimulatePhysics = false;
 				Zombie->OnTriggerEnter(Player, Param);
 				UGameplayStatics::SpawnEmitterAtLocation(this, HitLeatherParticle, HitResult.ImpactPoint);
 			}
