@@ -101,6 +101,8 @@ void UProject_DWeaponComponent::Fire()
 									Param->Damage = 5;
 									Param->HitBoneName = HitResult.BoneName;
 									Param->HitResult = HitResult;
+
+									GameDebug::ShowDisplayLog(GetWorld(), HitResult.BoneName.ToString());
 									
 									Trigger->OnTriggerEnter(HitActor, Param);
 								}
