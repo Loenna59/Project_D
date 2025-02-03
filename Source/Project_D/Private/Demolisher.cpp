@@ -441,3 +441,38 @@ void ADemolisher::FinishAttack()
 		false
 	);
 }
+
+void ADemolisher::PhysicsAttack(AZombieTriggerParam* ZombieParam, FHitResult HitResult,
+	USkeletalMeshComponent* MeshComponent, bool& IsSimulated)
+{
+	if (!bIsAttacking)
+	{
+		bIsHitting = true;
+		Evaluate();
+
+		if (HitTimerHandle.IsValid())
+		{
+			GetWorld()->GetTimerManager().ClearTimer(HitTimerHandle);
+			HitTimerHandle.Invalidate();
+		}
+			
+		AnimationInstance->PlayMontage(
+			AI,
+			AnimState::Hit,
+			[this] (float PlayLength)
+			{
+				GetWorld()->GetTimerManager().SetTimer(
+					HitTimerHandle,
+					[this] ()
+					{
+						bIsHitting = false;
+					},
+					PlayLength,
+					false
+				);
+			}
+		);
+			
+	}
+	
+}

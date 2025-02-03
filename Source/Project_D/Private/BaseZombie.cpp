@@ -312,22 +312,38 @@ void ABaseZombie::OnDead()
 		VaultGameModeBase->DecreaseCount();
 	}
 
-	// FTimerHandle TimerHandle;
-	//
-	// TWeakObjectPtr<ABaseZombie> WeakSelf = this;
-	//
-	// GetWorld()->GetTimerManager().SetTimer(
-	// 	TimerHandle,
-	// 	[WeakSelf] ()
-	// 	{
-	// 		if (WeakSelf.IsValid())
-	// 		{
-	// 			WeakSelf->Destroy();
-	// 		}
-	// 	},
-	// 	5.f,
-	// 	false
-	// );
+	FTimerHandle TimerHandle;
+	
+	TWeakObjectPtr<ABaseZombie> WeakSelf = this;
+	
+	GetWorld()->GetTimerManager().SetTimer(
+		TimerHandle,
+		[WeakSelf] ()
+		{
+			if (WeakSelf.IsValid())
+			{
+				WeakSelf->Destroy();
+			}
+		},
+		5.f,
+		false
+	);
+}
+
+void ABaseZombie::PhysicsAttack(AZombieTriggerParam* const ZombieParam, FHitResult HitResult, USkeletalMeshComponent* MeshComponent, bool& IsSimulated)
+{
+	IsSimulated = MeshComponent && ZombieParam->bIsSimulatePhysics;
+	// GameDebug::ShowDisplayLog(GetWorld(), FString::FromInt(IsSimulated), FColor::White);
+			
+	if (IsSimulated)
+	{
+		// GameDebug::ShowDisplayLog(GetWorld(), "OnTriggerEnter", FColor::Red);
+		const FVector ForwardVector = HitResult.GetActor()->GetActorForwardVector();
+				
+		MeshComponent->SetSimulatePhysics(true); // 해당 컴포넌트의 물리 시뮬레이션을 활성화 하고
+		const FVector Impulse = ForwardVector * ZombieParam->ImpulseStrength; // 임펄스의 크기 벡터
+		MeshComponent->AddImpulseAtLocation(Impulse, HitResult.ImpactPoint); // 벡터 방향으로 날려버린다
+	}
 }
 
 void ABaseZombie::OnTriggerEnter(AActor* OtherActor, ACollisionTriggerParam* Param)
@@ -399,19 +415,9 @@ void ABaseZombie::OnTriggerEnter(AActor* OtherActor, ACollisionTriggerParam* Par
 
 		CurrentHp -= Damage;
 
-		bool IsSimulated = MeshComponent && ZombieParam->bIsSimulatePhysics;
-		// GameDebug::ShowDisplayLog(GetWorld(), FString::FromInt(IsSimulated), FColor::White);
-			
-		if (IsSimulated)
-		{
-			// GameDebug::ShowDisplayLog(GetWorld(), "OnTriggerEnter", FColor::Red);
-			const FVector ForwardVector = HitResult.GetActor()->GetActorForwardVector();
-				
-			MeshComponent->SetSimulatePhysics(true); // 해당 컴포넌트의 물리 시뮬레이션을 활성화 하고
-			const FVector Impulse = ForwardVector * ZombieParam->ImpulseStrength; // 임펄스의 크기 벡터
-			MeshComponent->AddImpulseAtLocation(Impulse, HitResult.ImpactPoint); // 벡터 방향으로 날려버린다
-		}
-		
+		bool IsSimulated;
+		PhysicsAttack(ZombieParam, HitResult, MeshComponent, IsSimulated);
+
 		if (CurrentHp <= 0)
 		{
 			FSM->ChangeState(EEnemyState::DEATH, this);
