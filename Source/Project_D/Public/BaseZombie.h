@@ -36,6 +36,8 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	virtual void Evaluate();
+	
+	bool RotateToTarget();
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TMap<FName, EBodyPart> BoneRangeMap;

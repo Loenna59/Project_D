@@ -15,6 +15,7 @@
 #include "Effect/BloodDecalActor.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "Pathfinding/PathfindingComponent.h"
 #include "Pathfinding/ZombieAIController.h"
 #include "Project_D/Project_DCharacter.h"
@@ -92,6 +93,27 @@ void ABaseZombie::Evaluate()
 	Pathfinding->GetPaths(this);
 
 	FSM->EvaluateState(this);
+}
+
+bool ABaseZombie::RotateToTarget()
+{
+	if (!AI || !AI->TargetActor)
+	{
+		return true;
+	}
+	
+	FRotator Rotation = GetActorRotation();
+	FRotator TargetRotation = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), AI->TargetActor->GetActorLocation());
+
+	FRotator NewRotation = FMath::RInterpTo(Rotation, TargetRotation, GetWorld()->GetDeltaSeconds(), 5.f);
+
+	SetActorRotation(NewRotation);
+
+	float DeltaYaw = FMath::Abs(NewRotation.Yaw - TargetRotation.Yaw);
+
+	float Tolerance = 1.f; //임계값
+
+	return DeltaYaw <= Tolerance;
 }
 
 // Called every frame

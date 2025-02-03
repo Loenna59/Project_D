@@ -28,15 +28,19 @@ void UDemolisherAttackState::OnEnter(ABaseZombie* Zombie)
 		TimerHandle.Invalidate();
 	}
 	
-	if (Zombie)
-	{
-		UpdateAttackPattern(Zombie);
-	}
+	bIsRotateComplete = false;
+	bIsStartAttack = false;
 }
 
 void UDemolisherAttackState::OnUpdate(ABaseZombie* Zombie)
 {
-	
+	bIsRotateComplete = Zombie->RotateToTarget();
+
+	if (Zombie && bIsRotateComplete && !bIsStartAttack)
+	{
+		bIsStartAttack = true;
+		UpdateAttackPattern(Zombie);
+	}
 }
 
 void UDemolisherAttackState::OnExit(ABaseZombie* Zombie)

@@ -37,4 +37,7 @@ private:
 	
 	float ChargeSpeed;
 	float ChargeAcceleration;
+	
+	bool bIsRotateComplete = false;
+	bool bIsStartAttack = false;
 };

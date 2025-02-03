@@ -5,6 +5,7 @@
 
 #include "DemolisherAnimInstance.h"
 #include "DemolisherProp.h"
+#include "GameDebug.h"
 #include "PlayerCharacter.h"
 #include "PlayerHUD.h"
 #include "TraceChannelHelper.h"
@@ -24,7 +25,7 @@ class UDemolisherAttackState;
 
 ADemolisher::ADemolisher()
 {
-	GetCharacterMovement()->MaxWalkSpeed = 200.f;
+	GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
 
 	AttackPoint = CreateDefaultSubobject<UBoxComponent>(TEXT("AttackPoint"));
 	AttackPoint->SetupAttachment(GetMesh());
