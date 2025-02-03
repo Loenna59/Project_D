@@ -53,7 +53,7 @@ void ADemolisher::BeginPlay()
 		APlayerCharacter* Player = Cast<APlayerCharacter>(PlayPawn);
 		if (Player)
 		{
-			UUserWidget* UI = Player->PlayerHUD->DemolisherHealthUI;
+			UUserWidget* UI = Player->PlayerHUD->BP_DemolisherHealthUI;
 			HealthUI = Cast<UDemolisherHealthUI>(UI);
 
 			if (HealthUI)

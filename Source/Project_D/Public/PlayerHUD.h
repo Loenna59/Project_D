@@ -26,7 +26,7 @@ public:
 	UPROPERTY(meta=(BindWidget))
 	UStackBox* StackBox;
 	UPROPERTY(meta=(BindWidget))
-	UUserWidget* DemolisherHealthUI;
+	UUserWidget* BP_DemolisherHealthUI;
 	
 	void OnChangeHp(int Hp, int MaxHp);
 	void OnZombieCleared();
