@@ -493,8 +493,6 @@ void ADemolisher::PhysicsAttack(AZombieTriggerParam* ZombieParam, FHitResult Hit
 			GetWorldTimerManager().ClearTimer(HitTimerHandle);
 			HitTimerHandle.Invalidate();
 		}
-
-		TWeakObjectPtr<ADemolisher> WeakThis = this;
 			
 		AnimationInstance->PlayMontage(
 			AI,
