@@ -681,10 +681,13 @@ void UActionComponent::TriggerHangingHorizontalMovement()
 
 bool UActionComponent::CalcAimVector(FVector& OutLocation, FVector& OutDirection) const
 {
-	const APlayerController* PlayerController = Player->GetLocalViewingPlayerController();
-	int32 ScreenWidth, ScreenHeight;
-	PlayerController->GetViewportSize(ScreenWidth, ScreenHeight);
-	return PlayerController->DeprojectScreenPositionToWorld(ScreenWidth * 0.5f, ScreenHeight * 0.5f, OutLocation, OutDirection);
+	if (const APlayerController* PlayerController = Player->GetLocalViewingPlayerController())
+	{
+		int32 ScreenWidth, ScreenHeight;
+		PlayerController->GetViewportSize(ScreenWidth, ScreenHeight);
+		return PlayerController->DeprojectScreenPositionToWorld(ScreenWidth * 0.5f, ScreenHeight * 0.5f, OutLocation, OutDirection);
+	}
+	return false;
 }
 
 bool UActionComponent::TriggerRideZipline()
