@@ -3,17 +3,16 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PlayerCharacter.h"
 #include "Blueprint/UserWidget.h"
-#include "PlayerHUD.generated.h"
+#include "Components/ProgressBar.h"
+#include "Components/TextBlock.h"
+#include "DemolisherHealthUI.generated.h"
 
-class UTextBlock;
-class UProgressBar;
 /**
  * 
  */
 UCLASS()
-class PROJECT_D_API UPlayerHUD : public UUserWidget
+class PROJECT_D_API UDemolisherHealthUI : public UUserWidget
 {
 	GENERATED_BODY()
 
@@ -22,8 +21,6 @@ public:
 	UTextBlock* TextHp;
 	UPROPERTY(meta=(BindWidget))
 	UProgressBar* ProgressBarHp;
-	UPROPERTY(meta=(BindWidget))
-	UUserWidget* DemolisherHealthUI;
 	
 	void OnChangeHp(int Hp, int MaxHp);
 };
