@@ -171,25 +171,37 @@ void ABaseZombie::OnStartAttack()
 	{
 		if (AttackTimerHandle.IsValid())
 		{
-			GetWorld()->GetTimerManager().ClearTimer(AttackTimerHandle);
+			GetWorldTimerManager().ClearTimer(AttackTimerHandle);
 		}
+
+		TWeakObjectPtr<ABaseZombie> WeakThis = this;
 		
-		GetWorld()->GetTimerManager().SetTimer(
+		GetWorldTimerManager().SetTimer(
 			AttackTimerHandle,
-			[this]
+			[WeakThis]
 			{
+				if (!WeakThis.IsValid())
+				{
+					return;
+				}
+				
 				TraceChannelHelper::SphereTraceByChannel(
-					GetWorld(),
-					this,
-					AttackPoint->GetComponentLocation(),
-					AttackPoint->GetComponentLocation(),
+					WeakThis->GetWorld(),
+					WeakThis.Get(),
+					WeakThis->AttackPoint->GetComponentLocation(),
+					WeakThis->AttackPoint->GetComponentLocation(),
 					FRotator::ZeroRotator,
 					ECC_Visibility,
 					70,
 					true,
 					true,
-					[this] (bool bHit, TArray<FHitResult> HitResults)
+					[WeakThis] (bool bHit, TArray<FHitResult> HitResults)
 					{
+						if (!WeakThis.IsValid())
+						{
+							return;
+						}
+						
 						for (FHitResult HitResult : HitResults)
 						{
 							if (AActor* Actor = HitResult.GetActor())
@@ -316,7 +328,7 @@ void ABaseZombie::OnDead()
 	
 	TWeakObjectPtr<ABaseZombie> WeakSelf = this;
 	
-	GetWorld()->GetTimerManager().SetTimer(
+	GetWorldTimerManager().SetTimer(
 		TimerHandle,
 		[WeakSelf] ()
 		{
@@ -356,6 +368,7 @@ void ABaseZombie::OnTriggerEnter(AActor* OtherActor, ACollisionTriggerParam* Par
 		FHitResult HitResult = ZombieParam->HitResult;
 		
 		USkeletalMeshComponent* MeshComponent = GetMesh();
+		TWeakObjectPtr<ABaseZombie> WeakThis = this;
 
 		if (MeshComponent)
 		{
@@ -369,14 +382,19 @@ void ABaseZombie::OnTriggerEnter(AActor* OtherActor, ACollisionTriggerParam* Par
 			
 				TraceChannelHelper::LineTraceByChannel(
 					World,
-					this,
+					WeakThis.Get(),
 					Start,
 					End,
 					ECC_Visibility,
 					true,
 					false,
-					[this](bool bHit, FHitResult HitResult)
+					[WeakThis](bool bHit, FHitResult HitResult)
 					{
+						if (!WeakThis.IsValid())
+						{
+							return;
+						}
+						
 						FVector Location = HitResult.Location;
 						// 법선 벡터를 기준으로 Z축을 정렬
 						FRotator Rotation = FRotationMatrix::MakeFromZ(HitResult.Normal).Rotator();
@@ -387,7 +405,7 @@ void ABaseZombie::OnTriggerEnter(AActor* OtherActor, ACollisionTriggerParam* Par
 						Location.X += FMath::FRandRange(-100.f, 100.f);
 						Location.Y += FMath::FRandRange(-100.f, 100.f);
 						
-						GetWorld()->SpawnActor<ABloodDecalActor>(BloodDecalFactory, Location, Rotation);
+						WeakThis->GetWorld()->SpawnActor<ABloodDecalActor>(WeakThis->BloodDecalFactory, Location, Rotation);
 					}
 				);
 			}
@@ -431,20 +449,23 @@ void ABaseZombie::OnTriggerEnter(AActor* OtherActor, ACollisionTriggerParam* Par
 
 			if (HitTimerHandle.IsValid())
 			{
-				GetWorld()->GetTimerManager().ClearTimer(HitTimerHandle);
+				GetWorldTimerManager().ClearTimer(HitTimerHandle);
 				HitTimerHandle.Invalidate();
 			}
 			
 			AnimationInstance->PlayMontage(
 				AI,
 				AnimState::Hit,
-				[this] (float PlayLength)
+				[WeakThis] (float PlayLength)
 				{
-					GetWorld()->GetTimerManager().SetTimer(
-						HitTimerHandle,
-						[this] ()
+					WeakThis->GetWorldTimerManager().SetTimer(
+						WeakThis->HitTimerHandle,
+						[WeakThis] ()
 						{
-							bIsHitting = false;
+							if (WeakThis.IsValid())
+							{
+								WeakThis->bIsHitting = false;
+							}
 						},
 						PlayLength,
 						false

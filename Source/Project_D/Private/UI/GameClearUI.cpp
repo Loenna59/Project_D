@@ -8,14 +8,19 @@
 void UGameClearUI::NativeOnInitialized()
 {
 	Super::NativeOnInitialized();
+
+	TWeakObjectPtr<UGameClearUI> WeakUI = this;
 	
 	// 3 + 4초 뒤에 UI를 그만 표시할거임.
 	FTimerHandle TimerHandle;
 	GetWorld()->GetTimerManager().SetTimer(
 		TimerHandle,
-		[this]()
+		[WeakUI]()
 		{
-			UGameplayStatics::OpenLevel(GetWorld(), TEXT("TitleMap"));
+			if (WeakUI.IsValid())
+			{
+				UGameplayStatics::OpenLevel(WeakUI->GetWorld(), TEXT("TitleMap"));
+			}
 		},
 		7.0f,
 		false

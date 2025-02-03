@@ -287,24 +287,31 @@ void ADemolisher::Throw()
 	bIsAttacking = true;
 
 	FVector TargetLocation = AI->TargetActor->GetActorLocation();
+
+	TWeakObjectPtr<ADemolisher> WeakThis = this;
 	
 	AnimationInstance->PlayMontage(AI,
 		AnimState::Throw,
-		[this, TargetLocation](float PlayLength)
+		[WeakThis, TargetLocation](float PlayLength)
 		{
+			if (!WeakThis.IsValid())
+			{
+				return;
+			}
 			FActorSpawnParameters SpawnParams;
-			ADemolisherProp* Prop = GetWorld()->SpawnActor<ADemolisherProp>(PropFactory, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
+			ADemolisherProp* Prop = WeakThis->GetWorld()->
+				SpawnActor<ADemolisherProp>(WeakThis->PropFactory, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
 			Prop->GetRootComponent()->SetVisibility(false);
 			
-			if (GetMesh()->DoesSocketExist(TEXT("RightHand")))
+			if (WeakThis->GetMesh()->DoesSocketExist(TEXT("RightHand")))
 			{
-				Prop->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, TEXT("RightHand"));
+				Prop->AttachToComponent(WeakThis->GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, TEXT("RightHand"));
 			}
 
 			TWeakObjectPtr<ADemolisherProp> WeakProp = Prop;
 			
 			FTimerHandle PropTimerHandle;
-			GetWorldTimerManager().SetTimer(
+			WeakThis->GetWorldTimerManager().SetTimer(
 				PropTimerHandle,
 				[WeakProp]()
 				{
@@ -318,9 +325,9 @@ void ADemolisher::Throw()
 			);
 			
 			FTimerHandle PropTimerHandle2;
-			GetWorldTimerManager().SetTimer(
+			WeakThis->GetWorldTimerManager().SetTimer(
 				PropTimerHandle2,
-				[this, WeakProp, TargetLocation]()
+				[WeakThis, WeakProp, TargetLocation]()
 				{
 					if (WeakProp.IsValid())
 					{
@@ -355,31 +362,38 @@ void ADemolisher::ChargeTo(float Speed, float Acceleration)
     FVector Location = GetActorLocation();
     FVector Direction = (TargetLocation - Location).GetSafeNormal();
     CurrentChargeSpeed = Speed;
+
+	TWeakObjectPtr<ADemolisher> WeakThis = this;
 	
     GetWorldTimerManager().SetTimer(
         ChargingTimerHandle,
-        [Direction, Acceleration, this]()
+        [Direction, Acceleration, WeakThis]()
         {
-        	if (!bIsAttacking)
+        	if (!WeakThis.IsValid())
         	{
-        		if (ChargingTimerHandle.IsValid())
+        		return;
+        	}
+        	
+        	if (!WeakThis->bIsAttacking)
+        	{
+        		if (WeakThis->ChargingTimerHandle.IsValid())
         		{
-					GetWorldTimerManager().ClearTimer(ChargingTimerHandle);
-					ChargingTimerHandle.Invalidate();
+					WeakThis->GetWorldTimerManager().ClearTimer(WeakThis->ChargingTimerHandle);
+					WeakThis->ChargingTimerHandle.Invalidate();
 				}
         		return;
         	}
         	
             // GameDebug::ShowDisplayLog(GetWorld(), FString::SanitizeFloat(ChargeSpeed));
-            CurrentChargeSpeed += Acceleration;
-            FVector Delta = Direction * CurrentChargeSpeed * 0.01f;
-            FVector Location = GetActorLocation();
+            WeakThis->CurrentChargeSpeed += Acceleration;
+            FVector Delta = Direction * WeakThis->CurrentChargeSpeed * 0.01f;
+            FVector Location = WeakThis->GetActorLocation();
         	
-            SetActorLocation(Location + Delta);
+            WeakThis->SetActorLocation(Location + Delta);
 
         	TraceChannelHelper::SphereTraceByChannel(
-        		GetWorld(),
-        		this,
+        		WeakThis->GetWorld(),
+        		WeakThis.Get(),
         		Location,
         		Location + Delta,
         		FRotator::ZeroRotator,
@@ -387,8 +401,13 @@ void ADemolisher::ChargeTo(float Speed, float Acceleration)
         		100,
         		true,
         		true,
-        		[this, Direction] (bool bHit, TArray<FHitResult> HitResults)
+        		[WeakThis, Direction] (bool bHit, TArray<FHitResult> HitResults)
         		{
+        			if (!WeakThis.IsValid())
+        			{
+        				return;
+        			}
+        			
         			for (FHitResult Hit : HitResults)
                     {
         				UPrimitiveComponent* HitComp = Hit.GetComponent();
@@ -452,24 +471,33 @@ void ADemolisher::PhysicsAttack(AZombieTriggerParam* ZombieParam, FHitResult Hit
 
 		if (HitTimerHandle.IsValid())
 		{
-			GetWorld()->GetTimerManager().ClearTimer(HitTimerHandle);
+			GetWorldTimerManager().ClearTimer(HitTimerHandle);
 			HitTimerHandle.Invalidate();
 		}
+
+		TWeakObjectPtr<ADemolisher> WeakThis = this;
 			
 		AnimationInstance->PlayMontage(
 			AI,
 			AnimState::Hit,
-			[this] (float PlayLength)
+			[WeakThis] (float PlayLength)
 			{
-				GetWorld()->GetTimerManager().SetTimer(
-					HitTimerHandle,
-					[this] ()
-					{
-						bIsHitting = false;
-					},
-					PlayLength,
-					false
-				);
+				if (WeakThis.IsValid())
+				{
+					WeakThis->GetWorldTimerManager().SetTimer(
+						WeakThis->HitTimerHandle,
+						[WeakThis] ()
+						{
+							if (!WeakThis.IsValid())
+							{
+								return;
+							}
+							WeakThis->bIsHitting = false;
+						},
+						PlayLength,
+						false
+					);
+				}
 			}
 		);
 			
