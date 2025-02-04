@@ -45,6 +45,12 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class USoundWave* DeadSFX;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	class USoundWave* ExplosionSFX;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	class USoundWave* HissingSFX;
+
 	// UFUNCTION()
 	virtual void OnTriggerEnter(AActor* OtherActor, ACollisionTriggerParam* Param) override;
 
