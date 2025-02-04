@@ -123,3 +123,10 @@ void AGasTank::OnTriggerEnter(AActor* OtherActor, ACollisionTriggerParam* Param)
 		Super::OnTriggerEnter(OtherActor, Param);
 	}
 }
+
+void AGasTank::OnDead()
+{
+	UGameplayStatics::PlaySoundAtLocation(GetWorld(), DeadSFX, GetActorLocation(), FRotator::ZeroRotator, 0.5f);
+
+	Super::OnDead();
+}

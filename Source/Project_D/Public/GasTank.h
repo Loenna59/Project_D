@@ -42,8 +42,13 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class UParticleSystem* ExplosionVFX;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	class USoundWave* DeadSFX;
+
 	// UFUNCTION()
 	virtual void OnTriggerEnter(AActor* OtherActor, ACollisionTriggerParam* Param) override;
+
+	virtual void OnDead() override;
 
 	bool bIsExplosion = false;
 

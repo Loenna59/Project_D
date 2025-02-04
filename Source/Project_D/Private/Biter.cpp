@@ -8,6 +8,7 @@
 #include "Animation/ZombieAnimInstance.h"
 #include "Components/BoxComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "Pathfinding/ZombieAIController.h"
 
 ABiter::ABiter()
@@ -79,4 +80,10 @@ void ABiter::OnOverlappedAttackPoint(UPrimitiveComponent* OverlappedComponent, A
 	{
 		Player->OnDamaged(1);
 	}
+}
+
+void ABiter::OnDead()
+{
+	UGameplayStatics::PlaySoundAtLocation(GetWorld(), DeadSFX, GetActorLocation(), FRotator::ZeroRotator, 0.5f);
+	Super::OnDead();
 }
