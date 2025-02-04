@@ -67,6 +67,8 @@ public:
 	UAnimMontage* ClimbingMontage = nullptr;
 	UPROPERTY(EditDefaultsOnly, Category = "Actions|MeleeAttack")
     UAnimMontage* MeleeAttackMontage = nullptr;
+	UPROPERTY(EditDefaultsOnly, Category = "Actions|MeleeAttack")
+	USoundBase* SlashSound = nullptr;
 	UPROPERTY(EditDefaultsOnly, Category = "Actions|KickSound")
 	TArray<USoundBase*> KickSounds;
 	UPROPERTY(EditDefaultsOnly, Category = "Actions|KickSound")
