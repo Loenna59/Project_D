@@ -120,6 +120,7 @@ void AVaultGameModeBase::OnSequenceFinished()
 	{
 		return;
 	}
-
+	
+	UGameplayStatics::PlaySound2D(this, BossBgm, BossBgmVolumeMultiplier);
 	ADemolisher* Demolisher = GetWorld()->SpawnActor<ADemolisher>(DemolisherFactory, DemolisherSpawnPoint->GetActorTransform());
 }

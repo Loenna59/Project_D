@@ -32,6 +32,11 @@ public:
 	UPROPERTY()
 	AActor* DemolisherSpawnPoint;
 
+	UPROPERTY(EditAnywhere)
+	USoundBase* BossBgm = nullptr;
+	UPROPERTY(EditAnywhere)
+	float BossBgmVolumeMultiplier = 0.5f;
+
 	void IncreaseCount();
 	void DecreaseCount();
 
