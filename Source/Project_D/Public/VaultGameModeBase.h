@@ -23,10 +23,11 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class ULevelSequence* DemolisherSequence;
-	
+
+	UPROPERTY(BlueprintReadOnly)
 	int32 ZombieCount = 0;
 
-	UPROPERTY()
+	UPROPERTY(BlueprintReadOnly)
 	bool bIsAppearDemolisher;
 
 	UPROPERTY()
@@ -42,5 +43,7 @@ public:
 
 	UFUNCTION()
 	void OnSequenceFinished();
-	
+
+	UFUNCTION(BlueprintCallable)
+	void GameClear();
 };

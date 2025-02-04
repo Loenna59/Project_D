@@ -23,55 +23,19 @@ void AVaultGameModeBase::DecreaseCount()
 	ZombieCount--;
 	UE_LOG(LogTemp, Display, TEXT("Number of Zombie: %d"), ZombieCount);
 
-	// 미션 목록에서 좀비 소탕 미션을 삭제
-	/*
 	if (ZombieCount <= 0)
 	{
-		if (const APlayerCharacter* Player = Cast<APlayerCharacter>(GetOwner()))
+		if (false == bIsAppearDemolisher)
 		{
-			if (Player->PlayerHUD)
-			{
-				Player->PlayerHUD->OnZombieCleared();
-			}
-		};
-	}
-	*/
-
-	if (ZombieCount <= 0)
-	{
-		if (bIsAppearDemolisher)
-		{
-			UGameClearUI* GameClearUI = Cast<UGameClearUI>(CreateWidget(GetWorld(), UIFactory));
-			// 3초 뒤에...
-			FTimerHandle TimerHandle;
-			
-			APostProcessVolume* PostProcessVolume = GetWorld()->SpawnActor<APostProcessVolume>(APostProcessVolume::StaticClass());
-			if (PostProcessVolume)
-			{
-				PostProcessVolume->bUnbound = true;
-				PostProcessVolume->Settings.MotionBlurAmount = 10.0f;
-			
-				GetWorld()->GetTimerManager().SetTimer(
-					TimerHandle,
-					[GameClearUI, PostProcessVolume]()
-					{
-						if (PostProcessVolume && PostProcessVolume->IsValidLowLevel())
-						{
-							PostProcessVolume->Destroy();
-						}
-						
-						if (GameClearUI)
-						{
-							GameClearUI->AddToViewport();
-						}
-					},
-					3.0f,
-					false
-				);
-			}
-		}
-		else
-		{
+			// 미션 목록에서 좀비 소탕 미션을 삭제
+			if (const APlayerCharacter* Player = Cast<APlayerCharacter>(GetOwner()))
+            {
+            	if (Player->PlayerHUD)
+            	{
+            		Player->PlayerHUD->OnZombieCleared();
+            	}
+            };
+	
 			bIsAppearDemolisher = true;
 			
 			TArray<AActor*> FoundActors;
@@ -99,18 +63,13 @@ void AVaultGameModeBase::DecreaseCount()
 							// 시퀀스 시작
 							WeakPlayer->Play();
 							WeakPlayer->OnFinished.AddDynamic(WeakThis.Get(), &AVaultGameModeBase::OnSequenceFinished);
-							
 						}
-						
 					},
 					3.f,
 					false
 				);
-				
 			}
-			
 		}
-		
 	}
 }
 
@@ -123,4 +82,36 @@ void AVaultGameModeBase::OnSequenceFinished()
 	
 	UGameplayStatics::PlaySound2D(this, BossBgm, BossBgmVolumeMultiplier);
 	ADemolisher* Demolisher = GetWorld()->SpawnActor<ADemolisher>(DemolisherFactory, DemolisherSpawnPoint->GetActorTransform());
+}
+
+void AVaultGameModeBase::GameClear()
+{
+	UGameClearUI* GameClearUI = Cast<UGameClearUI>(CreateWidget(GetWorld(), UIFactory));
+	// 3초 뒤에...
+	FTimerHandle TimerHandle;
+			
+	APostProcessVolume* PostProcessVolume = GetWorld()->SpawnActor<APostProcessVolume>(APostProcessVolume::StaticClass());
+	if (PostProcessVolume)
+	{
+		PostProcessVolume->bUnbound = true;
+		PostProcessVolume->Settings.MotionBlurAmount = 10.0f;
+			
+		GetWorld()->GetTimerManager().SetTimer(
+			TimerHandle,
+			[GameClearUI, PostProcessVolume]()
+			{
+				if (PostProcessVolume && PostProcessVolume->IsValidLowLevel())
+				{
+					PostProcessVolume->Destroy();
+				}
+						
+				if (GameClearUI)
+				{
+					GameClearUI->AddToViewport();
+				}
+			},
+			3.0f,
+			false
+		);
+	}
 }
