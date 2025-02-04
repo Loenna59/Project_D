@@ -7,6 +7,7 @@
 #include "PlayerCharacter.h"
 #include "ZombieTriggerParam.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
 
 void UPlayerAnimInstance::NativeInitializeAnimation()
@@ -107,6 +108,18 @@ void UPlayerAnimInstance::AnimNotify_OnDropkickImpact() const
 	        		Param->bIsSimulatePhysics = true;
 	        		Param->Impulse = ForwardVector * ImpulseStrength;
 	        		Zombie->OnTriggerEnter(Player, Param);
+
+	        		// 찰진 사운드 출력
+	        		if (ActionComponent->KickSounds.Num() > 0)
+	        		{
+	        			const int SoundIndex = UKismetMathLibrary::RandomIntegerInRange(0, ActionComponent->KickSounds.Num() - 1);
+	        			UGameplayStatics::PlaySoundAtLocation(
+	        				this,
+	        				ActionComponent->KickSounds[SoundIndex],
+	        				Hit.ImpactPoint,
+	        				ActionComponent->KickSoundMultiplier
+	        			);
+	        		}
 	        		break;
 	        	}
         	}
@@ -175,6 +188,18 @@ void UPlayerAnimInstance::AnimNotify_OnStandingKickImpact() const
 					Param->bIsSimulatePhysics = true;
 					Param->Impulse = ForwardVector * ImpulseStrength;
 					Zombie->OnTriggerEnter(Player, Param);
+					
+					// 찰진 사운드 출력
+					if (ActionComponent->KickSounds.Num() > 0)
+					{
+						const int SoundIndex = UKismetMathLibrary::RandomIntegerInRange(0, ActionComponent->KickSounds.Num() - 1);
+						UGameplayStatics::PlaySoundAtLocation(
+							this,
+							ActionComponent->KickSounds[SoundIndex],
+							Hit.ImpactPoint,
+							ActionComponent->KickSoundMultiplier
+						);
+					}
 					break;
 				}
 			}

@@ -67,6 +67,10 @@ public:
 	UAnimMontage* ClimbingMontage = nullptr;
 	UPROPERTY(EditDefaultsOnly, Category = "Actions|MeleeAttack")
     UAnimMontage* MeleeAttackMontage = nullptr;
+	UPROPERTY(EditDefaultsOnly, Category = "Actions|KickSound")
+	TArray<USoundBase*> KickSounds;
+	UPROPERTY(EditDefaultsOnly, Category = "Actions|KickSound")
+	float KickSoundMultiplier = 1.0f;
 	UPROPERTY(EditDefaultsOnly, Category = "Actions|StandingKick")
 	UAnimMontage* StandingKickMontage = nullptr;
 	UPROPERTY(EditDefaultsOnly, Category = "Actions|StandingKick")
