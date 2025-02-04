@@ -53,7 +53,7 @@ protected:
 	float MinHardFallVelocity = 1000.0f;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Binded Data|Fall")
 	float MaxSurviveFallVelocity = 2000.0f;
-	
+
 	UFUNCTION()
 	void AnimNotify_OnDropkickImpact() const;
 	UFUNCTION()
