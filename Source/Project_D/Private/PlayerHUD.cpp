@@ -17,5 +17,10 @@ void UPlayerHUD::OnChangeHp(const int Hp, const int MaxHp)
 
 void UPlayerHUD::OnZombieCleared()
 {
+	UE_LOG(LogTemp, Display, TEXT("UPlayerHUD::OnZombieCleared"));
+	if (BP_DemolisherHealthUI)
+	{
+		BP_DemolisherHealthUI->SetVisibility(ESlateVisibility::Hidden);
+	}
 	StackBox->RemoveChildAt(1);
 }

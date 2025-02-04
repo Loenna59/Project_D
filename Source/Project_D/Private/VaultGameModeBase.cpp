@@ -25,17 +25,21 @@ void AVaultGameModeBase::DecreaseCount()
 
 	if (ZombieCount <= 0)
 	{
-		if (false == bIsAppearDemolisher)
+		if (bIsAppearDemolisher)
 		{
+			UE_LOG(LogTemp, Display, TEXT("all zombies die"));
+			
 			// 미션 목록에서 좀비 소탕 미션을 삭제
-			if (const APlayerCharacter* Player = Cast<APlayerCharacter>(GetOwner()))
-            {
-            	if (Player->PlayerHUD)
-            	{
-            		Player->PlayerHUD->OnZombieCleared();
-            	}
-            };
-	
+			if (const APlayerCharacter* Player = Cast<APlayerCharacter>(UGameplayStatics::GetActorOfClass(GetWorld(), APlayerCharacter::StaticClass())))
+			{
+				if (Player->PlayerHUD)
+				{
+					Player->PlayerHUD->OnZombieCleared();
+				}
+			};
+		}
+		else
+		{
 			bIsAppearDemolisher = true;
 			
 			TArray<AActor*> FoundActors;

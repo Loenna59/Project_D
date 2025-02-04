@@ -102,8 +102,6 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Actions|Flying")
 	bool bVerboseGrappling = false;
 	UPROPERTY(EditDefaultsOnly, Category = "Actions|Shooting")
-	float Damage = 10.0f;
-	UPROPERTY(EditDefaultsOnly, Category = "Actions|Shooting")
 	UParticleSystem* HitConcreteParticle = nullptr;
 	UPROPERTY(EditDefaultsOnly, Category = "Actions|Shooting")
     UParticleSystem* HitLeatherParticle = nullptr;
@@ -113,6 +111,8 @@ public:
 	USoundBase* FireSound = nullptr;
 	UPROPERTY(EditDefaultsOnly, Category = "Actions|Shooting")
 	float FireSoundVolumeMultiplier = 1.0f;
+	UPROPERTY(EditDefaultsOnly, Category = "Actions|Shooting")
+	int32 GunDamage = 10;
 
 	UPROPERTY()
 	APlayerCharacter* Player = nullptr;

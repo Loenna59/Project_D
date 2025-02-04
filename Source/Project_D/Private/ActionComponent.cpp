@@ -780,7 +780,7 @@ void UActionComponent::TriggerGunShot()
 				AZombieTriggerParam* Param = NewObject<AZombieTriggerParam>();
 	        	
 				// 데미지 처리
-				Param->Damage = 10;
+				Param->Damage = GunDamage;
 				Param->HitResult = HitResult;
 				Param->HitBoneName = HitResult.BoneName;
 				Zombie->OnTriggerEnter(Player, Param);
