@@ -97,6 +97,8 @@ void AGasTank::Tick(float DeltaSeconds)
 
 			FSM->ChangeState(EEnemyState::DEATH, this);
 
+			UGameplayStatics::PlaySoundAtLocation(GetWorld(), ExplosionSFX, GetActorLocation());
+
 			this->Destroy();
 		}
 	}
@@ -115,6 +117,15 @@ void AGasTank::OnTriggerEnter(AActor* OtherActor, ACollisionTriggerParam* Param)
 		if (GasTankDurablity <= 0)
 		{
 			bIsExplosion = true;
+			UGameplayStatics::SpawnSoundAttached(
+				HissingSFX,
+				GasCylinder,
+				NAME_None,
+				FVector(ForceInit),
+				FRotator::ZeroRotator,
+				EAttachLocation::KeepRelativeOffset,
+				true
+			);
 			Evaluate();
 		}
 	}

@@ -40,20 +40,20 @@ void TraceChannelHelper::LineTraceByChannel(
 		CollisionParams
 	);
 
-	if (DrawDebug)
-	{
-		DrawDebugLineTraceSingle(
-			World,
-			Start,
-			End,
-			EDrawDebugTrace::ForDuration,
-			bHit,
-			HitResult,
-			FColor::Yellow,
-			FColor::Green,
-			1.f
-		);
-	}
+	// if (DrawDebug)
+	// {
+	// 	DrawDebugLineTraceSingle(
+	// 		World,
+	// 		Start,
+	// 		End,
+	// 		EDrawDebugTrace::ForDuration,
+	// 		bHit,
+	// 		HitResult,
+	// 		FColor::Yellow,
+	// 		FColor::Green,
+	// 		1.f
+	// 	);
+	// }
 
 	Callback(bHit, HitResult);
 }
@@ -89,21 +89,21 @@ void TraceChannelHelper::SphereTraceByChannel(
 		Params
 	);
 
-	if (DrawDebug)
-	{
-		DrawDebugSphereTraceMulti(
-			World,
-			Start,
-			End,
-			Radius,
-			EDrawDebugTrace::ForOneFrame,
-			bHit,
-			HitResults,
-			FColor::Yellow,
-			FColor::Green,
-			1.f
-		);
-	}
+	// if (DrawDebug)
+	// {
+	// 	DrawDebugSphereTraceMulti(
+	// 		World,
+	// 		Start,
+	// 		End,
+	// 		Radius,
+	// 		EDrawDebugTrace::ForOneFrame,
+	// 		bHit,
+	// 		HitResults,
+	// 		FColor::Yellow,
+	// 		FColor::Green,
+	// 		1.f
+	// 	);
+	// }
 
 	Callback(bHit, HitResults);
 }
@@ -138,20 +138,20 @@ void TraceChannelHelper::BoxTraceByChannel(
 		CollisionParams
 	);
 
-	if (DrawDebug)
-	{
-		DrawDebugBoxTraceSingle(
-			World,
-			Start,
-			End,
-			HalfSize,
-			Rotator,
-			EDrawDebugTrace::ForDuration,
-			bHit,
-			HitResult,
-			FColor::Yellow,
-			FColor::Green,
-			1.f
-		);
-	}
+	// if (DrawDebug)
+	// {
+	// 	DrawDebugBoxTraceSingle(
+	// 		World,
+	// 		Start,
+	// 		End,
+	// 		HalfSize,
+	// 		Rotator,
+	// 		EDrawDebugTrace::ForDuration,
+	// 		bHit,
+	// 		HitResult,
+	// 		FColor::Yellow,
+	// 		FColor::Green,
+	// 		1.f
+	// 	);
+	// }
 }

@@ -83,7 +83,7 @@ void UDemolisherAttackState::UpdateAttackPattern(ABaseZombie* Zombie)
 	else if (DistanceToPlayer <= Demolisher->MidRangeAttackRadius)
 	{
 		Demolisher->ChargeTo(ChargeSpeed, ChargeAcceleration);
-		Duration = UPhysicsHelper::CalculateDuration(DistanceToPlayer, ChargeSpeed, ChargeAcceleration) * 0.667f;
+		Duration = UPhysicsHelper::CalculateDuration(DistanceToPlayer, ChargeSpeed, ChargeAcceleration) * 0.333f;
 	}
 	else
 	{
