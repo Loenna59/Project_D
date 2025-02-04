@@ -9,6 +9,7 @@
 #include "BaseZombie.h"
 #include "BlankTriggerParam.h"
 #include "FallSafetyZone.h"
+#include "GameDebug.h"
 #include "PlayerHUD.h"
 #include "ZombieTriggerParam.h"
 #include "Blueprint/UserWidget.h"
@@ -285,46 +286,41 @@ void APlayerCharacter::OnWeaponBeginOverlap(UPrimitiveComponent* OverlappedCompo
 		return;
 	}
 	
-	if (ICollisionTrigger* Trigger = Cast<ICollisionTrigger>(OtherActor))
-	{
-		if (ABaseZombie* Zombie = Cast<ABaseZombie>(OtherActor))
-		{
-			TArray<AActor*> ActorsToIgnore;
-			FHitResult HitResult;
-			const bool bHit = UKismetSystemLibrary::SphereTraceSingle(
-				GetWorld(),
-				MacheteMesh->GetComponentLocation(),
-				MacheteMesh->GetComponentLocation(),
-				30.0f,
-				UEngineTypes::ConvertToTraceType(ECC_Visibility),
-				false,
-				ActorsToIgnore,
-				EDrawDebugTrace::None,
-				HitResult,
-				true
-			);
+	TArray<AActor*> ActorsToIgnore;
+	FHitResult HitResult;
+	const bool bHit = UKismetSystemLibrary::SphereTraceSingle(
+		GetWorld(),
+		MacheteMesh->GetComponentLocation(),
+		MacheteMesh->GetComponentLocation(),
+		30.0f,
+		UEngineTypes::ConvertToTraceType(ECC_Visibility),
+		false,
+		ActorsToIgnore,
+		EDrawDebugTrace::None,
+		HitResult,
+		true
+	);
 			
-			if (bHit)
+	if (bHit)
+	{
+		AActor* HitActor = HitResult.GetActor();
+		if (HitActor)
+		{
+			if (ICollisionTrigger* Trigger2 = Cast<ICollisionTrigger>(HitActor))
 			{
-				AActor* HitActor = HitResult.GetActor();
-				if (HitActor)
+				if (ABaseZombie* Zombie2 = Cast<ABaseZombie>(HitActor))
 				{
-					if (ICollisionTrigger* Trigger2 = Cast<ICollisionTrigger>(HitActor))
-					{
-						if (ABaseZombie* Zombie2 = Cast<ABaseZombie>(HitActor))
-						{
-							AZombieTriggerParam* Param = NewObject<AZombieTriggerParam>();
-							Param->Damage = 50;
-							Param->HitBoneName = HitResult.BoneName;
+					AZombieTriggerParam* Param = NewObject<AZombieTriggerParam>();
+					Param->Damage = 50;
+					Param->HitBoneName = HitResult.BoneName;
+					Param->HitResult = HitResult;
 									
-							Trigger2->OnTriggerEnter(HitActor, Param);
-						}
-						else
-						{
-							ABlankTriggerParam* Param = NewObject<ABlankTriggerParam>();
-							Trigger2->OnTriggerEnter(HitActor, Param);
-						}
-					}
+					Trigger2->OnTriggerEnter(HitActor, Param);
+				}
+				else
+				{
+					ABlankTriggerParam* Param = NewObject<ABlankTriggerParam>();
+					Trigger2->OnTriggerEnter(HitActor, Param);
 				}
 			}
 		}
