@@ -760,13 +760,6 @@ void UActionComponent::TriggerGunShot()
 	const auto* PlayerMesh = Player->GetMesh();
 	const auto SocketTransform = PlayerMesh->GetSocketTransform(TEXT("RightHandGunMuzzleSocket"));
 	UGameplayStatics::SpawnEmitterAtLocation(this, MuzzleParticle, SocketTransform.GetLocation(), SocketTransform.Rotator());
-	/*UGameplayStatics::SpawnEmitterAttached(
-		MuzzleParticle,
-		Player->GetMesh(),
-		TEXT("RightHandGunMuzzleSocket"),
-		SocketTransform.GetLocation(),
-		SocketTransform.GetRotation().Rotator()
-	);*/
 	
 	if (FVector AimLocation, AimDirection; CalcAimVector(AimLocation, AimDirection))
 	{
@@ -799,9 +792,9 @@ void UActionComponent::TriggerGunShot()
 			}
 		}
 		//if (true == bVerboseShooting)
-		{
-			DrawDebugLine(GetWorld(), Start, End, FColor::Red, false, 1.0f, 0, 1.0f);
-		}
+		//{
+		//	DrawDebugLine(GetWorld(), Start, End, FColor::Red, false, 1.0f, 0, 1.0f);
+		//}
 	}
 }
 
