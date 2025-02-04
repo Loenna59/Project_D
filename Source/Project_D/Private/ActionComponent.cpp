@@ -730,10 +730,7 @@ void UActionComponent::TriggerGrapplingHook()
 
 			TargetLocationForFlying = HitResult.ImpactPoint;
 			FlyingSpeed = GrapplingSpeed;
-		}
-		if (true == bVerboseGrappling)
-		{
-			DrawDebugLine(GetWorld(), Start, End, FColor::Red, false, 1.0f, 0, 1.0f);
+			DrawDebugLine(GetWorld(), Start, End, FColor::Yellow, false, 3.0f, 0, 1.0f);
 		}
 	}
 }
